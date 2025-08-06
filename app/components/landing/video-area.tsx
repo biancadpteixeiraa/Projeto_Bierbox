@@ -2,7 +2,7 @@ import Button from "../ui/button";
 
 export default function VideoArea() {
   return (
-    <div className="w-full relative h-[550px] overflow-hidden">
+    <div className="w-full relative h-[650px] overflow-hidden">
       <video
         className="w-full h-full absolute top-0 left-0 object-cover z-0"
         loop

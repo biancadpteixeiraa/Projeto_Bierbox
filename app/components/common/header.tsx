@@ -24,15 +24,15 @@ export default function Header() {
 
   return (
     <header className="bg-white flex flex-col font-secondary">
-        <div className='bg-beige-primary h-24 py-2 px-10'>
-            <nav aria-label="Global" className="mx-auto flex max-w-7xl items-center">
+        <div className='bg-beige-primary h-26 py-2 px-10'>
+            <nav aria-label="Global" className="mx-auto px-6 flex max-w-7xl items-center">
                 <div className="flex w-full lg:flex-1 lg:justify-start justify-center">
                     <a href="/" className="">
                         <span className="sr-only">BierBox</span>
                         <img 
                         alt=""
                         src="/Logo.png"
-                        className="size-20"
+                        className="size-24"
                         />
                     </a>
                 </div>
@@ -92,13 +92,13 @@ export default function Header() {
                     <div className="-my-6 divide-y divide-gray-500/10">
                     <div className="space-y-2 py-6">
                         {linksMenu.map((link) => (
-                        <Link
-                            key={link.href}
-                            href={link.href}
-                            className={`text-lg text-beige-primary lg:mx-8 mx-auto hover:font-semibold ${
-                            pathname === link.href ? 'font-semibold' : ''
-                            }`}
-                            >
+                            <Link
+                                key={link.href}
+                                href={link.href}
+                                className={`block text-lg text-brown-primary lg:mx-8 mx-auto hover:font-semibold ${
+                                pathname === link.href ? 'font-semibold' : ''
+                                }`}
+                                >
                                 {link.label}
                             </Link>
                         ))}
@@ -121,7 +121,7 @@ export default function Header() {
             </Dialog>
         </div>
         <div className='bg-yellow-primary hidden lg:block'>
-            <nav aria-label="Global" className="mx-auto flex max-w-7xl items-center justify-center p-6 lg:px-8">
+            <nav aria-label="Global" className="mx-auto flex max-w-7xl items-center justify-center p-5 lg:px-8">
                 <PopoverGroup className="hidden lg:flex lg:gap-x-16">
                  {linksMenu.map((link) => (
                         <Link

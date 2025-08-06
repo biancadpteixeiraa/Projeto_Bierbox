@@ -1,8 +1,13 @@
+import Footer from "../components/common/footer";
 import Header from "../components/common/header";
+import BannerArea from "../components/landing/banner-area";
 import BenefitsArea from "../components/landing/benefits-area";
+import BierweArea from "../components/landing/bierweg-area";
 import ExplanationArea from "../components/landing/explanation-area";
+import InstagramArea from "../components/landing/instagram-area";
+import PlansArea from "../components/landing/plans-area";
 import VideoArea from "../components/landing/video-area";
-import Button from "../components/ui/button";
+
 
 export default function Home() {
   return (
@@ -11,9 +16,11 @@ export default function Home() {
       <VideoArea />
       <ExplanationArea/>
       <BenefitsArea/>
-      <div className="h-48">
-
-      </div>
+      <PlansArea/>
+      <BannerArea/>
+      <InstagramArea/> 
+      <BierweArea/>
+      <Footer/>
     </div>
   );
 }
