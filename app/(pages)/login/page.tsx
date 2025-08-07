@@ -5,7 +5,8 @@ import Link from "next/link";
 export default function Page(){
 
     return(
-        <div className="w-full my-16 px-44 h-screen">
+        <div className="w-full">
+            <main className="py-16 px-44 h-screen">
                 <Link href="/">
                     <div className="flex items-center gap-4">
                         <Icon icon="solar:arrow-left-outline" className="text-3xl text-yellow-primary"/>
@@ -14,15 +15,17 @@ export default function Page(){
                         </p>
                     </div>
                 </Link>
-            <div className="flex flex-col justify-center items-center h-full px-56">
-                <h1 className="font-primary text-2xl text-gray-quaternary pb-2">
-                    Que bom que voltou!
-                </h1>
-                <p className="font-secondary text-sm pb-16">
-                    Não tem uma conta? <Link href={'/cadastro'} className='underline font-bold'>Cadastre-se aqui!</Link>
-                </p>
-                <LoginForm/>
-            </div>
+                <div className="flex flex-col justify-center items-center h-full px-56 pb-10">
+                    <h1 className="font-primary text-2xl text-gray-quaternary pb-2">
+                        Que bom que voltou!
+                    </h1>
+                    <p className="font-secondary text-sm pb-16">
+                        Não tem uma conta? <Link href={'/cadastro'} className='underline font-bold'>Cadastre-se aqui!</Link>
+                    </p>
+                    <LoginForm/>
+                </div>
+
+            </main>
         </div>
     );
 }

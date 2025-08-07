@@ -5,7 +5,7 @@ import Input from "../ui/input";
 export default function CadastroForm(){
 
     return(
-        <form action="" className="w-full flex flex-col gap-8 pb-10">
+        <form action="" className="w-full flex flex-col gap-8">
             <div >
                 <label htmlFor="" className="pb-2 font-secondary text-gray-tertiary text-sm">
                     Informe seu nome completo:

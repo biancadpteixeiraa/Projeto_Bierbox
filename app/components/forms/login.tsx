@@ -1,3 +1,4 @@
+import Link from "next/link";
 import Button from "../ui/button";
 import Input from "../ui/input";
 
@@ -24,9 +25,11 @@ export default function LoginForm(){
                     Esqueci minha senha!
                 </button>
             </div>
-            <Button className="w-full py-4 font-medium text-lg">
-                Entrar
-            </Button>
+            <Link href="/dashboard">
+                <Button className="w-full py-4 font-medium text-lg">
+                    Entrar
+                </Button>
+            </Link>
         </form>
     );
 }

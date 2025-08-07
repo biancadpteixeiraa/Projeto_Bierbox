@@ -9,9 +9,11 @@ import {
 import { UserRound, X, MenuIcon, Refrigerator } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation';
+import ShoppingCart from './shopping-cart'
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [shoppingCartOpen, setShoppingCartOpen] = useState(false)
 
   const pathname = usePathname();
 
@@ -21,6 +23,14 @@ export default function Header() {
     { href: '/rota-da-cerveja', label: 'Rota da Cerveja' },
     { href: '/quem-somos', label: 'Quem Somos' },
   ]
+
+const cartOpen = () => {
+    setShoppingCartOpen(true);
+  };
+
+  const cartClose = () => {
+    setShoppingCartOpen(false);
+  };
 
   return (
     <header className="bg-white flex flex-col font-secondary">
@@ -58,9 +68,9 @@ export default function Header() {
                         </p>
                     </div>
                     <div className='flex items-center'>
-                        <Link href={'/carrinho'} className=''>
+                        <button onClick={cartOpen}>
                             <Refrigerator fill='#654A1F' className="size-12 text-beige-primary" />
-                        </Link>
+                        </button>
                         <span className='flex items-center text-sm bg-brown-tertiary text-beige-primary rounded-full px-1.5 py-0.2 font-medium -ml-1'>
                             2
                         </span>
@@ -137,6 +147,7 @@ export default function Header() {
                 </PopoverGroup>
             </nav>
         </div>
+        <ShoppingCart isOpen={shoppingCartOpen} onClose={cartClose}/>
     </header>
   )
 }

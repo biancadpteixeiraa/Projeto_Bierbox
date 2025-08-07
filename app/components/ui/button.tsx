@@ -6,7 +6,7 @@ export default function Button({
     ...props
 }:{
     children: React.ReactNode;
-    variant?: 'primary' | 'secondary' | 'tertiary';
+    variant?: 'primary' | 'secondary' | 'tertiary' | 'quaternary';
 } & React.ButtonHTMLAttributes<HTMLButtonElement>
 ){
   return (
@@ -16,6 +16,7 @@ export default function Button({
             variant === 'primary' && 'bg-yellow-primary text-beige-primary',
             variant === 'secondary' && 'bg-yellow-secondary text-brown-tertiary',
             variant === 'tertiary' && 'bg-beige-primary text-yellow-primary border border-yellow-primary border-4',
+            variant === 'quaternary' && 'bg-yellow-secondary text-beige-primary',
             props.className
         )}
     >
