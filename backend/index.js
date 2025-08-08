@@ -1,28 +1,27 @@
-// backend/index.js
+// index.js
 const express = require('express');
 const cors = require('cors');
-
-// Importa os arquivos de rotas
 const userRoutes = require('./routes/userRoutes');
-const boxRoutes = require('./routes/boxRoutes'); // 1. Importa as rotas das boxes
+const boxRoutes = require('./routes/boxRoutes');
+const carrinhoRoutes = require('./routes/carrinhoRoutes'); // Importa as rotas do carrinho
 
 const app = express();
 const PORT = 4000;
 
-// Middlewares
 app.use(cors());
 app.use(express.json());
 
-// Rota principal da API (para teste)
 app.get('/', (req, res) => {
-  res.send('API do Bierbox funcionando! 🍻');
+  res.send('APIfuncionando!');
 });
 
-// Conecta os roteadores ao nosso app
+// Rotas existentes
 app.use('/users', userRoutes);
-app.use('/boxes', boxRoutes); // 2. Usa as rotas das boxes para a URL /boxes
+app.use('/boxes', boxRoutes);
 
-// Inicia o servidor
+// Nova rota do carrinho
+app.use('/carrinho', carrinhoRoutes); // Conecta o roteador do carrinho
+
 app.listen(PORT, () => {
-  console.log(`🚀 Servidor rodando em http://localhost:${PORT}` );
+  console.log(`Servidor rodando em http://localhost:${PORT}` );
 });
