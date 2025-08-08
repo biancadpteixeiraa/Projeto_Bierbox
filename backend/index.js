@@ -8,7 +8,9 @@ const carrinhoRoutes = require('./routes/carrinhoRoutes'); // Importa as rotas d
 const app = express();
 const PORT = 4000;
 
-app.use(cors());
+app.use(cors({
+  origin: '*',
+}));
 app.use(express.json());
 
 app.get('/', (req, res) => {

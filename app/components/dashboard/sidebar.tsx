@@ -1,17 +1,15 @@
 'use client';
 
-import Link from 'next/link';
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import NavLinks from './nav-links';
 import Button from '../ui/button';
+import { useAuth } from '@/app/context/authContext';
 
 
 export default function Sidebar() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const router = useRouter();
-
+  const { logout } = useAuth();
 
   return (
     <div className="flex h-full w-full flex-col items-center justify-center md:py-4 py-1 bg-beige-secondary">
@@ -28,9 +26,9 @@ export default function Sidebar() {
       >
         <button className='m-0' onClick={() => setMenuOpen(false)}><NavLinks/></button >
         
-        <form className='flex flex-col items-center justify-center md:mb-4 mb-6'>
-            <Button className='w-full' variant='quaternary'>Sair</Button>
-        </form>
+        <div className='flex flex-col items-center justify-center md:mb-4 mb-6'>
+            <Button onClick={logout} className='w-full' variant='quaternary'>Sair</Button>
+        </div>
       </div>
       
     </div>

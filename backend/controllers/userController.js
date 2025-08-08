@@ -19,7 +19,7 @@ const registerUser = async (req, res) => {
       user: newUser.rows[0],
     });
   } catch (error) {
-    console.error('Erro ao registrar usuário:', error.message);
+    console.error('Erro ao registrar usuário:', error);
     if (error.code === '23505') {
       return res.status(409).json({ message: 'Erro: Email ou CPF já cadastrado.' });
     }
@@ -62,7 +62,7 @@ const loginUser = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Erro ao fazer login:', error.message);
+    console.error('Erro ao fazer login:', error);
     res.status(500).json({ message: 'Erro interno do servidor.' });
   }
 };
