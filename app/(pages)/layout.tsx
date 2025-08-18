@@ -1,6 +1,8 @@
 import "./globals.css";
 import {Dela_Gothic_One} from "next/font/google";
 import { Montserrat } from "next/font/google";
+import { AuthProvider } from "../context/authContext";
+
 
 const delaGothic = Dela_Gothic_One({
   subsets: ['latin'],
@@ -20,7 +22,7 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <body className='antialiased bg-beige-primary text-brown-secodary'>
-        {children}
+        <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
   );

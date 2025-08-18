@@ -7,7 +7,9 @@ const carrinhoRoutes = require('./routes/carrinhoRoutes'); //rotas do carrinho
 const app = express();
 const PORT = 4000;
 
-app.use(cors());
+app.use(cors({
+  origin: '*',
+}));
 app.use(express.json());
 
 app.get('/', (req, res) => {
