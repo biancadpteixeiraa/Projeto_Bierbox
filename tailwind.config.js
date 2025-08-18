@@ -19,6 +19,7 @@ module.exports = {
         "beige-secondary": "#FDF4D1",
         "yellow-primary": "#E29713",
         "yellow-secondary": "#FCBA27",
+        "yellow-tertiary": "#FFE090",
         "brown-primary": "#5B4116",
         "brown-secondary": "#5C4418",
         "brown-tertiary": "#654A1F",

@@ -4,7 +4,7 @@ import { Play } from "lucide-react";
 export default function BierweArea(){
     
     return(
-        <div className="w-full flex items-center px-52 py-14 font-primary text-brown-primary h-full">
+        <div className="w-full flex flex-col lg:flex-row items-center px-52 py-14 font-primary text-brown-primary h-full">
             <div className="flex flex-col items-start w-1/2">
                 <h1 className="text-6xl leading-[80px]">
                     CONHEÇA A ROTA DA CERVEJA!

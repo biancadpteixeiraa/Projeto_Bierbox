@@ -46,6 +46,26 @@ const cartOpen = () => {
                         />
                     </a>
                 </div>
+                <div className="flex flex-1 justify-end gap-20">
+                    <div className='hidden lg:flex lg:items-center gap-2'>
+                        <UserRound className="size-9 text-brown-secondary" />
+                        <p className='text-brown-secondary text-sm'>
+                            Olá!
+                            <br />
+                            <span><Link href={'/login'} className='underline font-bold'>Entre</Link> </span>
+                            ou
+                            <span> <Link href={'/cadastro'} className='underline font-bold'>Cadastre-se</Link></span>
+                        </p>
+                    </div>
+                    <div className='flex items-center pr-4 lg:pr-0'>
+                        <button onClick={cartOpen}>
+                            <Refrigerator fill='#654A1F' className="size-12 text-beige-primary" />
+                        </button>
+                        <span className='flex items-center justify-center text-xs bg-brown-tertiary text-beige-primary rounded-full min-w-[20px] h-5 px-1 font-medium -ml-1'>
+                            12
+                        </span>
+                    </div>
+                </div>
                 <div className="flex lg:hidden justify-end">
                     <button
                         type="button"
@@ -56,31 +76,11 @@ const cartOpen = () => {
                         <MenuIcon aria-hidden="true" className="size-6" />
                     </button>
                 </div>
-                <div className="hidden lg:flex lg:flex-1 lg:justify-end gap-20">
-                    <div className='flex items-center gap-2'>
-                        <UserRound className="size-9 text-gray-700" />
-                        <p>
-                            Olá!
-                            <br />
-                            <span><Link href={'/login'} className='underline font-bold'>Entre</Link> </span>
-                            ou
-                            <span> <Link href={'/cadastro'} className='underline font-bold'>Cadastre-se</Link></span>
-                        </p>
-                    </div>
-                    <div className='flex items-center'>
-                        <button onClick={cartOpen}>
-                            <Refrigerator fill='#654A1F' className="size-12 text-beige-primary" />
-                        </button>
-                        <span className='flex items-center text-sm bg-brown-tertiary text-beige-primary rounded-full px-1.5 py-0.2 font-medium -ml-1'>
-                            2
-                        </span>
-                    </div>
-                </div>
             </nav>
             <Dialog open={mobileMenuOpen} onClose={setMobileMenuOpen} className="lg:hidden">
                 <div className="fixed inset-0 z-50" />
-                <DialogPanel className="fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-beige-primary p-6 sm:max-w-sm sm:ring-1 sm:ring-brown-secondary rounded-l-xl">
-                <div className="flex items-center justify-between">
+                <DialogPanel className="fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-beige-primary sm:max-w-sm sm:ring-1 sm:ring-brown-secondary rounded-l-xl">
+                <div className="flex items-center justify-between px-6 py-4">
                     <a href="/" className="-m-1.5 p-1.5">
                         <span className="sr-only">BierBox</span>
                         <img 
@@ -98,25 +98,12 @@ const cartOpen = () => {
                         <X aria-hidden="true" className="size-6" />
                     </button>
                 </div>
-                <div className="mt-6 flow-root">
-                    <div className="-my-6 divide-y divide-gray-500/10">
-                    <div className="space-y-2 py-6">
-                        {linksMenu.map((link) => (
-                            <Link
-                                key={link.href}
-                                href={link.href}
-                                className={`block text-lg text-brown-primary lg:mx-8 mx-auto hover:font-semibold ${
-                                pathname === link.href ? 'font-semibold' : ''
-                                }`}
-                                >
-                                {link.label}
-                            </Link>
-                        ))}
-                    </div>
-                    <div className="py-6">
+                <hr className=" h-0.25 w-full bg-brown-primary" />
+                <div className="mt-6 flow-root px-6 py-4">
+                    <div className="">
                         <div className='flex items-center gap-2 -mx-1'>
                             <UserRound className="size-9 text-brown-secondary" />
-                            <p className='text-brown-secondary text-sm'>
+                            <p className='text-brown-secondary text-lg'>
                                 Olá!
                                 <br />
                                 <span><Link href={'/login'} className='underline font-bold'>Entre</Link> </span>
@@ -125,19 +112,31 @@ const cartOpen = () => {
                             </p>
                         </div>
                     </div>
+                    <div className="space-y-2 py-8">
+                        {linksMenu.map((link) => (
+                            <Link
+                                key={link.href}
+                                href={link.href}
+                                className={`block py-2 text-lg text-brown-primary lg:mx-8 mx-auto hover:font-semibold ${
+                                pathname === link.href ? 'font-semibold underline' : ''
+                                }`}
+                                >
+                                {link.label}
+                            </Link>
+                        ))}
                     </div>
                 </div>
                 </DialogPanel>
             </Dialog>
         </div>
-        <div className='bg-yellow-primary hidden lg:block'>
+        <div className='bg-yellow-primary hidden lg:block py-1'>
             <nav aria-label="Global" className="mx-auto flex max-w-7xl items-center justify-center p-5 lg:px-8">
                 <PopoverGroup className="hidden lg:flex lg:gap-x-16">
                  {linksMenu.map((link) => (
                         <Link
                         key={link.href}
                         href={link.href}
-                        className={`text-lg text-beige-primary lg:mx-8 mx-auto hover:font-semibold ${
+                        className={`text-base text-beige-primary lg:mx-8 mx-auto hover:font-semibold ${
                         pathname === link.href ? 'font-semibold' : ''
                         }`}
                         >

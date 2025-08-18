@@ -34,7 +34,7 @@ export default function PlansArea(){
             <h1 className="text-center text-2xl font-primary pb-14 uppercase">
                 PLANOS DE ASSINATURA
             </h1>
-            <div className="flex items-center gap-10 justify-center">
+            <div className="flex flex-col lg:flex-row items-center gap-10 justify-center">
                 {
                     plans.map((plan)=>(
                         <Card

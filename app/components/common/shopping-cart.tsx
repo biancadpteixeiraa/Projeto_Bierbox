@@ -2,6 +2,8 @@
 
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from '@headlessui/react'
 import { XMarkIcon } from '@heroicons/react/24/outline'
+import { Refrigerator, X } from 'lucide-react';
+import Button from '../ui/button';
 
 const products = [
   {
@@ -47,7 +49,7 @@ export default function ShoppingCart({isOpen, onClose}:ShoppingCartProps) {
 
   return (
     <div>
-      <Dialog open={isOpen} onClose={onClose} className="relative z-10">
+      <Dialog open={isOpen} onClose={onClose} className="relative z-10 font-secondary">
         <DialogBackdrop
           transition
           className="fixed inset-0 bg-gray-500/75 transition-opacity duration-500 ease-in-out data-closed:opacity-0"
@@ -60,9 +62,15 @@ export default function ShoppingCart({isOpen, onClose}:ShoppingCartProps) {
                 className="pointer-events-auto w-screen max-w-md transform transition duration-500 ease-in-out data-closed:translate-x-full sm:duration-700"
               >
                 <div className="flex h-full flex-col overflow-y-auto bg-white shadow-xl">
-                  <div className="flex-1 overflow-y-auto px-4 py-6 sm:px-6">
-                    <div className="flex items-start justify-between">
-                      <DialogTitle className="text-lg font-medium text-gray-900">Minha Geladeira</DialogTitle>
+                  <div className="flex-1 overflow-y-auto py-6">
+                    <div className="flex items-start justify-between sm:px-6 pb-3">
+                      <div className='flex items-center pr-4 lg:pr-0'>
+                          <Refrigerator fill='#654A1F' className="size-10 text-beige-primary" />
+                          <span className='flex items-center justify-center text-xs bg-brown-tertiary text-beige-primary rounded-full min-w-[20px] h-5 px-1 font-medium -ml-1'>
+                              12
+                          </span>
+                          <DialogTitle className="text-lg font-bold text-brown-tertiary px-5">Minha Geladeira:</DialogTitle>
+                      </div>
                       <div className="ml-3 flex h-7 items-center">
                         <button
                           type="button"
@@ -75,35 +83,33 @@ export default function ShoppingCart({isOpen, onClose}:ShoppingCartProps) {
                         </button>
                       </div>
                     </div>
-
-                    <div className="mt-8">
+                    <hr className=" h-[1.5px] w-full bg-brown-tertiary" />
+                    <div className="mt-8 sm:px-6">
                       <div className="flow-root">
-                        <ul role="list" className="-my-6 divide-y divide-gray-200">
+                        <ul role="list" className="-my-6">
                           {products.map((product) => (
                             <li key={product.id} className="flex py-6">
-                              <div className="size-24 shrink-0 overflow-hidden rounded-md border border-gray-200">
+                              <div className="size-24 shrink-0 overflow-hidden rounded-md border border-yellow-tertiary">
                                 <img alt={product.imageAlt} src={product.imageSrc} className="size-full object-cover" />
                               </div>
 
-                              <div className="ml-4 flex flex-1 flex-col">
+                              <div className="ml-4 flex flex-1 justify-between flex-col">
                                 <div>
-                                  <div className="flex justify-between text-base font-medium text-gray-900">
+                                  <div className="flex justify-between text-lg font-medium text-yellow-primary">
                                     <h3>
                                       <a href={product.href}>{product.name}</a>
                                     </h3>
-                                    <p className="ml-4">{product.price}</p>
                                   </div>
-                                  <p className="mt-1 text-sm text-gray-500">{product.color}</p>
+                                  <p className='text-brown-tertiary font-bold text-xl'>{product.price}</p>
                                 </div>
-                                <div className="flex flex-1 items-end justify-between text-sm">
-                                  <p className="text-gray-500">Qty {product.quantity}</p>
-
-                                  <div className="flex">
-                                    <button type="button" className="font-medium text-indigo-600 hover:text-indigo-500">
-                                      Remove
-                                    </button>
-                                  </div>
+                                <div className="flex flex-col text-sm">
+                                  <Button variant='quaternary' className='text-xs w-min py-1 px-6'>Plano Mensal</Button>
                                 </div>
+                              </div>
+                              <div className='flex items-start'>
+                                <button type="button" className='text-brown-tertiary'>
+                                  <X aria-hidden="true" className="size-6" />
+                                </button>
                               </div>
                             </li>
                           ))}
@@ -112,19 +118,15 @@ export default function ShoppingCart({isOpen, onClose}:ShoppingCartProps) {
                     </div>
                   </div>
 
-                  <div className="border-t border-gray-200 px-4 py-6 sm:px-6">
-                    <div className="flex justify-between text-base font-medium text-gray-900">
-                      <p>Subtotal</p>
+                  <div className="border-t border-brown-tertiary px-4 py-6 sm:px-6">
+                    <div className="flex justify-between text-lg font-bold text-brown-tertiary">
+                      <p className='uppercase'>Total</p>
                       <p>$262.00</p>
                     </div>
-                    <p className="mt-0.5 text-sm text-gray-500">Shipping and taxes calculated at checkout.</p>
-                    <div className="mt-6">
-                      <a
-                        href="#"
-                        className="flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-6 py-3 text-base font-medium text-white shadow-xs hover:bg-indigo-700"
-                      >
-                        Checkout
-                      </a>
+                   <div className="mt-6">
+                      <Button variant='quinary' className='w-full font-bold'>
+                        Finalizar Pedido
+                      </Button>
                     </div>
                   </div>
                 </div>
