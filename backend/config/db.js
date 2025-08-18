@@ -1,11 +1,11 @@
 const { Pool } = require('pg');
 
 const pool = new Pool({
-  user: 'postgres',          // O usuário padrão do PostgreSQL
-  host: 'localhost',         // O endereço do seu banco (seu computador)
-  database: 'bierbox_db',    // O nome do banco de dados que vamos criar logo em seguida
+  user: 'postgres',         
+  host: 'localhost',        
+  database: 'bierbox_db',   
   password: '784596',
-  port: 5432,                // A porta padrão do PostgreSQL
+  port: 5432,        // porta padrão do PostgreSQL
 });
 
 module.exports = pool;
