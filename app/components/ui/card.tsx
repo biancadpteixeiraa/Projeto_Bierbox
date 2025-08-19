@@ -13,7 +13,7 @@ export default function Card({
         className={cn(`
             group transition duration-150 ease-in-out hover:scale-105 
             shadow-[0px_0px_28px_-10px_#5D4519] rounded-lg px-6 py-8 bg-beige-primary 
-            flex flex-col text-center max-w-56`,
+            flex flex-col text-center max-w-56 cursor-pointer`,
             props.className
         )}
     >

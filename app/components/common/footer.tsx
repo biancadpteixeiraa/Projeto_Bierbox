@@ -4,8 +4,8 @@ export default function Footer(){
 
     return(
         <div className="w-full bg-yellow-primary flex flex-col px-56 pt-14 pb-10">
-            <div className="flex w-full">
-                <div className="flex w-2/3 items-center">
+            <div className="flex flex-col lg:flex-row w-full gap-6">
+                <div className="flex w-full lg:w-2/3 items-center">
                     <a href="/" className="">
                         <span className="sr-only">BierBox</span>
                         <img 
@@ -14,7 +14,7 @@ export default function Footer(){
                         className="size-24"
                         />
                     </a>
-                    <span className="mx-4 w-0.5 h-full bg-beige-primary" />
+                    <hr className="mx-4 w-0.5 h-full bg-beige-primary" />
                     <div className="flex flex-col w-1/2">
                         <h3 className="leading-7 font-secondary text-sm text-beige-primary font-bold">
                             BIERBOX
@@ -24,7 +24,7 @@ export default function Footer(){
                         </h3>
                     </div>
                 </div>
-                <div className="flex flex-col w-1/3 items-start justify-between">
+                <div className="flex flex-col w-full lg:w-1/3 items-start justify-between">
                     <div className="flex gap-6 pb-4">
                         <Icon icon="ri:instagram-fill" className="text-beige-primary text-4xl"/>
                         <Icon icon="mage:whatsapp-filled" className="text-beige-primary text-4xl"/>

@@ -7,11 +7,11 @@ export default function InstagramArea(){
             <h1 className="text-4xl pb-12">
                 Siga a gente no Instagram!
             </h1>
-            <div className="flex flex-col lg:flex-row gap-6 items-center w-full">
-                <img src="/post.png" alt="" className="object-cover size-64 lg-size-auto"/>
-                <img src="/post.png" alt="" className="object-cover size-64 lg-size-auto"/>
-                <img src="/post.png" alt="" className="object-cover size-64 lg-size-auto"/>
-                <img src="/post.png" alt="" className="object-cover size-64 lg-size-auto"/>
+            <div className="flex flex-col lg:flex-row gap-6 items-center justify-between w-full">
+                <img src="/post.png" alt="" className="object-cover size-auto"/>
+                <img src="/post.png" alt="" className="object-cover size-auto"/>
+                <img src="/post.png" alt="" className="object-cover size-auto"/>
+                <img src="/post.png" alt="" className="object-cover size-auto"/>
             </div>
         </div>
     );
