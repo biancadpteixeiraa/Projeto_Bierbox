@@ -7,45 +7,45 @@ export default function PlansArea(){
     const plans = [
         {
             name:"Combo Bronze",
-            monthlyValue: "R$00,00/ANO",
-            annualValue:"R$00,00/MÊS",
-            path: "/plano1"
+            annualValue: "R$00,00/ANO",
+            monthlyValue:"R$00,00/MÊS",
+            path: "planos/plano1"
         },
         {
             name:"Combo Prata",
-            monthlyValue: "R$00,00/ANO",
-            annualValue:"R$00,00/MÊS",
-            path: "/plano2"
+            annualValue: "R$00,00/ANO",
+            monthlyValue:"R$00,00/MÊS",
+            path: "planos/plano2"
         },{
             name:"Combo Ouro",
-            monthlyValue: "R$00,00/ANO",
-            annualValue:"R$00,00/MÊS",
-            path: "/plano3"
+            annualValue: "R$00,00/ANO",
+            monthlyValue:"R$00,00/MÊS",
+            path: "planos/plano3"
         },{
             name:"Combo Diamante",
-            monthlyValue: "R$00,00/ANO",
-            annualValue:"R$00,00/MÊS",
-            path: "/plano4"
+            annualValue: "R$00,00/ANO",
+            monthlyValue:"R$00,00/MÊS",
+            path: "planos/plano4"
         },
     ]
 
     return(
-        <div className="flex flex-col px-52 py-14 text-brown-primary">
+        <div className="flex flex-col px-46 py-14 text-brown-primary">
             <h1 className="text-center text-2xl font-primary pb-14 uppercase">
                 PLANOS DE ASSINATURA
             </h1>
-            <div className="flex flex-col lg:flex-row items-center gap-10 justify-center">
+            <div className="flex flex-col lg:flex-row items-center gap-14 justify-center">
                 {
                     plans.map((plan)=>(
-                        <Card
+                        <Card className="w-56 max-h-72"
                         key={plan.path}>
-                            <h1 className="text-2xl font-primary pb-3 transition-all duration-300 group-hover:text-[28px]">
+                            <h1 className="text-2xl font-primary pb-4 transition-all duration-300 group-hover:text-3xl">
                                 {plan.name}
                             </h1>
-                            <p className="text-lg font-secondary font-bold pb-2 transition-all duration-300 group-hover:text-xl">
+                            <p className="text-base font-secondary font-bold pb-1 transition-all duration-300 group-hover:text-lg">
                                 {plan.annualValue}
                             </p>
-                            <p className="text-sm font-secondary pb-8 transition-all duration-300 group-hover:text-base">
+                            <p className="text-xs font-secondary font-semibold pb-6 transition-all duration-300 group-hover:text-base">
                                 {plan.monthlyValue}
                             </p>
                             <Link 
