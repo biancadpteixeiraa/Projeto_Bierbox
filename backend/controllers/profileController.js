@@ -1,5 +1,5 @@
 const pool = require("../config/db");
-const bcrypt = require("bcryptjs"); // Importa o bcryptjs para lidar com senhas
+const bcrypt = require("bcryptjs");
 
 // Função para obter os dados do perfil do usuário logado
 const getProfile = async (req, res) => {
@@ -47,7 +47,6 @@ const updateProfile = async (req, res) => {
     const userId = req.userId;
     const { nome_completo, senha_atual, nova_senha } = req.body;
 
-    // Primeiro, busca o usuário para verificar a senha atual e obter dados existentes
     const userResult = await pool.query("SELECT id, nome_completo, senha_hash FROM users WHERE id = $1", [userId]);
 
     if (userResult.rows.length === 0) {
@@ -59,13 +58,11 @@ const updateProfile = async (req, res) => {
     let queryParams = [];
     let paramIndex = 1;
 
-    // Atualiza nome_completo se fornecido
     if (nome_completo !== undefined) {
       updatedFields.push(`nome_completo = $${paramIndex++}`);
       queryParams.push(nome_completo);
     }
 
-    // Atualiza senha se nova_senha e senha_atual forem fornecidas
     if (nova_senha !== undefined) {
       if (!senha_atual) {
         return res.status(400).json({ success: false, message: "Senha atual é obrigatória para alterar a senha." });
@@ -82,13 +79,11 @@ const updateProfile = async (req, res) => {
       queryParams.push(nova_senha_hash);
     }
 
-    // Se não houver campos para atualizar, retorna erro
     if (updatedFields.length === 0) {
       return res.status(400).json({ success: false, message: "Nenhum campo válido para atualização fornecido." });
     }
 
-    // Constrói e executa a query de atualização
-    const updateQuery = `UPDATE users SET ${updatedFields.join(', ')} WHERE id = $${paramIndex} RETURNING id, nome_completo, email, cpf, foto_perfil_url, data_criacao`;
+    const updateQuery = `UPDATE users SET ${updatedFields.join(", ")} WHERE id = $${paramIndex} RETURNING id, nome_completo, email, cpf, foto_perfil_url, data_criacao`;
     queryParams.push(userId);
 
     const updatedUserResult = await pool.query(updateQuery, queryParams);
@@ -115,7 +110,33 @@ const updateProfile = async (req, res) => {
   }
 };
 
+// Função para excluir a conta do usuário logado
+const deleteAccount = async (req, res) => {
+  try {
+    const userId = req.userId;
+
+    // Opcional: Você pode adicionar lógica para excluir dados relacionados em outras tabelas aqui
+    // Por exemplo: await pool.query("DELETE FROM carrinhos WHERE usuario_id = $1", [userId]);
+
+    const result = await pool.query("DELETE FROM users WHERE id = $1 RETURNING id", [userId]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, message: "Usuário não encontrado para exclusão." });
+    }
+
+    res.json({ success: true, message: "Conta excluída com sucesso!" });
+
+  } catch (error) {
+    console.error("Erro ao excluir conta do usuário:", error.message);
+    res.status(500).json({
+      success: false,
+      message: "Erro interno do servidor ao excluir conta."
+    });
+  }
+};
+
 module.exports = {
   getProfile,
-  updateProfile // Exporta a nova função
+  updateProfile,
+  deleteAccount // Exporta a nova função
 };

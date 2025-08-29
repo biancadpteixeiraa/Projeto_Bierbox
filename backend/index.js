@@ -1,5 +1,4 @@
 require('dotenv').config();
-console.log('JWT_SECRET carregado:', process.env.JWT_SECRET);
 
 
 const express = require('express');
