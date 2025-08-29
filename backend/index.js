@@ -11,7 +11,7 @@ const freteRoutes = require("./routes/freteRoutes");
 const profileRoutes = require("./routes/profileRoutes");
 
 
-const app = express();
+const app = express();""
 const PORT = 4000;
 
 app.use(cors({
