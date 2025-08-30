@@ -1,0 +1,37 @@
+.embla { 
+    overflow: hidden; 
+    max-width: 100%; 
+    margin: auto; 
+    --slide-spacing: 1rem; 
+    --slide-size: 85%; 
+} 
+
+.embla__container { 
+    display: flex; 
+    margin-left: calc(var(--slide-spacing) * -1); 
+} 
+
+.embla__slide { 
+    min-width: 0; 
+    flex: 0 0 var(--slide-size); 
+    padding-left: var(--slide-spacing); 
+} 
+
+@media (min-width: 640px) { 
+    .embla { 
+        --slide-size: 50%; 
+    } 
+} 
+
+@media (min-width: 768px) { 
+    .embla { 
+        --slide-size: calc(100% / 3); 
+    } 
+} 
+
+@media (min-width: 1200px) { 
+    .embla { 
+        --slide-spacing: 1.5rem; 
+        --slide-size: calc(100% / 4); 
+    } 
+}

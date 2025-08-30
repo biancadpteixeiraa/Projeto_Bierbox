@@ -8,9 +8,9 @@ export default function BannerArea(){
                 <img src="/banner.png" alt="Banner Formulário de Estilos" 
                 className="w-full h-full absolute object-cover"/>
             </Link>
-            <div className="pl-52 relative z-10 flex items-start top-24 w-1/2">
-                <h1 className="uppercase text-4xl text-beige-secondary font-primary leading-[50px]">
-                    BANNER SOBRE O FORMULARIO DE ESTILOS!!
+            <div className="max-w-7xl mx-auto relative z-10 flex items-start top-24 w-1/2">
+                <h1 className="uppercase text-2xl text-yellow-primary font-primary leading-[50px]">
+                    BANNER ILUSTRATIVO <br /> SOBRE O FORMULARIO <br />DE ESTILOS AQUI!!
                 </h1>
             </div>
         </div>

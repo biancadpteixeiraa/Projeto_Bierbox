@@ -1,6 +1,6 @@
 import Footer from "@/app/components/common/footer";
 import Header from "@/app/components/common/header";
-import { PlansCarousel } from "@/app/components/common/plans-carousel";
+import { PlansCarousel } from "@/app/components/ui/plans-Carousel/plans-carousel";
 
 
 

@@ -1,6 +1,6 @@
 import { PhotosCarousel } from "../ui/Photos-Carousel/photos-carousel";
 
-export default function InstagramArea(){
+export default function InstagramBierweg(){
 
     const photos = [
         {
@@ -38,7 +38,7 @@ export default function InstagramArea(){
     ]
     
     return(
-        <div className="max-w-7xl mx-auto flex flex-col items-start pl-14 pr-0 lg:px-14 pb-24 pt-14 font-primary text-brown-primary ">
+        <div className="max-w-7xl mx-auto flex flex-col items-start pl-14 pr-0 lg:px-14 pt-14 pb-24 font-primary text-brown-primary ">
             <h1 className="text-4xl pb-12">
                 Siga a gente no Instagram!
             </h1>

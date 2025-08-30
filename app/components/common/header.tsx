@@ -35,14 +35,14 @@ const cartOpen = () => {
   return (
     <header className="bg-white flex flex-col font-secondary">
         <div className='bg-beige-primary h-26 py-2 px-10'>
-            <nav aria-label="Global" className="mx-auto px-6 flex max-w-7xl items-center">
+            <nav aria-label="Global" className="mx-auto flex max-w-7xl items-center">
                 <div className="flex w-full lg:flex-1 lg:justify-start justify-center">
                     <a href="/" className="">
                         <span className="sr-only">BierBox</span>
                         <img 
                         alt=""
                         src="/Logo.png"
-                        className="size-24"
+                        className="sm:size-24 size-auto"
                         />
                     </a>
                 </div>

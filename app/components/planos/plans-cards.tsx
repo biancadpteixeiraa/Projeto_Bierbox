@@ -26,25 +26,25 @@ export default function PlansCards(){
     ]
 
     return(
-        <div className="flex flex-col px-52 py-14 text-brown-primary">
-            <h1 className="text-center text-2xl font-primary pb-14 uppercase">
+        <div className="flex flex-col px-6 lg:px-52 py-14 text-brown-primary">
+            <h1 className="text-center text-xl font-primary pb-14 uppercase">
                 escolha o box ideal para você!
             </h1>
             <div className="flex flex-col lg:flex-row items-center gap-10 justify-center">
                 {
                     plans.map((plan)=>(
-                        <Card className="max-w-96 p-4"
+                        <Card className="max-w-96 p-4 bg-white rounded-md"
                         key={plan.path}>
-                            <h1 className="uppercase text-lg font-secondary font-semibold pb-3 transition-all duration-300 group-hover:text-xl">
+                            <h1 className="uppercase text-xl font-secondary font-semibold pb-2 transition-all duration-300 group-hover:text-2xl">
                                 {plan.name}
                             </h1>
-                            <p className="uppercase text-sm font-secondary pb-3 transition-all duration-300 group-hover:text-base"> 
+                            <p className="uppercase text-xs font-secondary font-medium pb-6 transition-all duration-300 group-hover:text-sm"> 
                                 {plan.type}
                             </p>
                             <Link 
                                 href={plan.path}
                             >
-                                <Button variant="secondary" className="w-full font-semibold py-2 uppercase text-base">
+                                <Button variant="secondary" className="w-full font-semibold py-2 uppercase text-sm rounded-3xl">
                                     Valor Promocional!
                                 </Button>
                             </Link>

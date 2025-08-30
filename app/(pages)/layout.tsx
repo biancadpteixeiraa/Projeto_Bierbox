@@ -11,7 +11,7 @@ const delaGothic = Dela_Gothic_One({
 
 const montserrat = Montserrat({
   subsets: ['latin'],
-  weight: '400',
+  weight: ["400", "500", "700"],
 });
 
 export default function RootLayout({

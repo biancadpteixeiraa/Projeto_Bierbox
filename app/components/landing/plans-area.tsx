@@ -30,8 +30,8 @@ export default function PlansArea(){
     ]
 
     return(
-        <div className="flex flex-col px-46 py-14 text-brown-primary">
-            <h1 className="text-center text-2xl font-primary pb-14 uppercase">
+        <div className="max-w-7xl mx-auto flex flex-col px-14 lg:px-46 py-14 text-brown-primary">
+            <h1 className="text-center text-xl font-primary pb-14 uppercase">
                 PLANOS DE ASSINATURA
             </h1>
             <div className="flex flex-col lg:flex-row items-center gap-14 justify-center">
