@@ -7,11 +7,11 @@ import { cn } from '@/app/lib/utils';
 const links = [
     { 
     name: 'Informações Pessoais', 
-    href: '/dashboard', 
+    href: '/dashboard/id', 
     },
     {
     name: 'Planos de Assinatura',
-    href: '/dashboard',
+    href: '/dashboard/id/assinaturas',
     
     },
 ];

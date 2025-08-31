@@ -1,10 +1,11 @@
 'use client';
-
+import { Icon } from "@iconify/react";
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
 import { useState } from 'react';
 import NavLinks from './nav-links';
 import Button from '../ui/button';
 import { useAuth } from '@/app/context/authContext';
+import Link from "next/link";
 
 
 export default function Sidebar() {
@@ -24,7 +25,17 @@ export default function Sidebar() {
         className={`flex grow flex-col justify-between  md:space-x-2 md:pt-0 fixed inset-y-0 left-0 z-40 w-64 bg-main-blue ps-4 pt-18 transition-transform duration-300 ease-in-out 
           ${menuOpen ? 'translate-x-0' : '-translate-x-full'} md:relative md:translate-x-0`}
       >
-        <button className='m-0' onClick={() => setMenuOpen(false)}><NavLinks/></button >
+        <button className='m-0' onClick={() => setMenuOpen(false)}>
+        <Link href="/">
+              <div className="flex items-center gap-4">
+                  <Icon icon="solar:arrow-left-outline" className="text-3xl text-yellow-secondary"/>
+                  <p className="text-lg font-secondary text-yellow-secondary font-semibold">
+                      Voltar ao início
+                  </p>
+              </div>
+          </Link>
+          <NavLinks/>
+        </button >
         
         <div className='flex flex-col items-center justify-center md:mb-4 mb-6'>
             <Button onClick={logout} className='w-full' variant='quaternary'>Sair</Button>

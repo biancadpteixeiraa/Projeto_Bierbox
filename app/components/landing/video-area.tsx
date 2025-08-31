@@ -13,7 +13,7 @@ export default function VideoArea() {
       >
         Your browser does not support the video tag.
       </video>
-      <div className="max-w-7xl lg:mx-auto px-10 xl:px-0 relative z-10 flex flex-col items-start top-32">
+      <div className="max-w-screen-2xl lg:mx-auto px-10 2xl:px-0 relative z-10 flex flex-col items-start top-32">
         <h1 className="uppercase text-4xl text-beige-secondary font-primary leading-[50px]">
           Seu Clube de assinatura <br /> de Chopes e cervejas <br /> artesanais.
         </h1>

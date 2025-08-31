@@ -29,6 +29,12 @@ module.exports = {
           primary: ['"Dela Gothic One"', 'sans-serif'],
           secondary: ['Montserrat', 'sans-serif'],
       },
+      maxWidth: {
+        '8xl': '90rem',
+      },
+      size: {
+        '38': '9.5rem',
+      }
     },
   },
   plugins: [],

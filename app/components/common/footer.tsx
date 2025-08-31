@@ -4,7 +4,7 @@ export default function Footer(){
 
     return(
         <div className="w-full bg-yellow-primary pt-20 pb-10">
-            <div className="max-w-7xl mx-auto flex flex-col px-6 lg:px-12">
+            <div className="max-w-8xl mx-auto flex flex-col px-6 lg:px-0">
                 <div className="flex flex-col lg:flex-row w-full gap-6">
                     <div className="flex w-full lg:w-2/3 items-center">
                         <a href="/" className="">

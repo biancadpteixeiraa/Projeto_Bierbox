@@ -6,7 +6,7 @@ export default function Button({
     ...props
 }:{
     children: React.ReactNode;
-    variant?: 'primary' | 'secondary' | 'tertiary' | 'quaternary' | 'quinary';
+    variant?: 'primary' | 'secondary' | 'tertiary' | 'quaternary' | 'quinary' | 'senary';
 } & React.ButtonHTMLAttributes<HTMLButtonElement>
 ){
   return (
@@ -18,6 +18,7 @@ export default function Button({
             variant === 'tertiary' && 'bg-beige-primary text-yellow-primary border border-yellow-primary border-4',
             variant === 'quaternary' && 'bg-yellow-secondary text-beige-primary',
             variant === 'quinary' && 'bg-green-primary text-beige-primary',
+            variant === 'senary' && 'bg-beige-primary text-yellow-secondary border border-yellow-secondary',
             props.className
         )}
     >
