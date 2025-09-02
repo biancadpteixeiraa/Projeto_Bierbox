@@ -2,6 +2,7 @@ import "./globals.css";
 import {Dela_Gothic_One} from "next/font/google";
 import { Montserrat } from "next/font/google";
 import { AuthProvider } from "../context/authContext";
+import { CarrinhoProvider } from "../context/cartContext";
 
 
 const delaGothic = Dela_Gothic_One({
@@ -11,7 +12,7 @@ const delaGothic = Dela_Gothic_One({
 
 const montserrat = Montserrat({
   subsets: ['latin'],
-  weight: ["400", "500", "700"],
+  weight: ["400", "500", "600", "700"],
 });
 
 export default function RootLayout({
@@ -22,7 +23,11 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <body className='antialiased bg-beige-primary text-brown-secodary'>
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider>
+          <CarrinhoProvider>
+            {children}
+          </CarrinhoProvider>
+        </AuthProvider>
       </body>
     </html>
   );

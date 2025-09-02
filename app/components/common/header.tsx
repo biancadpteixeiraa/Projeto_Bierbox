@@ -7,13 +7,16 @@ import {
   PopoverGroup,
 } from '@headlessui/react'
 import { UserRound, X, MenuIcon, Refrigerator } from 'lucide-react'
+import { Icon } from "@iconify/react";
 import Link from 'next/link'
 import { usePathname } from 'next/navigation';
-import ShoppingCart from './shopping-cart'
+import ShoppingCart from './shopping-cart';
+import { useAuth } from '@/app/context/authContext';
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [shoppingCartOpen, setShoppingCartOpen] = useState(false)
+  const isAuthenticated = useAuth();
 
   const pathname = usePathname();
 
@@ -47,7 +50,10 @@ const cartOpen = () => {
                     </a>
                 </div>
                 <div className="flex flex-1 justify-end gap-20">
-                    <div className='hidden lg:flex lg:items-center gap-2'>
+                    {isAuthenticated?.token ? (
+                        <Icon icon="mdi:gear" className="text-5xl text-brown-secondary"/>
+                    ) : (
+                        <div className='hidden lg:flex lg:items-center gap-2'>
                         <UserRound className="size-9 text-brown-secondary" />
                         <p className='text-brown-secondary text-sm'>
                             Olá!
@@ -57,6 +63,8 @@ const cartOpen = () => {
                             <span> <Link href={'/cadastro'} className='underline font-bold'>Cadastre-se</Link></span>
                         </p>
                     </div>
+                        )
+                    }
                     <div className='flex items-center pr-4 lg:pr-0'>
                         <button onClick={cartOpen}>
                             <Refrigerator fill='#654A1F' className="size-12 text-beige-primary" />
@@ -101,6 +109,7 @@ const cartOpen = () => {
                 <hr className=" h-0.25 w-full bg-brown-primary" />
                 <div className="mt-6 flow-root px-6 py-4">
                     <div className="">
+                        
                         <div className='flex items-center gap-2 -mx-1'>
                             <UserRound className="size-9 text-brown-secondary" />
                             <p className='text-brown-secondary text-lg'>
