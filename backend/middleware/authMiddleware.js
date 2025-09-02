@@ -15,17 +15,18 @@ const protect = (req, res, next) => {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
       // Adiciona o ID do usuário ao objeto de requisição
-      req.userId = decoded.id; // <<--- ESTA É A LINHA MAIS IMPORTANTE
+      req.userId = decoded.id;
 
-      next();
-    } catch (error) {
+      return next(); // Adicionado return para clareza, embora next() já encerre o fluxo aqui.
+    } catch (error) { 
       console.error("Erro na autenticação do token:", error.message);
-      res.status(401).json({ message: "Não autorizado, token falhou." });
+      return res.status(401).json({ message: "Não autorizado, token falhou." }); // Adicionado return
     }
   }
 
   if (!token) {
-    res.status(401).json({ message: "Não autorizado, nenhum token." });
+    // Esta verificação agora se torna a principal para quando não há token.
+    return res.status(401).json({ message: "Não autorizado, nenhum token." }); // Adicionado return
   }
 };
 

@@ -6,14 +6,20 @@ const pool = require('../config/db');
 // @access  Privado
 const adicionarItem = async (req, res) => {
   const { box_id, quantidade_cervejas, tipo_plano } = req.body;
-  const usuario_id = req.user.userId;
+  const usuario_id = req.userId; // ✅ corrigido
 
   try {
-    let carrinhoResult = await pool.query('SELECT id FROM carrinhos WHERE usuario_id = $1', [usuario_id]);
+    let carrinhoResult = await pool.query(
+      'SELECT id FROM carrinhos WHERE usuario_id = $1',
+      [usuario_id]
+    );
     let carrinho_id;
 
     if (carrinhoResult.rows.length === 0) {
-      const novoCarrinho = await pool.query('INSERT INTO carrinhos (usuario_id) VALUES ($1) RETURNING id', [usuario_id]);
+      const novoCarrinho = await pool.query(
+        'INSERT INTO carrinhos (usuario_id) VALUES ($1) RETURNING id',
+        [usuario_id]
+      );
       carrinho_id = novoCarrinho.rows[0].id;
     } else {
       carrinho_id = carrinhoResult.rows[0].id;
@@ -25,7 +31,9 @@ const adicionarItem = async (req, res) => {
     );
 
     if (itemExistente.rows.length > 0) {
-      return res.status(400).json({ message: 'Esta box já está na sua geladeira.' });
+      return res
+        .status(400)
+        .json({ message: 'Esta box já está na sua geladeira.' });
     }
 
     const novoItem = await pool.query(
@@ -33,8 +41,12 @@ const adicionarItem = async (req, res) => {
       [carrinho_id, box_id, quantidade_cervejas, tipo_plano]
     );
 
-    res.status(201).json({ message: 'Item adicionado à geladeira com sucesso!', item: novoItem.rows[0] });
-
+    res
+      .status(201)
+      .json({
+        message: 'Item adicionado à geladeira com sucesso!',
+        item: novoItem.rows[0],
+      });
   } catch (error) {
     console.error('Erro ao adicionar item ao carrinho:', error);
     res.status(500).json({ message: 'Erro interno do servidor.' });
@@ -45,7 +57,7 @@ const adicionarItem = async (req, res) => {
 // @route   GET /carrinho
 // @access  Privado
 const verCarrinho = async (req, res) => {
-  const usuario_id = req.user.userId;
+  const usuario_id = req.userId; // ✅ corrigido
 
   try {
     const itensDoCarrinho = await pool.query(
@@ -65,7 +77,6 @@ const verCarrinho = async (req, res) => {
     );
 
     res.status(200).json(itensDoCarrinho.rows);
-
   } catch (error) {
     console.error('Erro ao buscar o carrinho:', error);
     res.status(500).json({ message: 'Erro interno do servidor.' });
@@ -77,7 +88,7 @@ const verCarrinho = async (req, res) => {
 // @access  Privado
 const removerItem = async (req, res) => {
   const item_id = req.params.id;
-  const usuario_id = req.user.userId;
+  const usuario_id = req.userId; // ✅ corrigido
 
   try {
     const deleteResult = await pool.query(
@@ -91,11 +102,12 @@ const removerItem = async (req, res) => {
     );
 
     if (deleteResult.rowCount === 0) {
-      return res.status(404).json({ message: 'Item não encontrado no carrinho ou não autorizado a remover.' });
+      return res.status(404).json({
+        message: 'Item não encontrado no carrinho ou não autorizado a remover.',
+      });
     }
 
     res.status(200).json({ message: 'Item removido da geladeira com sucesso.' });
-
   } catch (error) {
     console.error('Erro ao remover item do carrinho:', error);
     res.status(500).json({ message: 'Erro interno do servidor.' });
