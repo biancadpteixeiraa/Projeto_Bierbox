@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   Dialog,
   DialogPanel,
@@ -12,11 +12,13 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation';
 import ShoppingCart from './shopping-cart';
 import { useAuth } from '@/app/context/authContext';
+import { useCarrinho } from '@/app/context/cartContext';
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [shoppingCartOpen, setShoppingCartOpen] = useState(false)
-  const isAuthenticated = useAuth();
+  const isAuthenticated = useAuth();   
+  const { carrinho, loadCarrinho} = useCarrinho();
 
   const pathname = usePathname();
 
@@ -34,6 +36,7 @@ const cartOpen = () => {
   const cartClose = () => {
     setShoppingCartOpen(false);
   };
+
 
   return (
     <header className="bg-white flex flex-col font-secondary">
@@ -70,7 +73,7 @@ const cartOpen = () => {
                             <Refrigerator fill='#654A1F' className="size-12 text-beige-primary" />
                         </button>
                         <span className='flex items-center justify-center text-xs bg-brown-tertiary text-beige-primary rounded-full min-w-[20px] h-5 px-1 font-medium -ml-1'>
-                            12
+                            {carrinho?.itens?.length || 0}
                         </span>
                     </div>
                 </div>

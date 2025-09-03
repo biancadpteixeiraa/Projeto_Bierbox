@@ -7,10 +7,10 @@ export async function getCarrinho(token: string) {
   return response.data;
 }
 
-export async function addToCarrinho(token: string, box_id: number, quantidade: number) {
+export async function addToCarrinho(token: string, box_id: number, quantidade: number, tipo_plano: 'mensal' | 'anual') {
   const response = await api.post(
     "/carrinho/adicionar",
-    { box_id, quantidade },
+    { box_id, quantidade, tipo_plano },
     { headers: { Authorization: `Bearer ${token}` } }
   );
   return response.data;

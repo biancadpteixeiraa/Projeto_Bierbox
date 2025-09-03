@@ -29,22 +29,23 @@ export default function Page(){
     const { addItem } = useCarrinho();
     
     useEffect(() => {
-        if (!id) return;
+    if (!id) return;
 
-        getBoxById(Number(id)).then((data) => {
+    getBoxById(Number(id))
+        .then((data) => {
             if (data.success) {
                 setBoxData(data.box);
                 console.log("Dados da caixa:", data.box);
             } else {
                 console.error("Falha ao buscar dados da caixa:", data.message);
             }
-        }).catch((error) => {
+        })
+        .catch((error) => {
             console.error("Erro ao chamar getBoxById:", error);
         });
-    }, 
-    []);
+}, [id]);
 
-    const handleAddToCart = async () => {
+    const handleAddToCart = async (tipo: "mensal" | "anual", unidades: 4 | 6) => {
         if (!isAuthenticated) {
             alert("Por favor, faça login para adicionar itens ao carrinho.");
             return;
@@ -54,7 +55,7 @@ export default function Page(){
             return;
         }
 
-        await addItem(boxData.id, 1);
+        await addItem(boxData.id, unidades, tipo);
         alert("Item adicionado ao carrinho!");
     };
     
@@ -75,7 +76,29 @@ export default function Page(){
                 <p className="mt-2 font-semibold">Preço Anual 4 unidades: R$ {boxData?.preco_anual_4_un || " - "}</p>
                 <p className="mt-2 font-semibold">Preço 6 unidades: R$ {boxData?.preco_mensal_6_un || " - "}</p> 
                 <p className="mt-2 font-semibold">Preço Anual 6 unidades: R$ {boxData?.preco_anual_6_un || " - "}</p>
-                <Button className="mt-6 w-48" onClick={handleAddToCart}>Adicionar ao Carrinho</Button>
+                <div className="flex gap-2">
+                    <Button 
+                        onClick={() => handleAddToCart("mensal", 4)}
+                        >
+                        Adicionar ao Carrinho - Mensal (4 un)
+                    </Button>
+                    <Button 
+                        onClick={() => handleAddToCart("anual", 4)}
+                        >
+                        Adicionar ao Carrinho - Anual (4 un)
+                    </Button>
+                    <Button
+                        onClick={() => handleAddToCart("mensal", 6)}
+                        >
+                        Adicionar ao Carrinho - Mensal (6 un)
+                    </Button>
+                    <Button 
+                        onClick={() => handleAddToCart("anual", 6)}
+                        >
+                        Adicionar ao Carrinho - Anual (6 un)
+                    </Button>
+
+                </div>
             </div>
             <Footer/> 
         </div> 
