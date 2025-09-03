@@ -22,7 +22,7 @@ const getCarrinhoCompleto = async (usuario_id) => {
        b.imagem_principal_url,
        ci.quantidade_cervejas AS quantidade,
        ci.tipo_plano,
-       b.preco AS preco_unitario
+       ci.preco_unitario
      FROM carrinho_itens ci
      JOIN boxes b ON ci.box_id = b.id
      WHERE ci.carrinho_id = $1
@@ -44,9 +44,8 @@ const getCarrinhoCompleto = async (usuario_id) => {
 // @route   POST /carrinho/adicionar
 // @access  Privado
 const adicionarItem = async (req, res) => {
-  // CORRIGIDO: Mudado de quantidade_cervejas para quantidade
   const { box_id, quantidade, tipo_plano } = req.body;
-  const usuario_id = req.userId; // CORRIGIDO: Acessando diretamente req.userId
+  const usuario_id = req.userId;
 
   try {
     let carrinhoResult = await pool.query(
@@ -78,11 +77,46 @@ const adicionarItem = async (req, res) => {
       });
     }
 
-    // Para obter o preco_unitario, precisamos buscar o preço da box
+    // Lógica para determinar a coluna de preço com base em tipo_plano e quantidade
+    let precoColumnName;
+    if (tipo_plano === "mensal") {
+      if (quantidade === 4) {
+        precoColumnName = "preco_mensal_4_un";
+      } else if (quantidade === 6) {
+        precoColumnName = "preco_mensal_6_un";
+      } else {
+        return res.status(400).json({
+          success: false,
+          message: "Quantidade de cervejas inválida para o plano mensal.",
+          erro: "Quantidade inválida",
+        });
+      }
+    } else if (tipo_plano === "anual") {
+      if (quantidade === 4) {
+        precoColumnName = "preco_anual_4_un";
+      } else if (quantidade === 6) {
+        precoColumnName = "preco_anual_6_un";
+      } else {
+        return res.status(400).json({
+          success: false,
+          message: "Quantidade de cervejas inválida para o plano anual.",
+          erro: "Quantidade inválida",
+        });
+      }
+    } else {
+      return res.status(400).json({
+        success: false,
+        message: "Tipo de plano inválido.",
+        erro: "Tipo de plano inválido",
+      });
+    }
+
+    // Buscar o preço da box usando o nome da coluna determinado
     const boxInfo = await pool.query(
-      "SELECT preco FROM boxes WHERE id = $1",
+      `SELECT ${precoColumnName} FROM boxes WHERE id = $1`,
       [box_id]
     );
+
     if (boxInfo.rows.length === 0) {
       return res.status(404).json({
         success: false,
@@ -90,11 +124,11 @@ const adicionarItem = async (req, res) => {
         erro: "Box ID inválido",
       });
     }
-    const preco_unitario = boxInfo.rows[0].preco;
+    const preco_unitario = boxInfo.rows[0][precoColumnName];
 
     await pool.query(
       "INSERT INTO carrinho_itens (carrinho_id, box_id, quantidade_cervejas, tipo_plano, preco_unitario) VALUES ($1, $2, $3, $4, $5) RETURNING *",
-      [carrinho_id, box_id, quantidade, tipo_plano, preco_unitario] // CORRIGIDO: Usando 'quantidade' aqui
+      [carrinho_id, box_id, quantidade, tipo_plano, preco_unitario]
     );
 
     const carrinhoAtualizado = await getCarrinhoCompleto(usuario_id);
