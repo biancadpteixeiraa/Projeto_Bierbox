@@ -185,21 +185,33 @@ const verCarrinho = async (req, res) => {
 };
 
 // @desc    Remover um item do carrinho
-// @route   DELETE /carrinho/item/:id
+// @route   DELETE /carrinho/remover/:box_id
 // @access  Privado
 const removerItem = async (req, res) => {
-  const item_id = req.params.id;
-  const usuario_id = req.userId; // CORRIGIDO: Acessando diretamente req.userId
+  const box_id_param = req.params.box_id; // Agora recebemos box_id do parâmetro da rota
+  const usuario_id = req.userId;
 
   try {
+    // Primeiro, encontre o carrinho do usuário
+    const carrinhoResult = await pool.query(
+      "SELECT id FROM carrinhos WHERE usuario_id = $1",
+      [usuario_id]
+    );
+
+    if (carrinhoResult.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Carrinho não encontrado para este usuário.",
+        erro: "Carrinho inexistente",
+      });
+    }
+    const carrinho_id = carrinhoResult.rows[0].id;
+
+    // Agora, remova o item do carrinho_itens usando carrinho_id e box_id
     const deleteResult = await pool.query(
-      `DELETE FROM carrinho_itens ci
-       WHERE ci.id = $1
-       AND EXISTS (
-         SELECT 1 FROM carrinhos c
-         WHERE c.id = ci.carrinho_id AND c.usuario_id = $2
-       )`,
-      [item_id, usuario_id]
+      `DELETE FROM carrinho_itens
+       WHERE carrinho_id = $1 AND box_id = $2 RETURNING id`,
+      [carrinho_id, box_id_param]
     );
 
     if (deleteResult.rowCount === 0) {

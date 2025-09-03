@@ -11,6 +11,6 @@ router.post('/adicionar', protect, carrinhoController.adicionarItem);
 
 router.get('/', protect, carrinhoController.verCarrinho);
 
-router.delete('/item/:id', protect, carrinhoController.removerItem);
+router.delete('/remover/:box_id', protect, carrinhoController.removerItem);
 
 module.exports = router;
