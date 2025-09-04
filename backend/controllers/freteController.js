@@ -1,6 +1,5 @@
 const axios = require("axios");
 
-// Calcula o frete usando a API 
 const calcularFrete = async (req, res) => {
   try {
     const { cep_destino } = req.body;

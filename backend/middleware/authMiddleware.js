@@ -17,16 +17,15 @@ const protect = (req, res, next) => {
       // Adiciona o ID do usuário ao objeto de requisição
       req.userId = decoded.id;
 
-      return next(); // Adicionado return para clareza, embora next() já encerre o fluxo aqui.
+      return next();
     } catch (error) { 
       console.error("Erro na autenticação do token:", error.message);
-      return res.status(401).json({ message: "Não autorizado, token falhou." }); // Adicionado return
+      return res.status(401).json({ message: "Não autorizado, token falhou." }); 
     }
   }
 
   if (!token) {
-    // Esta verificação agora se torna a principal para quando não há token.
-    return res.status(401).json({ message: "Não autorizado, nenhum token." }); // Adicionado return
+    return res.status(401).json({ message: "Não autorizado, nenhum token." }); 
   }
 };
 

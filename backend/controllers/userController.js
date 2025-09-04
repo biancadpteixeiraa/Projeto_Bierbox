@@ -1,11 +1,10 @@
 const pool = require("../config/db");
-const bcrypt = require("bcryptjs"); // Certifique-se que é 'bcryptjs'
+const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
-// Função auxiliar para gerar o token JWT
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: "30d", // Token válido por 30 dias para facilitar testes
+    expiresIn: "30d", 
   });
 };
 

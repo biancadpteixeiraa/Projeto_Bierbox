@@ -9,7 +9,7 @@ const router = express.Router();
 // Configuração do Multer para armazenamento local
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, "uploads/"); // A pasta 'uploads' deve existir na raiz do seu backend
+    cb(null, "uploads/");
   },
   filename: (req, file, cb) => {
     cb(null, `${req.userId}-${Date.now()}${path.extname(file.originalname)}`);
@@ -37,8 +37,7 @@ router.get("/", protect, getProfile);
 router.put("/", protect, updateProfile);
 router.delete("/", protect, deleteAccount);
 
-// Nova rota para upload de foto de perfil
-// POST /meu-perfil/upload-foto
+// Nova rota para upload de foto de perfil - POST /meu-perfil/upload-foto
 router.post("/upload-foto", protect, upload.single("profilePhoto"), uploadProfilePhoto);
 
 module.exports = router;

@@ -115,9 +115,6 @@ const deleteAccount = async (req, res) => {
   try {
     const userId = req.userId;
 
-    // Opcional: Você pode adicionar lógica para excluir dados relacionados em outras tabelas aqui
-    // Por exemplo: await pool.query("DELETE FROM carrinhos WHERE usuario_id = $1", [userId]);
-
     const result = await pool.query("DELETE FROM users WHERE id = $1 RETURNING id", [userId]);
 
     if (result.rows.length === 0) {
@@ -146,7 +143,6 @@ const uploadProfilePhoto = async (req, res) => {
       return res.status(400).json({ success: false, message: "Nenhum arquivo de imagem enviado." });
     }
 
-    // O caminho onde a imagem foi salva pelo Multer
     const foto_perfil_url = `/uploads/${req.file.filename}`;
 
     // Atualizar o campo foto_perfil_url no banco de dados
@@ -174,7 +170,6 @@ const uploadProfilePhoto = async (req, res) => {
 
   } catch (error) {
     console.error("Erro ao fazer upload da foto de perfil:", error.message);
-    // Erros do Multer (como tamanho ou tipo de arquivo) também serão capturados aqui
     res.status(500).json({
       success: false,
       message: "Erro ao fazer upload da foto de perfil.",
@@ -187,5 +182,5 @@ module.exports = {
   getProfile,
   updateProfile,
   deleteAccount,
-  uploadProfilePhoto, // Exporta a nova função
+  uploadProfilePhoto,
 };

@@ -2,7 +2,7 @@ require('dotenv').config();
 
 const express = require('express');
 const cors = require('cors');
-const path = require('path'); // Importa o módulo path
+const path = require('path'); 
 
 const userRoutes = require('./routes/userRoutes');
 const boxRoutes = require('./routes/boxRoutes');
@@ -19,14 +19,12 @@ app.use(cors({
 app.use(express.json());
 
 // Configura o Express para servir arquivos estáticos da pasta 'uploads'
-// As imagens estarão acessíveis via /uploads/nome_do_arquivo.jpg
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.get('/', (req, res) => {
   res.send('API funcionando!');
 });
 
-// Rotas existentes
 app.use('/users', userRoutes);
 app.use('/boxes', boxRoutes);
 app.use("/frete", freteRoutes);

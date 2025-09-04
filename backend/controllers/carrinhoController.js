@@ -1,7 +1,5 @@
-// backend/controllers/carrinhoController.js
 const pool = require("../config/db");
 
-// Função auxiliar para obter detalhes completos do carrinho
 const getCarrinhoCompleto = async (usuario_id) => {
   const carrinhoResult = await pool.query(
     "SELECT id, usuario_id FROM carrinhos WHERE usuario_id = $1",
@@ -9,7 +7,7 @@ const getCarrinhoCompleto = async (usuario_id) => {
   );
 
   if (carrinhoResult.rows.length === 0) {
-    return null; // Carrinho não encontrado
+    return null; 
   }
 
   const carrinho = carrinhoResult.rows[0];
@@ -111,7 +109,6 @@ const adicionarItem = async (req, res) => {
       });
     }
 
-    // Buscar o preço da box usando o nome da coluna determinado
     const boxInfo = await pool.query(
       `SELECT ${precoColumnName} FROM boxes WHERE id = $1`,
       [box_id]
@@ -152,7 +149,7 @@ const adicionarItem = async (req, res) => {
 // @route   GET /carrinho
 // @access  Privado
 const verCarrinho = async (req, res) => {
-  const usuario_id = req.userId; // CORRIGIDO: Acessando diretamente req.userId
+  const usuario_id = req.userId;
 
   try {
     const carrinho = await getCarrinhoCompleto(usuario_id);
@@ -188,11 +185,10 @@ const verCarrinho = async (req, res) => {
 // @route   DELETE /carrinho/remover/:box_id
 // @access  Privado
 const removerItem = async (req, res) => {
-  const box_id_param = req.params.box_id; // Agora recebemos box_id do parâmetro da rota
+  const box_id_param = req.params.box_id;
   const usuario_id = req.userId;
 
   try {
-    // Primeiro, encontre o carrinho do usuário
     const carrinhoResult = await pool.query(
       "SELECT id FROM carrinhos WHERE usuario_id = $1",
       [usuario_id]
@@ -207,7 +203,6 @@ const removerItem = async (req, res) => {
     }
     const carrinho_id = carrinhoResult.rows[0].id;
 
-    // Agora, remova o item do carrinho_itens usando carrinho_id e box_id
     const deleteResult = await pool.query(
       `DELETE FROM carrinho_itens
        WHERE carrinho_id = $1 AND box_id = $2 RETURNING id`,
