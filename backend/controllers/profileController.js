@@ -135,8 +135,57 @@ const deleteAccount = async (req, res) => {
   }
 };
 
+// @desc    Upload de foto de perfil
+// @route   POST /meu-perfil/upload-foto
+// @access  Privado
+const uploadProfilePhoto = async (req, res) => {
+  try {
+    const userId = req.userId;
+
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: "Nenhum arquivo de imagem enviado." });
+    }
+
+    // O caminho onde a imagem foi salva pelo Multer
+    const foto_perfil_url = `/uploads/${req.file.filename}`;
+
+    // Atualizar o campo foto_perfil_url no banco de dados
+    const result = await pool.query(
+      "UPDATE users SET foto_perfil_url = $1 WHERE id = $2 RETURNING id, nome_completo, email, cpf, foto_perfil_url, data_criacao",
+      [foto_perfil_url, userId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, message: "Usuário não encontrado para atualizar foto." });
+    }
+
+    res.json({
+      success: true,
+      message: "Foto de perfil atualizada com sucesso!",
+      user: {
+        id: result.rows[0].id,
+        nome_completo: result.rows[0].nome_completo,
+        email: result.rows[0].email,
+        cpf: result.rows[0].cpf,
+        foto_perfil_url: result.rows[0].foto_perfil_url,
+        data_criacao: result.rows[0].data_criacao
+      }
+    });
+
+  } catch (error) {
+    console.error("Erro ao fazer upload da foto de perfil:", error.message);
+    // Erros do Multer (como tamanho ou tipo de arquivo) também serão capturados aqui
+    res.status(500).json({
+      success: false,
+      message: "Erro ao fazer upload da foto de perfil.",
+      erro: error.message
+    });
+  }
+};
+
 module.exports = {
   getProfile,
   updateProfile,
-  deleteAccount // Exporta a nova função
+  deleteAccount,
+  uploadProfilePhoto, // Exporta a nova função
 };
