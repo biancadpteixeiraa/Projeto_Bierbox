@@ -3,16 +3,19 @@ import Link from "next/link";
 import Card from "../ui/card";
 import Button from "../ui/button";
 import { getBoxes } from "@/app/services/boxes";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
+import { CardSkeleton, CardsSkeleton } from "../ui/skeletons";
 
 export default function PlansArea(){
 
     const [boxes, setBoxes] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         getBoxes().then((data) => {
         if (data.success) setBoxes(data.boxes);
         console.log(data);
+        setLoading(false);
         });
     }, 
     []);
@@ -23,6 +26,7 @@ export default function PlansArea(){
                 PLANOS DE ASSINATURA
             </h1>
             <div className="flex flex-col lg:flex-row items-center gap-14 justify-center">
+                {loading && <CardsSkeleton/>}
                 {
                     boxes.map((box)=>(
                         <Card className="w-56 max-h-72"

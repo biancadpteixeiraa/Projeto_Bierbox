@@ -18,7 +18,7 @@ export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [shoppingCartOpen, setShoppingCartOpen] = useState(false)
   const isAuthenticated = useAuth();   
-  const { carrinho, loadCarrinho} = useCarrinho();
+  const { carrinho} = useCarrinho();
 
   const pathname = usePathname();
 
@@ -53,8 +53,10 @@ const cartOpen = () => {
                     </a>
                 </div>
                 <div className="flex flex-1 justify-end gap-20">
-                    {isAuthenticated?.token ? (
+                    {isAuthenticated?.user ? (
+                        <Link href={`/dashboard/${isAuthenticated.user.id}`}>
                         <Icon icon="mdi:gear" className="text-5xl text-brown-secondary"/>
+                        </Link>
                     ) : (
                         <div className='hidden lg:flex lg:items-center gap-2'>
                         <UserRound className="size-9 text-brown-secondary" />

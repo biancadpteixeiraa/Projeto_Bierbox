@@ -37,6 +37,10 @@ export function CarrinhoProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
+    if (!token) {
+      setCarrinho(null);
+      return;
+    }
     loadCarrinho();
   }, [token]);
 
