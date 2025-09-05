@@ -1,6 +1,6 @@
 import api from "./api";
 
-const API_URL = "https://c075299a8441.ngrok-free.app";
+const API_URL = "https://54327051f610.ngrok-free.app";
 
 // Buscar dados do perfil do usuário logado
 export async function getUserInfo(token: string) {

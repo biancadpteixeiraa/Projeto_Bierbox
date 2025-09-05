@@ -1,12 +1,12 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import {
   Dialog,
   DialogPanel,
   PopoverGroup,
 } from '@headlessui/react'
-import { UserRound, X, MenuIcon, Refrigerator } from 'lucide-react'
+import { UserRound, X, MenuIcon } from 'lucide-react'
 import { Icon } from "@iconify/react";
 import Link from 'next/link'
 import { usePathname } from 'next/navigation';
@@ -40,27 +40,27 @@ const cartOpen = () => {
 
   return (
     <header className="bg-white flex flex-col font-secondary">
-        <div className='bg-beige-primary h-26 py-2 px-10'>
-            <nav aria-label="Global" className="mx-auto flex max-w-8xl items-center">
+        <div className='bg-beige-primary py-1 px-10'>
+            <nav aria-label="Global" className="mx-auto flex max-w-6xl items-center">
                 <div className="flex w-full lg:flex-1 lg:justify-start justify-center">
                     <a href="/" className="">
                         <span className="sr-only">BierBox</span>
                         <img 
                         alt=""
                         src="/Logo.png"
-                        className="sm:size-24 size-auto"
+                        className="sm:size-20 size-auto"
                         />
                     </a>
                 </div>
                 <div className="flex flex-1 justify-end gap-20">
                     {isAuthenticated?.user ? (
                         <Link href={`/dashboard/${isAuthenticated.user.id}`}>
-                        <Icon icon="mdi:gear" className="text-5xl text-brown-secondary"/>
+                        <Icon icon="mdi:gear" className="text-4xl text-brown-secondary"/>
                         </Link>
                     ) : (
                         <div className='hidden lg:flex lg:items-center gap-2'>
-                        <UserRound className="size-9 text-brown-secondary" />
-                        <p className='text-brown-secondary text-sm'>
+                        <UserRound className="size-6 text-brown-secondary" />
+                        <p className='text-brown-secondary text-xs font-medium'>
                             Olá!
                             <br />
                             <span><Link href={'/login'} className='underline font-bold'>Entre</Link> </span>
@@ -72,9 +72,9 @@ const cartOpen = () => {
                     }
                     <div className='flex items-center pr-4 lg:pr-0'>
                         <button onClick={cartOpen}>
-                            <Refrigerator fill='#654A1F' className="size-12 text-beige-primary" />
+                            <Icon icon="mdi:refrigerator" className="size-8 text-brown-secondary"/>
                         </button>
-                        <span className='flex items-center justify-center text-xs bg-brown-tertiary text-beige-primary rounded-full min-w-[20px] h-5 px-1 font-medium -ml-1'>
+                        <span className='flex items-center justify-center text-[10px] bg-brown-tertiary text-beige-primary rounded-full min-w-[15px] h-4 px-1 font-medium -ml-1'>
                             {carrinho?.itens?.length || 0}
                         </span>
                     </div>
@@ -144,13 +144,13 @@ const cartOpen = () => {
             </Dialog>
         </div>
         <div className='bg-yellow-primary hidden lg:block py-1'>
-            <nav aria-label="Global" className="mx-auto flex max-w-7xl items-center justify-center p-5 lg:px-8">
-                <PopoverGroup className="hidden lg:flex lg:gap-x-16">
+            <nav aria-label="Global" className="mx-auto flex max-w-7xl items-center justify-center px-5 py-4 lg:px-8">
+                <PopoverGroup className="hidden lg:flex lg:gap-x-20">
                  {linksMenu.map((link) => (
                         <Link
                         key={link.href}
                         href={link.href}
-                        className={`text-base text-beige-primary lg:mx-8 mx-auto hover:font-semibold ${
+                        className={`text-sm text-beige-primary lg:mx-9 mx-auto hover:font-semibold ${
                         pathname === link.href ? 'font-semibold' : ''
                         }`}
                         >

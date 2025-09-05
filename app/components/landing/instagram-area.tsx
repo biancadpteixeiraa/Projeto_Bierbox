@@ -38,8 +38,8 @@ export default function InstagramArea(){
     ]
     
     return(
-        <div className="max-w-7xl mx-auto flex flex-col items-start pl-14 pr-0 lg:px-14 pb-24 pt-14 font-primary text-brown-primary ">
-            <h1 className="text-4xl pb-12">
+        <div className="max-w-6xl mx-auto flex flex-col items-start pl-14 pr-0 lg:px-16 pb-24 pt-24 font-primary text-brown-primary ">
+            <h1 className="text-xl pb-12">
                 Siga a gente no Instagram!
             </h1>
             <PhotosCarousel className="w-full">
@@ -50,7 +50,7 @@ export default function InstagramArea(){
                     <img
                     src={photo.src}
                     alt={`Foto ${photo.id}`}
-                    className="object-cover size-64 rounded-lg lg:size-auto"
+                    className="object-cover size-56 rounded-lg lg:size-auto"
                     />
                 </div>
                 ))}

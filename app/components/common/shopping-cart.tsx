@@ -15,7 +15,6 @@ interface ShoppingCartProps {
 export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
   const { carrinho, loadCarrinho, removeItem } = useCarrinho();
 
-  // sempre que abrir, busca os dados atualizados
   useEffect(() => {
     if (isOpen) {
       loadCarrinho();

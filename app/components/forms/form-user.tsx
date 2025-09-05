@@ -4,30 +4,41 @@ import Input from "../ui/input";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/app/context/authContext";
 import { getUserInfo, updateUserInfo } from "@/app/services/user";
+import { toast } from "react-toastify";
 
 export default function UserForm() {
-  const { token, user, logout } = useAuth();
+  const { token, logout } = useAuth();
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [cpf, setCpf] = useState("");
   const [senhaAtual, setSenhaAtual] = useState("");
   const [novaSenha, setNovaSenha] = useState("");
 
-  // carregar dados do perfil
   useEffect(() => {
     if (!token) return;
-    getUserInfo(token).then((data) => {
-      if (data.success) {
-        setNome(data.user.nome_completo);
-        setEmail(data.user.email);
-        setCpf(data.user.cpf);
-      } else {
-        alert(data.message || "Erro ao carregar perfil");
-        if (data.message?.toLowerCase().includes("token")) {
-          logout(); // se o token for inválido, desloga
+
+    const fetchProfile = async () => {
+      try {
+        const data = await getUserInfo(token);
+        if (data.success) {
+          setNome(data.user.nome_completo);
+          setEmail(data.user.email);
+          setCpf(data.user.cpf);
+        } else {
+          toast.error("Não foi possível carregar perfil.");
+          if (data.message?.toLowerCase().includes("token")) {
+            logout();
+          }
         }
+      } catch (err) {
+        console.error(err);
+        toast.error("Erro inesperado ao carregar perfil.");
+      } finally {
+        toast.dismiss();
       }
-    });
+    };
+
+    fetchProfile();
   }, [token, logout]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -35,20 +46,33 @@ export default function UserForm() {
     if (!token) return;
 
     const payload: any = {};
-    if (nome !== "") payload.nome_completo = nome;
-    if (novaSenha !== "") {
+    if (nome.trim() !== "") payload.nome_completo = nome;
+    if (novaSenha.trim() !== "") {
       payload.senha_atual = senhaAtual;
       payload.nova_senha = novaSenha;
     }
 
-    const response = await updateUserInfo(token, payload);
-    if (response.success) {
-      alert(response.message || "Perfil atualizado!");
-      setNome(response.user.nome_completo);
-      setSenhaAtual("");
-      setNovaSenha("");
-    } else {
-      alert(response.message || "Erro ao atualizar perfil");
+    if (Object.keys(payload).length === 0) {
+      toast.info("Nenhuma alteração para salvar.");
+      return;
+    }
+
+    try {
+      const response = await updateUserInfo(token, payload);
+      if (response.success) {
+        toast.success("Perfil atualizado com sucesso!");
+        setNome(response.user.nome_completo);
+        setSenhaAtual("");
+        setNovaSenha("");
+      } else {
+        toast.error("Não foi possível atualizar perfil.");
+        console.error("Erro: ", response.message);
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Erro inesperado ao atualizar perfil.");
+    } finally {
+      toast.dismiss();
     }
   };
 

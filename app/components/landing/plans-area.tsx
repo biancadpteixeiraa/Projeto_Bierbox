@@ -3,8 +3,8 @@ import Link from "next/link";
 import Card from "../ui/card";
 import Button from "../ui/button";
 import { getBoxes } from "@/app/services/boxes";
-import { Suspense, useEffect, useState } from "react";
-import { CardSkeleton, CardsSkeleton } from "../ui/skeletons";
+import { useEffect, useState } from "react";
+import { CardsSkeleton } from "../ui/skeletons";
 
 export default function PlansArea(){
 
@@ -22,10 +22,10 @@ export default function PlansArea(){
 
     return(
         <div className="max-w-7xl mx-auto flex flex-col px-14 lg:px-46 py-14 text-brown-primary">
-            <h1 className="text-center text-xl font-primary pb-14 uppercase">
+            <h1 className="text-center text-lg font-primary pb-24 uppercase">
                 PLANOS DE ASSINATURA
             </h1>
-            <div className="flex flex-col lg:flex-row items-center gap-14 justify-center">
+            <div className="flex flex-col lg:flex-row items-center gap-14 justify-center pb-14">
                 {loading && <CardsSkeleton/>}
                 {
                     boxes.map((box)=>(

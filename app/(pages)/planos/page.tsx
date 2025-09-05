@@ -16,10 +16,11 @@ export default function Page(){
             <PlansCards/>
             <PlansCarouselArea/>
             <BannerArea/>
-            <div className="h-[100px]"></div>
+            <div className="h-[100px]"/>
             <BenefitsArea/>
+            <div className="h-7"/>
             <ExplanationArea/>
-            <div className="h-[100px]"></div>
+            <div className="h-[100px]"/>
             <Footer/>
         </div>
     );

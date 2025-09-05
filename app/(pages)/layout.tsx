@@ -3,6 +3,7 @@ import {Dela_Gothic_One} from "next/font/google";
 import { Montserrat } from "next/font/google";
 import { AuthProvider } from "../context/authContext";
 import { CarrinhoProvider } from "../context/cartContext";
+import { ToastContainer } from "react-toastify";
 
 
 const delaGothic = Dela_Gothic_One({
@@ -25,6 +26,8 @@ export default function RootLayout({
       <body className='antialiased bg-beige-primary text-brown-secodary'>
         <AuthProvider>
           <CarrinhoProvider>
+            <ToastContainer 
+          position="top-center"/>
             {children}
           </CarrinhoProvider>
         </AuthProvider>

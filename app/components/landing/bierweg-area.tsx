@@ -4,12 +4,12 @@ import { Play } from "lucide-react";
 export default function BierwegArea(){
     
     return(
-        <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-start lg:items-center px-14 pb-24 pt-4 font-primary text-brown-primary h-full">
-            <div className="flex flex-col items-start w-full lg:w-1/2">
-                <h1 className="text-4xl md:text-6xl leading-10 md:leading-[80px]">
-                    CONHEÇA A ROTA DA CERVEJA!
+        <div className="max-w-6xl mx-auto flex flex-col lg:flex-row items-start lg:items-center px-16 pb-24 pt-4 font-primary text-brown-primary h-full">
+            <div className="flex flex-col items-start w-full lg:w-1/2 pl-2">
+                <h1 className="text-4xl md:text-4xl leading-6 md:leading-[60px]">
+                    CONHEÇA A <br />ROTA DA <br />CERVEJA!
                 </h1>
-                <p className="font-secondary pt-4">
+                <p className="font-secondary pt-6 text-2xl text-gray-secondary">
                     CONFIRA O VÍDEO:
                 </p>
             </div>

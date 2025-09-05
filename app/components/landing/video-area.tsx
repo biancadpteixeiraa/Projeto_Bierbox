@@ -2,7 +2,7 @@ import Button from "../ui/button";
 
 export default function VideoArea() {
   return (
-    <div className="w-full relative h-[650px] overflow-hidden">
+    <div className="w-full relative md:h-[630px] h-96 overflow-hidden">
       <video
         className="w-full h-full absolute top-0 left-0 object-cover z-0"
         loop
@@ -13,14 +13,14 @@ export default function VideoArea() {
       >
         Your browser does not support the video tag.
       </video>
-      <div className="max-w-screen-2xl lg:mx-auto px-10 relative z-10 flex flex-col items-start top-32">
-        <h1 className="uppercase text-4xl text-beige-secondary font-primary leading-[50px]">
+      <div className="hidden md:block max-w-screen-2xl lg:mx-auto px-[80px] relative z-10 flex flex-col items-start top-[100px]">
+        <h1 className="uppercase text-[32px] text-beige-secondary font-primary leading-[48px]">
           Seu Clube de assinatura <br /> de Chopes e cervejas <br /> artesanais.
         </h1>
-        <p className="font-secondary text-white text-[22px] font-medium pt-8 leading-[30px]">
+        <p className="font-secondary text-white text-lg font-medium pt-8 leading-[25px]">
           Bierbox é o clube de quem curte descobrir novos sabores, <br /> brindar bons momentos e receber cerveja artesanal sem <br /> sair de casa.
         </p>
-        <Button className="font-primary mt-10 px-10 py-4 shadow-[0px_9px_26px_-6px_rgba(227,41,102,0.3)]">
+        <Button className="rounded-xl text-sm font-primary mt-9 px-9 py-4 shadow-[0px_9px_26px_-6px_rgba(227,41,102,0.3)]">
           CONFERIR PLANOS
         </Button>
       </div>

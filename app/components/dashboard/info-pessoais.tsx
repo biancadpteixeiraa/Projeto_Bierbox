@@ -3,32 +3,39 @@ import { useRef, useState, useEffect } from "react";
 import UserForm from "../forms/form-user";
 import Button from "../ui/button";
 import { useAuth } from "@/app/context/authContext";
-import { updateUserPhoto, getUserInfo } from "@/app/services/user";
+import { updateUserPhoto, getUserInfo, deleteUserAccount } from "@/app/services/user";
+import { toast } from "react-toastify";
+import { useRouter } from "next/navigation";
 
 export default function InfoPessoais() {
   const { token, logout } = useAuth();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [userData, setUserData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
-  // carrega dados do usuário (inclusive foto)
   useEffect(() => {
     if (!token) return;
+
     const fetchData = async () => {
       try {
+        toast.loading("Carregando perfil...");
         const response = await getUserInfo(token);
         if (response.success) {
           setUserData(response.user);
         } else {
-          alert(response.message);
+          toast.error("Não foi possível carregar seus dados.");
           if (response.message?.toLowerCase().includes("token")) logout();
         }
       } catch (err) {
         console.error(err);
+        toast.error("Erro inesperado ao carregar perfil.");
       } finally {
         setLoading(false);
+        toast.dismiss();
       }
     };
+
     fetchData();
   }, [token, logout]);
 
@@ -40,13 +47,12 @@ export default function InfoPessoais() {
     if (!e.target.files || e.target.files.length === 0) return;
     const file = e.target.files[0];
 
-    // validação simples
     if (!["image/jpeg", "image/png"].includes(file.type)) {
-      alert("Apenas imagens JPEG e PNG são permitidas.");
+      toast.info("Apenas imagens JPEG e PNG são permitidas.");
       return;
     }
     if (file.size > 1024 * 1024) {
-      alert("O arquivo deve ter no máximo 1MB.");
+      toast.info("O arquivo deve ter no máximo 1MB.");
       return;
     }
 
@@ -55,16 +61,39 @@ export default function InfoPessoais() {
     try {
       const response = await updateUserPhoto(token, file);
       if (response.success) {
-        alert(response.message);
-        // recarregar dados do perfil com a nova foto
+        toast.success("Foto atualizada com sucesso!");
         const updated = await getUserInfo(token);
         if (updated.success) setUserData(updated.user);
       } else {
-        alert(response.message || "Erro ao atualizar foto.");
+        toast.error("Não foi possível atualizar a foto.");
+        console.error("Erro: ", response.message);
       }
     } catch (err) {
-      console.error(err);
-      alert("Erro inesperado ao enviar foto.");
+      console.error("Erro: ", err);
+      toast.error("Erro inesperado ao enviar foto.");
+    } finally {
+      toast.dismiss();
+    }
+  };
+
+  const handleDeleteUser = async () => {
+    if (!token) return;
+
+    try{
+      const response = await deleteUserAccount(token);
+      if(response.success){
+        toast.success("Usuário excluído!");
+        logout();
+        router.push('/');
+      } else {
+        toast.error("Não foi possível excluir usuário");
+        console.error("Erro: ", response.message);
+      }
+    } catch (err){
+      console.error("Erro: ", err);
+      toast.error("Erro inesperado ao excluir usuário!");
+    } finally {
+      toast.dismiss();
     }
   };
 
@@ -109,7 +138,7 @@ export default function InfoPessoais() {
           <div className="flex items-center text-center pt-10 text-black text-base font-secondary font-medium">
             <p>
               Deseja excluir sua conta?{" "}
-              <span className="underline cursor-pointer">Clique aqui</span>
+              <span className="underline cursor-pointer" onClick={handleDeleteUser}>Clique aqui</span>
             </p>
           </div>
         </div>

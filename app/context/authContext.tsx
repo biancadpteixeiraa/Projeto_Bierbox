@@ -2,6 +2,7 @@
 import { useState, createContext, useEffect, useContext } from 'react';
 import api from '../services/api';
 import { useRouter } from 'next/navigation';
+import { toast } from 'react-toastify';
 
 interface User {
   id: string;
@@ -34,28 +35,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const login = async (email: string, senha: string) => {
-    try {
-      const response = await api.post('/users/login', { email, senha });
+  try {
+    const response = await api.post('/users/login', { email, senha });
 
-      if (response.data.success) {
-        const { token, user } = response.data;
+    if (response.data.success) {
+      const { token, user } = response.data;
 
-        setToken(token);
-        setUser(user);
+      setToken(token);
+      setUser(user);
 
-        localStorage.setItem('token', token);
-        localStorage.setItem('user', JSON.stringify(user));
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(user));
 
-        router.push(`/dashboard/${user.id}`);
-        alert(response.data.message || 'Login realizado com sucesso!');
+      const redirect = localStorage.getItem("redirectAfterAuth");
+      if (redirect) {
+        localStorage.removeItem("redirectAfterAuth");
+        router.push(redirect);
       } else {
-        alert(response.data.message || 'Falha no login.');
+        router.push(`/dashboard/${user.id}`);
       }
-    } catch (error) {
-      console.error('Erro no login:', error);
-      alert('Falha no login. Verifique suas credenciais.');
+    } else {
+      toast.error("Falha ao realizar login, tente novamente!");
+      console.error(response.data.message);
     }
-  };
+  } catch (error) {
+    console.error('Erro no login:', error);
+    toast.error('Falha no login. Verifique suas credenciais!');
+  }
+};
+
 
   const register = async (nome_completo: string, email: string, cpf: string, senha: string) => {
     try {
@@ -65,11 +73,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         cpf,
         senha,
       });
-      alert(response.data.message || 'Cadastro realizado com sucesso!');
+      toast.success("Cadastro realizado com sucesso!")
       router.push('/login');
     } catch (error) {
       console.error('Erro no cadastro:', error);
-      alert('Falha no cadastro. Tente novamente.');
+      toast.error("Falha no cadastro. Tente novamente.")
     }
   };
 
@@ -79,7 +87,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     router.push('/');
-    alert('Logout realizado.');
   };
 
   return (

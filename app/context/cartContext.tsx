@@ -2,6 +2,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { addToCarrinho, getCarrinho, removeFromCarrinho } from "../services/shoppingCart";
 import { useAuth } from "./authContext";
+import { toast } from "react-toastify";
 
 interface CartItem {
   id: number;
@@ -31,10 +32,19 @@ export function CarrinhoProvider({ children }: { children: React.ReactNode }) {
   const [carrinho, setCarrinho] = useState<Carrinho | null>(null);
 
   const loadCarrinho = async () => {
-    if (!token) return;
+  if (!token) return;
+  try {
     const data = await getCarrinho(token);
-    if (data.success) setCarrinho(data.carrinho);
-  };
+    if (data.success) {
+      setCarrinho(data.carrinho);
+    } else {
+      toast.error(data.message || "Erro ao carregar carrinho!");
+    }
+  } catch (err) {
+    console.error(err);
+    toast.error("Erro inesperado ao carregar carrinho!");
+  }
+};
 
   useEffect(() => {
     if (!token) {
@@ -45,24 +55,43 @@ export function CarrinhoProvider({ children }: { children: React.ReactNode }) {
   }, [token]);
 
   const addItem = async (box_id: number, quantidade: number, tipo_plano: 'mensal'|'anual') => {
-    console.log(token);
-    console.log(box_id, quantidade, tipo_plano);
-    if (!token) return;
+  if (!token) return;
+
+  const itemExistente = carrinho?.itens.find(
+    (item) => item.box_id === box_id
+  );
+
+  if (itemExistente) {
+    toast.warning("Esse item já está no seu carrinho!");
+    return;
+  }
+
+  try {
     const data = await addToCarrinho(token, box_id, quantidade, tipo_plano);
-    console.log(data);
     if (data.success) {
       setCarrinho(data.carrinho);
-      alert("Item adicionado ao carrinho!");
+      toast.success("Item adicionado ao carrinho!");
     } else {
-      alert("Erro ao adicionar item ao carrinho: " + data.message);
+      toast.error(data.message || "Erro ao adicionar item ao carrinho!");
+      console.error("Erro ao adicionar item ao carrinho:", data.message);
     }
-  };
+  } catch (err) {
+    console.error(err);
+    toast.error("Erro inesperado ao adicionar item!");
+  }
+};
+
 
   const removeItem = async (box_id: number) => {
     if (!token) return;
     const data = await removeFromCarrinho(token, box_id);
-    if (data.success) setCarrinho(data.carrinho);
-    alert("Item removido do carrinho com sucesso!");
+    if (data.success){
+      setCarrinho(data.carrinho)
+      toast.success("Item removido do carrinho com sucesso!")
+    } else {
+      toast.error("Erro ao remover item do carrinho!")
+      console.error("Erro ao remover item do carrinho: " + data.message);
+    }
   };
 
   return (

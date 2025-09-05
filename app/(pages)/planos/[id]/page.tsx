@@ -4,10 +4,11 @@ import Header from "@/app/components/common/header";
 import Button from "@/app/components/ui/button";
 import { PlansCarousel } from "@/app/components/ui/plans-Carousel/plans-carousel";
 import { getBoxById } from "@/app/services/boxes";
-import { useParams } from "next/navigation";
+import { useParams, usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/app/context/authContext";
 import { useCarrinho } from "@/app/context/cartContext";
+import { toast } from "react-toastify";
 
 interface Box {
     id: number;
@@ -27,6 +28,8 @@ export default function Page(){
     const { isAuthenticated } = useAuth();
     const [boxData, setBoxData] = useState<Box | null>(null);
     const { addItem } = useCarrinho();
+    const router = useRouter();
+    const pathname = usePathname();
     
     useEffect(() => {
     if (!id) return;
@@ -35,28 +38,29 @@ export default function Page(){
         .then((data) => {
             if (data.success) {
                 setBoxData(data.box);
-                console.log("Dados da caixa:", data.box);
             } else {
+                toast.error("Falha em carregar Box!");
                 console.error("Falha ao buscar dados da caixa:", data.message);
             }
         })
         .catch((error) => {
+            toast.error("Falha em carregar Box!");
             console.error("Erro ao chamar getBoxById:", error);
         });
 }, [id]);
 
     const handleAddToCart = async (tipo: "mensal" | "anual", unidades: 4 | 6) => {
         if (!isAuthenticated) {
-            alert("Por favor, faça login para adicionar itens ao carrinho.");
+            toast.warning("Por favor, faça login para adicionar itens ao carrinho.");
+            localStorage.setItem("redirectAfterAuth", pathname);
+            router.push("/login");
             return;
         }
         if (!boxData) {
-            alert("Box não carregada ainda.");
+            toast.warning("Box não carregada ainda.");
             return;
         }
-
         await addItem(boxData.id, unidades, tipo);
-        alert("Item adicionado ao carrinho!");
     };
     
     return( 
