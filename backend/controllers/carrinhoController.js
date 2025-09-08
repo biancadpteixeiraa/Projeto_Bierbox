@@ -17,9 +17,9 @@ const getCarrinhoCompleto = async (usuario_id) => {
        ci.id,
        ci.box_id,
        b.nome,
-       b.imagem_principal_url,
+       b.imagem_principal_url, -- Adicionado: URL da imagem da box
        ci.quantidade_cervejas AS quantidade,
-       ci.tipo_plano,
+       ci.tipo_plano, -- Adicionado: Tipo de plano (mensal/anual)
        ci.preco_unitario
      FROM carrinho_itens ci
      JOIN boxes b ON ci.box_id = b.id
