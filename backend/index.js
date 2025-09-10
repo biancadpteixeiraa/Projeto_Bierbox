@@ -9,6 +9,8 @@ const boxRoutes = require('./routes/boxRoutes');
 const carrinhoRoutes = require('./routes/carrinhoRoutes');
 const freteRoutes = require("./routes/freteRoutes");
 const profileRoutes = require("./routes/profileRoutes");
+const enderecoRoutes = require('./routes/enderecoRoutes');
+
 
 const app = express();
 const PORT = 4000;
@@ -30,6 +32,8 @@ app.use('/boxes', boxRoutes);
 app.use("/frete", freteRoutes);
 app.use("/meu-perfil", profileRoutes);
 app.use('/carrinho', carrinhoRoutes); 
+app.use('/api/enderecos', enderecoRoutes);
+
 
 app.listen(PORT, () => {
   console.log(`Servidor rodando em http://localhost:${PORT}` );
