@@ -7,21 +7,21 @@ const axios = require("axios");
 const BASE_URL = process.env.BACKEND_URL || "http://localhost:3000";
 const TEST_USER = {
     nome_completo: "Usuário Teste BierBox",
-    email: "teste.bierbox@email.com",
+    email: "teste.bierbox22@email.com",
     senha: "senha123",
-    telefone: "11999999999",
-    cpf: "12345678901"
+    telefone: "11999999949",
+    cpf: "12345678201"
 };
 
 const TEST_ENDERECO = {
-    nome_endereco: "Casa",
-    cep: "01310-100",
-    logradouro: "Av. Paulista",
-    numero: "1000",
-    complemento: "Apto 101",
-    bairro: "Bela Vista",
-    cidade: "São Paulo",
-    estado: "SP"
+    "cep": "12345-678",
+    "rua": "Nova Rua",
+    "numero": "100",
+    "complemento": "Casa 2",
+    "bairro": "Novo Bairro",
+    "cidade": "Nova Cidade",
+    "estado": "SP",
+    "is_padrao": false
 };
 
 const TEST_CARD_TOKEN = "test_card_token_123"; // Token de teste do Mercado Pago (simulado )
@@ -31,7 +31,7 @@ class SistemaCompleto {
         this.authToken = null;
         this.userId = null;
         this.enderecoId = null;
-        this.preferenciaId = null; // ID da preferência de pagamento
+        this.checkoutUrl = null; // URL de checkout do Mercado Pago
         this.resultados = {};
     }
 
@@ -142,7 +142,7 @@ class SistemaCompleto {
         }
     }
 
-    // Teste 5: Criar Preferência de Pagamento (substitui criar assinatura)
+    // Teste 5: Criar Preferência de Pagamento
     async testeCriarPreferenciaPagamento() {
         console.log("\n💳 Teste 5: Criar Preferência de Pagamento");
         
@@ -153,34 +153,17 @@ class SistemaCompleto {
         }
 
         const dadosPreferencia = {
-            items: [
-                {
-                    id: "box-cerveja-1",
-                    title: "Box de Cerveja Artesanal",
-                    description: "Assinatura mensal de 4 cervejas",
-                    quantity: 1,
-                    unit_price: 100.00 // Valor de teste
-                }
-            ],
-            payer: {
-                email: TEST_USER.email
-            },
-            external_reference: `user_${this.userId}_${Date.now()}`,
-            back_urls: {
-                success: `${BASE_URL}/pagamento/sucesso`,
-                pending: `${BASE_URL}/pagamento/pendente`,
-                failure: `${BASE_URL}/pagamento/falha`
-            },
-            notification_url: `${BASE_URL}/api/pagamentos/webhook` // Seu webhook
+            plano_id: "PLANO_MENSAL", // Ou "PLANO_ANUAL"
+            endereco_entrega_id: this.enderecoId,
+            valor_frete: 15.00 // Valor de frete de teste
         };
         
         const resultado = await this.request("POST", "/api/pagamentos/criar-preferencia", dadosPreferencia);
         
-        if (resultado.success && resultado.data.data) {
-            this.preferenciaId = resultado.data.data.id;
+        if (resultado.success && resultado.data.checkoutUrl) {
+            this.checkoutUrl = resultado.data.checkoutUrl;
             console.log("✅ Preferência de Pagamento criada com sucesso");
-            console.log(`   Preferência ID: ${this.preferenciaId}`);
-            console.log(`   URL de Pagamento: ${resultado.data.data.init_point}`);
+            console.log(`   URL de Checkout: ${this.checkoutUrl}`);
             this.resultados.preferenciaPagamento = true;
             return true;
         } else {
@@ -190,24 +173,27 @@ class SistemaCompleto {
         }
     }
 
-    // Teste 6: Simular Webhook de Pagamento (substitui webhook de teste genérico)
+    // Teste 6: Simular Webhook de Pagamento
     async testeSimularWebhookPagamento() {
         console.log("\n🔗 Teste 6: Simular Webhook de Pagamento");
         
-        if (!this.preferenciaId) {
-            console.log("❌ Preferência de pagamento necessária para simular webhook");
-            this.resultados.simularWebhook = false;
-            return false;
-        }
+        // Este teste não pode ser totalmente automatizado sem simular a interação do usuário
+        // com a página de checkout do Mercado Pago e a subsequente notificação de webhook.
+        // No entanto, podemos simular o envio de um webhook para o endpoint.
+        
+        // Para um teste mais completo, você precisaria:
+        // 1. Abrir this.checkoutUrl em um navegador.
+        // 2. Simular um pagamento no sandbox do Mercado Pago.
+        // 3. O Mercado Pago enviaria o webhook para o seu backend.
 
-        // Simula um webhook de pagamento aprovado
+        // Simulação de um corpo de webhook de pagamento aprovado
         const webhookData = {
             action: "payment.created",
             data: {
                 id: "123456789", // ID de pagamento simulado
                 status: "approved",
-                external_reference: `user_${this.userId}_${Date.now()}`,
-                transaction_amount: 100.00,
+                external_reference: `user_${this.userId}_${Date.now()}`, // Pode ser o ID da assinatura ou pedido
+                transaction_amount: 115.00, // Valor total (plano + frete)
                 payment_method_id: "visa",
                 // Outros dados relevantes do pagamento
             },

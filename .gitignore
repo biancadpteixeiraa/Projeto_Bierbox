@@ -12,3 +12,6 @@ yarn-debug.log*
 # Outros
 .DS_Store
 *.pem
+
+# Next.js build
+.next/
