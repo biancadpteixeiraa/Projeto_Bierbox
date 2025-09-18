@@ -12,8 +12,9 @@ const assinaturaController = {
                     a.plano_id, 
                     a.status, 
                     a.data_inicio, 
-                    a.data_fim, 
-                    a.data_atualizacao, 
+                    a.data_cancelamento, 
+                    a.criado_em, 
+                    a.atualizado_em, 
                     a.id_assinatura_mp, 
                     b.nome AS box_nome, 
                     b.descricao AS box_descricao, 
@@ -45,8 +46,9 @@ const assinaturaController = {
                     a.plano_id, 
                     a.status, 
                     a.data_inicio, 
-                    a.data_fim, 
-                    a.data_atualizacao, 
+                    a.data_cancelamento, 
+                    a.criado_em, 
+                    a.atualizado_em, 
                     a.id_assinatura_mp, 
                     b.nome AS box_nome, 
                     b.descricao AS box_descricao, 
@@ -74,7 +76,7 @@ const assinaturaController = {
         try {
             const userId = req.userId;
             const { id } = req.params; // ID da assinatura a ser cancelada
-            const { motivo_cancelamento } = req.body; // Motivo opcional
+            // const { motivo_cancelamento } = req.body; // Removido, pois a coluna não existe
 
             // Primeiro, verificar se a assinatura existe e pertence ao usuário
             const assinaturaResult = await pool.query(
@@ -102,8 +104,8 @@ const assinaturaController = {
 
             // Atualizar o status da assinatura no banco de dados
             const result = await pool.query(
-                "UPDATE assinaturas SET status = \'CANCELADA\', data_fim = NOW(), data_atualizacao = NOW(), motivo_cancelamento = $1 WHERE id = $2 RETURNING *",
-                [motivo_cancelamento || "Cancelado pelo usuário", id]
+                "UPDATE assinaturas SET status = \'CANCELADA\', data_cancelamento = NOW(), atualizado_em = NOW() WHERE id = $1 RETURNING *",
+                [id]
             );
 
             res.status(200).json({ success: true, message: "Assinatura cancelada com sucesso.", data: result.rows[0] });
