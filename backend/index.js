@@ -14,15 +14,14 @@ const pagamentoRoutes = require('./routes/pagamentoRoutes');
 
 
 const app = express();
-const HOST = '0.0.0.0';
-const PORT = process.env.PORT || 4000;
 
 app.use(cors({
-  origin: '*',
+  origin: '*'
 }));
 
 app.use((req, res, next) => {
-    if (req.originalUrl === '/api/pagamentos/webhook') {
+    // A rota do webhook do Mercado Pago é /api/pagamentos/webhook
+    if (req.originalUrl === '/api/pagamentos/webhook') { // Corrigido para a rota correta do webhook
         // Se for a rota do webhook, não use o parser de JSON.
         // O SDK do Mercado Pago precisa do corpo da requisição em formato raw.
         next();
@@ -47,9 +46,9 @@ app.use('/carrinho', carrinhoRoutes);
 app.use('/api/enderecos', enderecoRoutes);
 app.use('/api/pagamentos', pagamentoRoutes);
 
- 
+const HOST = '0.0.0.0'; // Escuta em todas as interfaces de rede
+const PORT = process.env.PORT || 4000; // Usa a porta do ambiente (Render) ou 4000 localmente
 
 app.listen(PORT, HOST, () => {
   console.log(`Servidor rodando em http://${HOST}:${PORT}` );
 });
-
