@@ -18,11 +18,9 @@ const assinaturaController = {
                     b.nome AS box_nome, 
                     b.descricao AS box_descricao, 
                     b.preco AS box_preco, 
-                    b.imagem_url AS box_imagem_url,
-                    e.logradouro, e.numero, e.complemento, e.bairro, e.cidade, e.estado, e.cep
+                    b.imagem_url AS box_imagem_url
                 FROM assinaturas a
                 JOIN boxes b ON a.plano_id = b.id::text -- Assumindo que plano_id na assinatura é o id da box
-                JOIN enderecos e ON a.endereco_id = e.id -- Assumindo que a assinatura tem um endereco_id
                 WHERE a.utilizador_id = $1
                 ORDER BY a.data_inicio DESC`,
                 [userId]
@@ -53,11 +51,9 @@ const assinaturaController = {
                     b.nome AS box_nome, 
                     b.descricao AS box_descricao, 
                     b.preco AS box_preco, 
-                    b.imagem_url AS box_imagem_url,
-                    e.logradouro, e.numero, e.complemento, e.bairro, e.cidade, e.estado, e.cep
+                    b.imagem_url AS box_imagem_url
                 FROM assinaturas a
                 JOIN boxes b ON a.plano_id = b.id::text
-                JOIN enderecos e ON a.endereco_id = e.id
                 WHERE a.id = $1 AND a.utilizador_id = $2`,
                 [id, userId]
             );
