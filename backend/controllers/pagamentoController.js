@@ -69,7 +69,8 @@ exports.criarPreferencia = async (req, res) => {
         };
 
         const result = await preference.create({ body: preferenceBody } );
-        res.status(201).json({ checkoutUrl: result.sandbox_init_point });
+        res.status(201).json({ checkoutUrl: result.init_point });
+
 
     } catch (error) {
         console.error('Erro ao criar preferência de pagamento:', error);
