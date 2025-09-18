@@ -14,7 +14,8 @@ const pagamentoRoutes = require('./routes/pagamentoRoutes');
 
 
 const app = express();
-const PORT = 4000;
+const HOST = '0.0.0.0';
+const PORT = process.env.PORT || 4000;
 
 app.use(cors({
   origin: '*',
@@ -46,7 +47,9 @@ app.use('/carrinho', carrinhoRoutes);
 app.use('/api/enderecos', enderecoRoutes);
 app.use('/api/pagamentos', pagamentoRoutes);
 
+ 
 
-app.listen(PORT, () => {
-  console.log(`Servidor rodando em http://localhost:${PORT}` );
+app.listen(PORT, HOST, () => {
+  console.log(`Servidor rodando em http://${HOST}:${PORT}` );
 });
+

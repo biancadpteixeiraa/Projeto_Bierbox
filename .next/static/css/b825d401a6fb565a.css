@@ -1,0 +1,1 @@
+.embla{overflow:hidden;width:100%}.embla__container{display:flex;touch-action:pan-y pinch-zoom}.embla__slide{flex:0 0 100%;min-width:0;padding:0 1rem}@media (min-width:768px){.embla__slide{flex:0 0 100%;padding:0 2rem}}@media (min-width:1024px){.embla__slide{flex:0 0 100%;padding:0 3rem}}
