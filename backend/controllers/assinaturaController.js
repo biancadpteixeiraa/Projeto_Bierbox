@@ -22,7 +22,7 @@ const assinaturaController = {
                     a.box_id,
                     -- box info (se existir)
                     b.nome AS box_nome,
-                    b.imagem_principal AS box_imagem_url,
+                    b.imagem_principal_url AS box_imagem_url, -- corrigido aqui
                     -- preço: se box existe usa preços da box; senão usa fallback por plano
                     CASE 
                         WHEN b.id IS NOT NULL AND a.plano_id = 'PLANO_MENSAL' THEN b.preco_mensal_4_un
@@ -48,7 +48,6 @@ const assinaturaController = {
                 [userId]
             );
 
-            console.log("[DEBUG] Assinaturas encontradas:", result.rows.length);
             res.status(200).json({ success: true, data: result.rows });
         } catch (error) {
             console.error("Erro ao listar assinaturas:", error);
@@ -60,7 +59,7 @@ const assinaturaController = {
     obterDetalhesAssinatura: async (req, res) => {
         try {
             const userId = req.userId;
-            const { id } = req.params;
+            const { id } = req.params; // ID da assinatura vindo da URL
             console.log("[DEBUG] Buscando detalhes da assinatura:", id, "para userId:", userId);
 
             const result = await pool.query(
@@ -77,7 +76,7 @@ const assinaturaController = {
                     a.valor_frete,
                     a.box_id,
                     b.nome AS box_nome,
-                    b.imagem_url_1 AS box_imagem_url,
+                    b.imagem_principal_url AS box_imagem_url, -- corrigido aqui
                     CASE 
                         WHEN b.id IS NOT NULL AND a.plano_id = 'PLANO_MENSAL' THEN b.preco_mensal_4_un
                         WHEN b.id IS NOT NULL AND a.plano_id = 'PLANO_ANUAL' THEN b.preco_anual_4_un
@@ -101,11 +100,9 @@ const assinaturaController = {
             );
 
             if (result.rows.length === 0) {
-                console.warn("[DEBUG] Nenhuma assinatura encontrada para id:", id);
                 return res.status(404).json({ success: false, message: "Assinatura não encontrada ou não pertence ao usuário." });
             }
 
-            console.log("[DEBUG] Detalhes da assinatura retornados com sucesso");
             res.status(200).json({ success: true, data: result.rows[0] });
         } catch (error) {
             console.error("Erro ao obter detalhes da assinatura:", error);
@@ -117,7 +114,7 @@ const assinaturaController = {
     cancelarAssinatura: async (req, res) => {
         try {
             const userId = req.userId;
-            const { id } = req.params;
+            const { id } = req.params; // ID da assinatura a ser cancelada
             console.log("[DEBUG] Cancelando assinatura:", id, "para userId:", userId);
 
             const assinaturaResult = await pool.query(
@@ -136,8 +133,7 @@ const assinaturaController = {
             }
 
             if (assinatura.id_assinatura_mp) {
-                console.log(`[DEBUG] Simulando cancelamento no Mercado Pago para ID: ${assinatura.id_assinatura_mp}`);
-                // Aqui futuramente entrará integração real com Mercado Pago
+                console.log(`Simulando cancelamento no Mercado Pago para ID: ${assinatura.id_assinatura_mp}`);
             }
 
             const result = await pool.query(
@@ -145,7 +141,6 @@ const assinaturaController = {
                 [id]
             );
 
-            console.log("[DEBUG] Assinatura cancelada com sucesso:", result.rows[0].id);
             res.status(200).json({ success: true, message: "Assinatura cancelada com sucesso.", data: result.rows[0] });
         } catch (error) {
             console.error("Erro ao cancelar assinatura:", error);
