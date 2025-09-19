@@ -22,7 +22,7 @@ const assinaturaController = {
                     a.box_id,
                     -- box info (se existir)
                     b.nome AS box_nome,
-                    b.imagem_url_1 AS box_imagem_url, -- corrigido aqui
+                    b.imagem_principal AS box_imagem_url,
                     -- preço: se box existe usa preços da box; senão usa fallback por plano
                     CASE 
                         WHEN b.id IS NOT NULL AND a.plano_id = 'PLANO_MENSAL' THEN b.preco_mensal_4_un
