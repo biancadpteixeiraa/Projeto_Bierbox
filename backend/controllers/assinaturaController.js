@@ -24,7 +24,7 @@ const assinaturaController = {
                         WHEN a.plano_id = 'PLANO_ANUAL' THEN b.preco_anual_4_un -- Assumindo 4 unidades para anual
                         ELSE b.preco_mensal_4_un -- Default ou tratamento de erro
                     END AS box_preco,
-                    b.imagem_principal AS box_imagem_url
+                    b.imagem_principal AS box_imagem_url -- CORRIGIDO AQUI
                 FROM assinaturas a
                 JOIN boxes b ON a.plano_id = b.id::text -- Assumindo que plano_id na assinatura é o id da box
                 WHERE a.utilizador_id = $1
@@ -63,7 +63,7 @@ const assinaturaController = {
                         WHEN a.plano_id = 'PLANO_ANUAL' THEN b.preco_anual_4_un 
                         ELSE b.preco_mensal_4_un 
                     END AS box_preco,
-                    b.imagem_principal AS box_imagem_url
+                    b.imagem_principal AS box_imagem_url -- CORRIGIDO AQUI
                 FROM assinaturas a
                 JOIN boxes b ON a.plano_id = b.id::text
                 WHERE a.id = $1 AND a.utilizador_id = $2`,
@@ -113,7 +113,7 @@ const assinaturaController = {
 
             // Atualizar o status da assinatura no banco de dados
             const result = await pool.query(
-                "UPDATE assinaturas SET status = \'CANCELADA\', data_cancelamento = NOW(), atualizado_em = NOW() WHERE id = $1 RETURNING *",
+                "UPDATE assinaturas SET status = 'CANCELADA', data_cancelamento = NOW(), atualizado_em = NOW() WHERE id = $1 RETURNING *",
                 [id]
             );
 
