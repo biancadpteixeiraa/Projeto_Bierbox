@@ -17,9 +17,14 @@ const assinaturaController = {
                     a.atualizado_em, 
                     a.id_assinatura_mp, 
                     b.nome AS box_nome, 
-                    b.descricao AS box_descricao, 
-                    b.preco AS box_preco, 
-                    b.imagem_url AS box_imagem_url
+                    b.descricao_curta AS box_descricao, 
+                    -- Seleciona o preço com base no plano_id da assinatura
+                    CASE 
+                        WHEN a.plano_id = 'PLANO_MENSAL' THEN b.preco_mensal_4_un -- Assumindo 4 unidades para mensal
+                        WHEN a.plano_id = 'PLANO_ANUAL' THEN b.preco_anual_4_un -- Assumindo 4 unidades para anual
+                        ELSE b.preco_mensal_4_un -- Default ou tratamento de erro
+                    END AS box_preco,
+                    b.imagem_principal AS box_imagem_url
                 FROM assinaturas a
                 JOIN boxes b ON a.plano_id = b.id::text -- Assumindo que plano_id na assinatura é o id da box
                 WHERE a.utilizador_id = $1
@@ -51,9 +56,14 @@ const assinaturaController = {
                     a.atualizado_em, 
                     a.id_assinatura_mp, 
                     b.nome AS box_nome, 
-                    b.descricao AS box_descricao, 
-                    b.preco AS box_preco, 
-                    b.imagem_url AS box_imagem_url
+                    b.descricao_curta AS box_descricao, 
+                    -- Seleciona o preço com base no plano_id da assinatura
+                    CASE 
+                        WHEN a.plano_id = 'PLANO_MENSAL' THEN b.preco_mensal_4_un 
+                        WHEN a.plano_id = 'PLANO_ANUAL' THEN b.preco_anual_4_un 
+                        ELSE b.preco_mensal_4_un 
+                    END AS box_preco,
+                    b.imagem_principal AS box_imagem_url
                 FROM assinaturas a
                 JOIN boxes b ON a.plano_id = b.id::text
                 WHERE a.id = $1 AND a.utilizador_id = $2`,
@@ -76,7 +86,6 @@ const assinaturaController = {
         try {
             const userId = req.userId;
             const { id } = req.params; // ID da assinatura a ser cancelada
-            // const { motivo_cancelamento } = req.body; // Removido, pois a coluna não existe
 
             // Primeiro, verificar se a assinatura existe e pertence ao usuário
             const assinaturaResult = await pool.query(
