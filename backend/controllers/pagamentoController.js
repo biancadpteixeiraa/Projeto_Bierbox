@@ -2,22 +2,10 @@
 const { MercadoPagoConfig, Preference, Payment } = require("mercadopago");
 const pool = require("../config/db");
 
-// Inicializa cliente Mercado Pago (usa token de teste se presente)
+// Cliente Mercado Pago (usa token de teste se presente)
 const client = new MercadoPagoConfig({
   accessToken: process.env.MP_ACCESS_TOKEN_TEST || process.env.MP_ACCESS_TOKEN,
 });
-
-// Helper: verifica se coluna existe na tabela (schema public)
-async function columnExists(tableName, columnName) {
-  const q = `
-    SELECT column_name
-    FROM information_schema.columns
-    WHERE table_schema = 'public' AND table_name = $1 AND column_name = $2
-    LIMIT 1
-  `;
-  const r = await pool.query(q, [tableName, columnName]);
-  return r.rowCount > 0;
-}
 
 // =======================
 // criarPreferencia
@@ -27,7 +15,7 @@ exports.criarPreferencia = async (req, res) => {
     const { plano_id, endereco_entrega_id, valor_frete, box_id } = req.body;
     const utilizadorId = req.userId;
 
-    // validações básicas
+    // validação básica
     if (!plano_id || endereco_entrega_id === undefined || valor_frete === undefined || !box_id) {
       return res.status(400).json({
         success: false,
@@ -35,27 +23,28 @@ exports.criarPreferencia = async (req, res) => {
       });
     }
 
-    // verificar usuário
-    const userResult = await pool.query("SELECT id, email, nome_completo FROM users WHERE id = $1", [utilizadorId]);
-    if (userResult.rows.length === 0) {
+    // buscar usuário
+    const userRes = await pool.query("SELECT id, email, nome_completo FROM users WHERE id = $1", [utilizadorId]);
+    if (userRes.rowCount === 0) {
       return res.status(404).json({ success: false, message: "Utilizador não encontrado." });
     }
-    const { email: userEmail, nome_completo: userName } = userResult.rows[0];
+    const userEmail = userRes.rows[0].email;
+    const userName = userRes.rows[0].nome_completo;
 
-    // checar se endereco existe (evita FK violation)
-    const endRes = await pool.query("SELECT id FROM enderecos WHERE id = $1", [endereco_entrega_id]);
+    // verificar se endereco existe (evita FK violation)
+    const endRes = await pool.query("SELECT id FROM enderecos WHERE id = $1 AND utilizador_id = $2", [endereco_entrega_id, utilizadorId]);
     if (endRes.rowCount === 0) {
-      // lista endereços do usuário para ajudar o front a escolher correto
+      // listar endereços do usuário para sugestão
       const lista = await pool.query("SELECT id, rua, numero, cidade, estado, cep FROM enderecos WHERE utilizador_id = $1", [utilizadorId]);
       return res.status(400).json({
         success: false,
-        message: `endereco_entrega_id ${endereco_entrega_id} não encontrado.`,
-        suggestion: "Use um endereco_entrega_id válido pertencente ao usuário.",
+        message: `endereco_entrega_id ${endereco_entrega_id} não encontrado para o usuário.`,
+        suggestion: "Use um endereco_entrega_id válido pertencente ao usuário (veja enderecos_disponiveis).",
         enderecos_disponiveis: lista.rows
       });
     }
 
-    // determinar preço do plano (fallbacks)
+    // determinar preço do plano
     let preco_plano;
     let titulo_plano;
     if (plano_id === "PLANO_MENSAL") {
@@ -71,7 +60,7 @@ exports.criarPreferencia = async (req, res) => {
     const valor_assinatura = preco_plano;
     const valor_total = parseFloat(valor_assinatura) + parseFloat(valor_frete || 0);
 
-    // Inserir assinatura (com campos extras)
+    // inserir assinatura (com box_id)
     const insertAssinSQL = `
       INSERT INTO assinaturas
         (utilizador_id, plano_id, status, endereco_entrega_id, valor_frete, valor_assinatura, box_id, criado_em, atualizado_em)
@@ -90,11 +79,11 @@ exports.criarPreferencia = async (req, res) => {
     const assinaturaId = assinRes.rows[0].id;
     console.log(`[PAY] Nova assinatura criada: id=${assinaturaId} (usuario=${utilizadorId})`);
 
-    // Inserir pedido inicial (pedidos tem endereco_entrega_id no seu schema)
+    // inserir pedido inicial (sem box_id — seu schema não tem box_id em pedidos)
     const insertPedidoSQL = `
       INSERT INTO pedidos
-        (assinatura_id, endereco_entrega_id, status_pedido, valor_frete, valor_assinatura, valor_total, criado_em, atualizado_em, box_id)
-      VALUES ($1,$2,$3,$4,$5,$6,NOW(),NOW(),$7)
+        (assinatura_id, endereco_entrega_id, status_pedido, valor_frete, valor_assinatura, valor_total, criado_em, atualizado_em)
+      VALUES ($1,$2,$3,$4,$5,$6,NOW(),NOW())
       RETURNING id
     `;
     const novoPedido = await pool.query(insertPedidoSQL, [
@@ -103,12 +92,11 @@ exports.criarPreferencia = async (req, res) => {
       "AGUARDANDO_PAGAMENTO",
       valor_frete,
       valor_assinatura,
-      valor_total,
-      box_id
+      valor_total
     ]);
     console.log(`[PAY] Pedido inicial criado: id=${novoPedido.rows[0].id} (assinatura=${assinaturaId})`);
 
-    // Criar preferência no Mercado Pago (notification_url aponta pro webhook)
+    // criar preferência no Mercado Pago (notification_url)
     const preference = new Preference(client);
     const preferenceBody = {
       items: [
@@ -137,10 +125,8 @@ exports.criarPreferencia = async (req, res) => {
 
     const result = await preference.create({ body: preferenceBody });
 
-    // escolher sandbox_init_point quando apropriado
-    const checkoutUrl = (process.env.NODE_ENV === "production")
-      ? (result.init_point || result.body?.init_point)
-      : (result.sandbox_init_point || result.init_point || result.body?.sandbox_init_point || result.body?.init_point);
+    // escolher init_point / sandbox conforme retorno
+    const checkoutUrl = result.init_point || result.body?.init_point || result.sandbox_init_point || result.body?.sandbox_init_point;
 
     console.log(`[PAY] Preferência criada para assinatura=${assinaturaId}. checkoutUrl=${checkoutUrl}`);
 
@@ -157,11 +143,11 @@ exports.criarPreferencia = async (req, res) => {
 exports.receberWebhook = async (req, res) => {
   try {
     console.log("🚨 Webhook disparado pelo Mercado Pago!");
-    console.log("Body recebido:", typeof req.body === "object" ? JSON.stringify(req.body).slice(0,2000) : req.body);
+    console.log("Body recebido (parcial):", typeof req.body === "object" ? JSON.stringify(req.body).slice(0,2000) : req.body);
 
     const body = req.body;
 
-    // Determinar id do pagamento
+    // identificar payment id (várias formas)
     let paymentId = null;
     if (body.data && body.data.id) paymentId = body.data.id;
     else if (body.resource && typeof body.resource === "string" && /^\d+$/.test(body.resource)) paymentId = body.resource;
@@ -169,25 +155,24 @@ exports.receberWebhook = async (req, res) => {
     else if (body.id) paymentId = body.id;
 
     if (!paymentId) {
-      console.warn("[PAY] Webhook sem payment id válido. Ignorando.");
+      console.warn("[PAY] Webhook recebido sem payment id válido. Ignorando.");
       return res.status(200).send("No payment id");
     }
 
-    // Buscar detalhes do pagamento via client
+    // buscar detalhes do pagamento via client
     const paymentClient = new Payment(client);
     const paymentDetails = await paymentClient.get({ id: paymentId });
     const payment = paymentDetails.body || paymentDetails;
-    console.log("🔍 Detalhes do Pagamento (parcial log):", (payment.id ? `id=${payment.id}` : "sem id"), `status=${payment.status}`);
+    console.log("🔍 Detalhes do Pagamento (chave/id/status):", payment.id, payment.status);
 
-    // extrair status e external reference
     const status = payment.status || payment.payment_status;
     const externalRef = payment.external_reference || payment.externalReference || payment.order?.external_reference;
 
     if ((status === "approved" || status === "authorized") && externalRef) {
       const assinaturaId = parseInt(externalRef, 10);
+      const mpId = payment.id || null;
 
-      // Atualiza assinatura (id_assinatura_mp e status)
-      const mpId = payment.id || payment.transaction_id || null;
+      // atualizar assinatura
       await pool.query(
         `UPDATE assinaturas
          SET status = 'ATIVA', id_assinatura_mp = $1, data_inicio = COALESCE(data_inicio, NOW()), atualizado_em = NOW()
@@ -196,7 +181,7 @@ exports.receberWebhook = async (req, res) => {
       );
       console.log(`✅ Assinatura ${assinaturaId} atualizada para ATIVA (mp_id=${mpId}).`);
 
-      // Atualiza pedidos vinculados
+      // atualizar pedidos pendentes
       const upd = await pool.query(
         `UPDATE pedidos
          SET status_pedido = 'PAGO', data_pagamento = NOW(), atualizado_em = NOW()
@@ -207,32 +192,20 @@ exports.receberWebhook = async (req, res) => {
       if (upd.rowCount > 0) {
         console.log(`[PAY] ${upd.rowCount} pedido(s) atualizados para PAGO para assinatura ${assinaturaId}.`);
       } else {
-        // fallback: criar pedido se não houver pedidos atualizáveis
-        const assinRow = await pool.query(
-          `SELECT endereco_entrega_id, valor_frete, valor_assinatura, box_id FROM assinaturas WHERE id = $1`,
-          [assinaturaId]
-        );
+        // fallback: criar pedido se não houver pedido atualizável
+        const assinRow = await pool.query("SELECT endereco_entrega_id, valor_frete, valor_assinatura FROM assinaturas WHERE id = $1", [assinaturaId]);
         const assin = assinRow.rows[0] || {};
         const valorF = assin.valor_frete || 0;
         const valorA = assin.valor_assinatura || 0;
         const total = parseFloat(valorF) + parseFloat(valorA);
 
-        // criar com endereco_entrega_id (se existir)
-        if (assin.endereco_entrega_id) {
-          const novo = await pool.query(
-            `INSERT INTO pedidos (assinatura_id, endereco_entrega_id, status_pedido, valor_frete, valor_assinatura, valor_total, data_pagamento, criado_em, atualizado_em, box_id)
-             VALUES ($1,$2,$3,$4,$5,$6,NOW(),NOW(),NOW(),$7) RETURNING id`,
-            [assinaturaId, assin.endereco_entrega_id, "PAGO", valorF, valorA, total, assin.box_id || null]
-          );
-          console.log(`[PAY] Pedido fallback criado id=${novo.rows[0].id} para assinatura ${assinaturaId}.`);
-        } else {
-          const novo = await pool.query(
-            `INSERT INTO pedidos (assinatura_id, status_pedido, valor_frete, valor_assinatura, valor_total, data_pagamento, criado_em, atualizado_em, box_id)
-             VALUES ($1,$2,$3,$4,$5,NOW(),NOW(),NOW(),$6) RETURNING id`,
-            [assinaturaId, "PAGO", valorF, valorA, total, assin.box_id || null]
-          );
-          console.log(`[PAY] Pedido fallback simples criado id=${novo.rows[0].id} para assinatura ${assinaturaId}.`);
-        }
+        // criar pedido fallback (sem box_id)
+        const novo = await pool.query(
+          `INSERT INTO pedidos (assinatura_id, endereco_entrega_id, status_pedido, valor_frete, valor_assinatura, valor_total, data_pagamento, criado_em, atualizado_em)
+           VALUES ($1,$2,$3,$4,$5,$6,NOW(),NOW(),NOW()) RETURNING id`,
+          [assinaturaId, assin.endereco_entrega_id || null, "PAGO", valorF, valorA, total]
+        );
+        console.log(`[PAY] Pedido fallback criado id=${novo.rows[0].id} para assinatura ${assinaturaId}.`);
       }
     }
 
