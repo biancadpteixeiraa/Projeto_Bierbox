@@ -1,98 +1,130 @@
-// backend/controllers/pagamentoController.js
-const mercadopago = require("mercadopago");
+const { MercadoPagoConfig, Preference, Payment } = require("mercadopago");
 const pool = require("../config/db");
 
-// Configuração do Mercado Pago
-mercadopago.configure({
-  access_token: process.env.MP_ACCESS_TOKEN
+const client = new MercadoPagoConfig({
+  accessToken: process.env.MP_ACCESS_TOKEN_TEST,
 });
 
 // Criar preferência de pagamento
 exports.criarPreferencia = async (req, res) => {
   try {
-    const { assinaturaId, planoDescricao, valorTotal } = req.body;
+    const { plano_id, endereco_entrega_id, valor_frete, box_id } = req.body;
+    const utilizadorId = req.userId;
 
-    const preference = {
+    if (!plano_id || !endereco_entrega_id || valor_frete === undefined || !box_id) {
+      return res.status(400).json({ message: "Dados insuficientes para criar o pagamento." });
+    }
+
+    const userResult = await pool.query(
+      "SELECT email, nome_completo FROM users WHERE id = $1",
+      [utilizadorId]
+    );
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ message: "Utilizador não encontrado." });
+    }
+    const userEmail = userResult.rows[0].email;
+    const userName = userResult.rows[0].nome_completo;
+
+    // Preço base do plano
+    let preco_plano;
+    let titulo_plano;
+    if (plano_id === "PLANO_MENSAL") {
+      preco_plano = 80.0;
+      titulo_plano = "BierBox - Assinatura Mensal";
+    } else if (plano_id === "PLANO_ANUAL") {
+      preco_plano = 70.0;
+      titulo_plano = "BierBox - Assinatura Anual";
+    } else {
+      return res.status(400).json({ message: "plano_id inválido." });
+    }
+
+    const valor_total = preco_plano + parseFloat(valor_frete);
+
+    // Criar assinatura no banco
+    const novaAssinatura = await pool.query(
+      `INSERT INTO assinaturas (utilizador_id, plano_id, status, criado_em, atualizado_em) 
+       VALUES ($1, $2, $3, NOW(), NOW()) RETURNING id`,
+      [utilizadorId, plano_id, "PENDENTE"]
+    );
+    const assinaturaId = novaAssinatura.rows[0].id;
+
+    // Criar pedido vinculado
+    await pool.query(
+      `INSERT INTO pedidos (assinatura_id, endereco_entrega, status_pedido, valor_frete, valor_assinatura, valor_total, criado_em, atualizado_em, box_id) 
+       VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW(), $7)`,
+      [assinaturaId, endereco_entrega_id, "AGUARDANDO_PAGAMENTO", valor_frete, preco_plano, valor_total, box_id]
+    );
+
+    // Criar preferência no Mercado Pago
+    const preference = new Preference(client);
+    const preferenceBody = {
       items: [
         {
-          title: `BierBox - ${planoDescricao}`,
+          id: plano_id,
+          title: titulo_plano,
+          description: "Assinatura do clube de cervejas BierBox",
           quantity: 1,
-          unit_price: Number(valorTotal)
-        }
+          unit_price: valor_total,
+          currency_id: "BRL",
+        },
       ],
+      payer: {
+        email: userEmail,
+        name: userName,
+      },
       external_reference: assinaturaId.toString(),
       back_urls: {
-        success: `${process.env.FRONTEND_URL}/pagamento/sucesso`,
-        failure: `${process.env.FRONTEND_URL}/pagamento/falha`,
-        pending: `${process.env.FRONTEND_URL}/pagamento/pendente`
+        success: "https://www.google.com/sucesso",
+        failure: "https://www.google.com/falha",
+        pending: "https://www.google.com/pendente",
       },
       auto_return: "approved",
-      notification_url: `${process.env.BACKEND_URL}/api/pagamentos/webhook`
     };
 
-    const response = await mercadopago.preferences.create(preference);
-    return res.json({ success: true, init_point: response.body.init_point });
+    const result = await preference.create({ body: preferenceBody });
+    res.status(201).json({ checkoutUrl: result.init_point });
+
   } catch (error) {
-    console.error("Erro ao criar preferência:", error);
-    return res.status(500).json({ success: false, message: "Erro ao criar preferência" });
+    console.error("Erro ao criar preferência de pagamento:", error);
+    res.status(500).json({ message: "Erro no servidor ao criar preferência de pagamento." });
   }
 };
 
-// Webhook do Mercado Pago
-exports.webhook = async (req, res) => {
+// Webhook Mercado Pago
+exports.receberWebhook = async (req, res) => {
+  const body = req.body;
+  console.log("🚨 Webhook disparado pelo Mercado Pago!");
+  console.log("Body recebido:", body);
+
   try {
-    console.log("🚨 Webhook disparado pelo Mercado Pago!");
-    console.log("Body recebido:", req.body);
+    if (body.type === "payment" || body.topic === "payment") {
+      const paymentClient = new Payment(client);
+      const paymentDetails = await paymentClient.get({ id: body.data?.id || body.resource });
 
-    if (req.body.type === "payment" && req.body.data && req.body.data.id) {
-      const paymentId = req.body.data.id;
+      console.log("🔍 Detalhes do Pagamento:", paymentDetails);
 
-      // Buscar detalhes do pagamento
-      const pagamento = await mercadopago.payment.findById(paymentId);
-      const data = pagamento.body;
-      console.log("🔍 Detalhes do Pagamento:", data);
+      if (paymentDetails.status === "approved" && paymentDetails.external_reference) {
+        const assinaturaId = parseInt(paymentDetails.external_reference, 10);
 
-      const assinaturaId = data.external_reference;
-
-      if (data.status === "approved") {
-        // Atualizar assinatura como ATIVA
+        // Atualiza assinatura
         await pool.query(
-          `UPDATE assinaturas
-           SET status = 'ATIVA', id_assinatura_mp = $1, data_inicio = NOW(), atualizado_em = NOW()
-           WHERE id = $2`,
-          [paymentId, assinaturaId]
+          "UPDATE assinaturas SET status = 'ATIVA', id_assinatura_mp = $1, atualizado_em = NOW() WHERE id = $2",
+          [paymentDetails.id, assinaturaId]
         );
 
-        console.log(`✅ Assinatura ${assinaturaId} atualizada para ATIVA.`);
-
-        // Criar o primeiro pedido vinculado à assinatura
-        const novoPedido = await pool.query(
-          `INSERT INTO pedidos 
-            (assinatura_id, endereco_entrega, status_pedido, codigo_rastreio, valor_frete, valor_assinatura, valor_total, data_pagamento, criado_em, atualizado_em)
-           SELECT 
-            a.id,
-            a.endereco_entrega_id,
-            'PROCESSANDO',
-            NULL,
-            a.valor_frete,
-            a.valor_assinatura,
-            COALESCE(a.valor_frete,0) + COALESCE(a.valor_assinatura,0),
-            NOW(),
-            NOW(),
-            NOW()
-           FROM assinaturas a
-           WHERE a.id = $1
-           RETURNING id`,
+        // Atualiza pedido vinculado
+        await pool.query(
+          "UPDATE pedidos SET status_pedido = 'PAGO', data_pagamento = NOW(), atualizado_em = NOW() WHERE assinatura_id = $1",
           [assinaturaId]
         );
 
-        console.log(`📦 Pedido ${novoPedido.rows[0].id} criado para assinatura ${assinaturaId}.`);
+        console.log(`✅ Assinatura ${assinaturaId} atualizada para ATIVA.`);
       }
     }
 
-    res.sendStatus(200);
+    res.status(200).send("Webhook recebido com sucesso.");
   } catch (error) {
-    console.error("❌ Erro no webhook:", error);
-    res.sendStatus(500);
+    console.error("Erro ao processar webhook:", error);
+    res.status(500).send("Erro interno no servidor ao processar webhook.");
   }
 };
