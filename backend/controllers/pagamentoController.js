@@ -8,7 +8,7 @@ const client = new MercadoPagoConfig({
 // Criar preferência de pagamento
 exports.criarPreferencia = async (req, res) => {
     try {
-        const { plano_id, endereco_entrega_id, valor_frete } = req.body;
+        const { plano_id, endereco_entrega_id, valor_frete, box_id } = req.body; // box_id adicionado aqui
         const utilizadorId = req.userId;
 
         if (!plano_id || !endereco_entrega_id || valor_frete === undefined) {
@@ -37,10 +37,10 @@ exports.criarPreferencia = async (req, res) => {
 
         const valor_total = preco_plano + parseFloat(valor_frete);
 
-        // Inserir a nova assinatura com mais detalhes
+        // Inserir a nova assinatura com mais detalhes, incluindo box_id
         const novaAssinatura = await pool.query(
-            "INSERT INTO assinaturas (utilizador_id, plano_id, status, endereco_entrega_id, valor_frete, valor_assinatura, data_inicio, criado_em, atualizado_em) VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW(), NOW()) RETURNING id",
-            [utilizadorId, plano_id, "PENDENTE", endereco_entrega_id, valor_frete, preco_plano]
+            "INSERT INTO assinaturas (utilizador_id, plano_id, status, endereco_entrega_id, valor_frete, valor_assinatura, box_id, data_inicio, criado_em, atualizado_em) VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW(), NOW()) RETURNING id",
+            [utilizadorId, plano_id, "PENDENTE", endereco_entrega_id, valor_frete, preco_plano, box_id]
         );
         const assinaturaId = novaAssinatura.rows[0].id;
 
@@ -99,7 +99,7 @@ exports.receberWebhook = async (req, res) => {
                 const assinaturaId = parseInt(paymentDetails.external_reference, 10);
 
                 await pool.query(
-                    "UPDATE assinaturas SET status = 'ATIVA', id_assinatura_mp = $1, atualizado_em = CURRENT_TIMESTAMP WHERE id = $2",
+                    "UPDATE assinaturas SET status = \'ATIVA\', id_assinatura_mp = $1, atualizado_em = CURRENT_TIMESTAMP WHERE id = $2",
                     [paymentDetails.id, assinaturaId]
                 );
 
