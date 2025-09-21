@@ -22,7 +22,7 @@ const assinaturaController = {
                     a.box_id,
                     -- box info (se existir)
                     b.nome AS box_nome,
-                    b.imagem_principal_url AS box_imagem_url, -- corrigido aqui
+                    b.imagem_principal_url AS box_imagem_url,
                     -- preço: se box existe usa preços da box; senão usa fallback por plano
                     CASE 
                         WHEN b.id IS NOT NULL AND a.plano_id = 'PLANO_MENSAL' THEN b.preco_mensal_4_un
@@ -33,7 +33,15 @@ const assinaturaController = {
                     END AS box_preco,
                     -- último pedido (status) via subquery lateral
                     p.status_pedido AS ultimo_status_pedido,
-                    p.codigo_rastreio AS ultimo_codigo_rastreio
+                    p.codigo_rastreio AS ultimo_codigo_rastreio,
+                    -- informações do endereço de entrega
+                    e.rua AS endereco_rua,
+                    e.numero AS endereco_numero,
+                    e.complemento AS endereco_complemento,
+                    e.bairro AS endereco_bairro,
+                    e.cidade AS endereco_cidade,
+                    e.estado AS endereco_estado,
+                    e.cep AS endereco_cep
                 FROM assinaturas a
                 LEFT JOIN boxes b ON a.box_id = b.id
                 LEFT JOIN LATERAL (
@@ -43,6 +51,7 @@ const assinaturaController = {
                     ORDER BY criado_em DESC
                     LIMIT 1
                 ) p ON true
+                LEFT JOIN endereco e ON a.endereco_entrega_id = e.id
                 WHERE a.utilizador_id = $1
                 ORDER BY a.data_inicio DESC`,
                 [userId]
@@ -76,7 +85,7 @@ const assinaturaController = {
                     a.valor_frete,
                     a.box_id,
                     b.nome AS box_nome,
-                    b.imagem_principal_url AS box_imagem_url, -- corrigido aqui
+                    b.imagem_principal_url AS box_imagem_url,
                     CASE 
                         WHEN b.id IS NOT NULL AND a.plano_id = 'PLANO_MENSAL' THEN b.preco_mensal_4_un
                         WHEN b.id IS NOT NULL AND a.plano_id = 'PLANO_ANUAL' THEN b.preco_anual_4_un
@@ -85,7 +94,15 @@ const assinaturaController = {
                         ELSE a.valor_assinatura
                     END AS box_preco,
                     p.status_pedido AS ultimo_status_pedido,
-                    p.codigo_rastreio AS ultimo_codigo_rastreio
+                    p.codigo_rastreio AS ultimo_codigo_rastreio,
+                    -- informações do endereço de entrega
+                    e.rua AS endereco_rua,
+                    e.numero AS endereco_numero,
+                    e.complemento AS endereco_complemento,
+                    e.bairro AS endereco_bairro,
+                    e.cidade AS endereco_cidade,
+                    e.estado AS endereco_estado,
+                    e.cep AS endereco_cep
                 FROM assinaturas a
                 LEFT JOIN boxes b ON a.box_id = b.id
                 LEFT JOIN LATERAL (
@@ -95,6 +112,7 @@ const assinaturaController = {
                     ORDER BY criado_em DESC
                     LIMIT 1
                 ) p ON true
+                LEFT JOIN endereco e ON a.endereco_entrega_id = e.id
                 WHERE a.id = $1 AND a.utilizador_id = $2`,
                 [id, userId]
             );
