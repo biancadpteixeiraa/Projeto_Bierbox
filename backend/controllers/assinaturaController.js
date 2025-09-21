@@ -51,7 +51,7 @@ const assinaturaController = {
                     ORDER BY criado_em DESC
                     LIMIT 1
                 ) p ON true
-                LEFT JOIN endereco e ON a.endereco_entrega_id = e.id
+                LEFT JOIN enderecos e ON a.endereco_entrega_id = e.id -- CORRIGIDO AQUI: 'enderecos'
                 WHERE a.utilizador_id = $1
                 ORDER BY a.data_inicio DESC`,
                 [userId]
@@ -112,7 +112,7 @@ const assinaturaController = {
                     ORDER BY criado_em DESC
                     LIMIT 1
                 ) p ON true
-                LEFT JOIN endereco e ON a.endereco_entrega_id = e.id
+                LEFT JOIN enderecos e ON a.endereco_entrega_id = e.id -- CORRIGIDO AQUI: 'enderecos'
                 WHERE a.id = $1 AND a.utilizador_id = $2`,
                 [id, userId]
             );
