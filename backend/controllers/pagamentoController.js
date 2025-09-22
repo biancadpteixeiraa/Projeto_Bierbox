@@ -1,174 +1,152 @@
+const { MercadoPagoConfig, Preference, Payment } = require("mercadopago");
 const pool = require("../config/db");
 
-const assinaturaController = {
-    // Listar todas as assinaturas do usuário autenticado
-    listarAssinaturas: async (req, res) => {
-        try {
-            const userId = req.userId; // ID do usuário autenticado
-            console.log("[DEBUG] Listando assinaturas para userId:", userId);
+const client = new MercadoPagoConfig({
+    accessToken: process.env.MP_ACCESS_TOKEN_TEST, // token de teste
+});
 
-            const result = await pool.query(
-                `SELECT 
-                    a.id,
-                    a.plano_id,
-                    a.status,
-                    a.data_inicio,
-                    a.data_cancelamento,
-                    a.criado_em,
-                    a.atualizado_em,
-                    a.id_assinatura_mp,
-                    a.valor_assinatura,
-                    a.valor_frete,
-                    a.box_id,
-                    -- box info (se existir)
-                    b.nome AS box_nome,
-                    b.imagem_principal_url AS box_imagem_url,
-                    -- preço: se box existe usa preços da box; senão usa fallback por plano
-                    CASE 
-                        WHEN b.id IS NOT NULL AND a.plano_id = 'PLANO_MENSAL' THEN b.preco_mensal_4_un
-                        WHEN b.id IS NOT NULL AND a.plano_id = 'PLANO_ANUAL' THEN b.preco_anual_4_un
-                        WHEN a.plano_id = 'PLANO_MENSAL' THEN COALESCE(a.valor_assinatura, 80.00)
-                        WHEN a.plano_id = 'PLANO_ANUAL' THEN COALESCE(a.valor_assinatura, 70.00)
-                        ELSE a.valor_assinatura
-                    END AS box_preco,
-                    -- último pedido (status) via subquery lateral
-                    p.status_pedido AS ultimo_status_pedido,
-                    p.codigo_rastreio AS ultimo_codigo_rastreio,
-                    -- informações do endereço de entrega
-                    e.rua AS endereco_rua,
-                    e.numero AS endereco_numero,
-                    e.complemento AS endereco_complemento,
-                    e.bairro AS endereco_bairro,
-                    e.cidade AS endereco_cidade,
-                    e.estado AS endereco_estado,
-                    e.cep AS endereco_cep,
-                    -- forma de pagamento
-                    a.forma_pagamento
-                FROM assinaturas a
-                LEFT JOIN boxes b ON a.box_id = b.id
-                LEFT JOIN LATERAL (
-                    SELECT status_pedido, codigo_rastreio
-                    FROM pedidos
-                    WHERE assinatura_id = a.id
-                    ORDER BY criado_em DESC
-                    LIMIT 1
-                ) p ON true
-                LEFT JOIN enderecos e ON a.endereco_entrega_id = e.id
-                WHERE a.utilizador_id = $1
-                ORDER BY a.data_inicio DESC`,
-                [userId]
-            );
+// Criar preferência de pagamento
+const criarPreferencia = async (req, res) => {
+    try {
+        const { plano_id, endereco_entrega_id, valor_frete, box_id } = req.body; 
+        const utilizadorId = req.userId;
 
-            res.status(200).json({ success: true, data: result.rows });
-        } catch (error) {
-            console.error("Erro ao listar assinaturas:", error);
-            res.status(500).json({ success: false, message: "Erro interno do servidor" });
+        if (!plano_id || !endereco_entrega_id || valor_frete === undefined) {
+            return res.status(400).json({ message: "Dados insuficientes para criar o pagamento." });
         }
-    },
 
-    // Obter detalhes de uma assinatura específica
-    obterDetalhesAssinatura: async (req, res) => {
-        try {
-            const userId = req.userId;
-            const { id } = req.params; // ID da assinatura vindo da URL
-            console.log("[DEBUG] Buscando detalhes da assinatura:", id, "para userId:", userId);
-
-            const result = await pool.query(
-                `SELECT 
-                    a.id,
-                    a.plano_id,
-                    a.status,
-                    a.data_inicio,
-                    a.data_cancelamento,
-                    a.criado_em,
-                    a.atualizado_em,
-                    a.id_assinatura_mp,
-                    a.valor_assinatura,
-                    a.valor_frete,
-                    a.box_id,
-                    b.nome AS box_nome,
-                    b.imagem_principal_url AS box_imagem_url,
-                    CASE 
-                        WHEN b.id IS NOT NULL AND a.plano_id = 'PLANO_MENSAL' THEN b.preco_mensal_4_un
-                        WHEN b.id IS NOT NULL AND a.plano_id = 'PLANO_ANUAL' THEN b.preco_anual_4_un
-                        WHEN a.plano_id = 'PLANO_MENSAL' THEN COALESCE(a.valor_assinatura, 80.00)
-                        WHEN a.plano_id = 'PLANO_ANUAL' THEN COALESCE(a.valor_assinatura, 70.00)
-                        ELSE a.valor_assinatura
-                    END AS box_preco,
-                    p.status_pedido AS ultimo_status_pedido,
-                    p.codigo_rastreio AS ultimo_codigo_rastreio,
-                    -- informações do endereço de entrega
-                    e.rua AS endereco_rua,
-                    e.numero AS endereco_numero,
-                    e.complemento AS endereco_complemento,
-                    e.bairro AS endereco_bairro,
-                    e.cidade AS endereco_cidade,
-                    e.estado AS endereco_estado,
-                    e.cep AS endereco_cep,
-                    -- forma de pagamento
-                    a.forma_pagamento
-                FROM assinaturas a
-                LEFT JOIN boxes b ON a.box_id = b.id
-                LEFT JOIN LATERAL (
-                    SELECT status_pedido, codigo_rastreio
-                    FROM pedidos
-                    WHERE assinatura_id = a.id
-                    ORDER BY criado_em DESC
-                    LIMIT 1
-                ) p ON true
-                LEFT JOIN enderecos e ON a.endereco_entrega_id = e.id
-                WHERE a.id = $1 AND a.utilizador_id = $2`,
-                [id, userId]
-            );
-
-            if (result.rows.length === 0) {
-                return res.status(404).json({ success: false, message: "Assinatura não encontrada ou não pertence ao usuário." });
-            }
-
-            res.status(200).json({ success: true, data: result.rows[0] });
-        } catch (error) {
-            console.error("Erro ao obter detalhes da assinatura:", error);
-            res.status(500).json({ success: false, message: "Erro interno do servidor" });
+        const userResult = await pool.query("SELECT email, nome_completo FROM users WHERE id = $1", [utilizadorId]);
+        if (userResult.rows.length === 0) {
+            return res.status(404).json({ message: "Utilizador não encontrado." });
         }
-    },
+        const userEmail = userResult.rows[0].email;
+        const userName = userResult.rows[0].nome_completo;
 
-    // Cancelar uma assinatura
-    cancelarAssinatura: async (req, res) => {
-        try {
-            const userId = req.userId;
-            const { id } = req.params; // ID da assinatura a ser cancelada
-            console.log("[DEBUG] Cancelando assinatura:", id, "para userId:", userId);
+        let preco_plano;
+        let titulo_plano;
 
-            const assinaturaResult = await pool.query(
-                "SELECT id, status, id_assinatura_mp FROM assinaturas WHERE id = $1 AND utilizador_id = $2",
-                [id, userId]
-            );
-
-            if (assinaturaResult.rows.length === 0) {
-                return res.status(404).json({ success: false, message: "Assinatura não encontrada ou não pertence ao usuário." });
-            }
-
-            const assinatura = assinaturaResult.rows[0];
-
-            if (assinatura.status === "CANCELADA") {
-                return res.status(400).json({ success: false, message: "Assinatura já está cancelada." });
-            }
-
-            if (assinatura.id_assinatura_mp) {
-                console.log(`Simulando cancelamento no Mercado Pago para ID: ${assinatura.id_assinatura_mp}`);
-            }
-
-            const result = await pool.query(
-                "UPDATE assinaturas SET status = 'CANCELADA', data_cancelamento = NOW(), atualizado_em = NOW() WHERE id = $1 RETURNING *",
-                [id]
-            );
-
-            res.status(200).json({ success: true, message: "Assinatura cancelada com sucesso.", data: result.rows[0] });
-        } catch (error) {
-            console.error("Erro ao cancelar assinatura:", error);
-            res.status(500).json({ success: false, message: "Erro interno do servidor" });
+        if (plano_id === "PLANO_MENSAL") {
+            preco_plano = 80.00;
+            titulo_plano = "BierBox - Assinatura Mensal";
+        } else if (plano_id === "PLANO_ANUAL") {
+            preco_plano = 70.00;
+            titulo_plano = "BierBox - Assinatura Anual";
+        } else {
+            return res.status(400).json({ message: "plano_id inválido." });
         }
-    },
+
+        const valor_total = preco_plano + parseFloat(valor_frete);
+
+        // Inserir a nova assinatura com mais detalhes, incluindo box_id
+        const novaAssinatura = await pool.query(
+            "INSERT INTO assinaturas (utilizador_id, plano_id, status, endereco_entrega_id, valor_frete, valor_assinatura, box_id, data_inicio, criado_em, atualizado_em) VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW(), NOW()) RETURNING id",
+            [utilizadorId, plano_id, "PENDENTE", endereco_entrega_id, valor_frete, preco_plano, box_id]
+        );
+        const assinaturaId = novaAssinatura.rows[0].id;
+
+        const preference = new Preference(client);
+        const preferenceBody = {
+            items: [
+                {
+                    id: plano_id,
+                    title: titulo_plano,
+                    description: "Assinatura do clube de cervejas BierBox",
+                    quantity: 1,
+                    unit_price: valor_total,
+                    currency_id: "BRL",
+                },
+            ],
+            payer: {
+                email: userEmail,
+                name: userName,
+            },
+            external_reference: assinaturaId.toString(),
+            back_urls: {
+                success: "https://www.google.com/sucesso",
+                failure: "https://www.google.com/falha",
+                pending: "https://www.google.com/pendente",
+            },
+            auto_return: "approved",
+
+            // 🔔 ESSA LINHA GARANTE QUE O MERCADO PAGO VAI CHAMAR SEU BACKEND
+            notification_url: "https://projeto-bierbox.onrender.com/api/pagamentos/webhook",
+        };
+
+        const result = await preference.create({ body: preferenceBody } );
+        res.status(201).json({ checkoutUrl: result.init_point });
+
+    } catch (error) {
+        console.error("Erro ao criar preferência de pagamento:", error);
+        res.status(500).json({ message: "Erro no servidor ao criar preferência de pagamento." });
+    }
 };
 
-module.exports = assinaturaController;
+// Webhook para receber notificações do Mercado Pago
+const receberWebhook = async (req, res) => {
+    console.log("🚨 Webhook disparado pelo Mercado Pago!");
+    console.log("Body recebido:", req.body);
+
+    const { type, data } = req.body;
+
+    try {
+        if (type === "payment") {
+            const paymentClient = new Payment(client);
+            const paymentDetails = await paymentClient.get({ id: data.id });
+
+            console.log("🔍 Detalhes do Pagamento:", paymentDetails);
+
+            if (paymentDetails.status === "approved" && paymentDetails.external_reference) {
+                const assinaturaId = parseInt(paymentDetails.external_reference, 10);
+                
+                // Extrair forma de pagamento
+                let formaPagamento = "Desconhecida";
+                if (paymentDetails.payment_type_id) {
+                    switch (paymentDetails.payment_type_id) {
+                        case "credit_card":
+                            formaPagamento = "Cartão de Crédito";
+                            break;
+                        case "debit_card":
+                            formaPagamento = "Cartão de Débito";
+                            break;
+                        case "ticket":
+                            formaPagamento = "Boleto";
+                            break;
+                        case "atm":
+                            formaPagamento = "Caixa Eletrônico";
+                            break;
+                        case "bank_transfer":
+                            formaPagamento = "Transferência Bancária";
+                            break;
+                        case "account_money":
+                            formaPagamento = "Dinheiro em Conta MP";
+                            break;
+                        case "pix":
+                            formaPagamento = "Pix";
+                            break;
+                        default:
+                            formaPagamento = paymentDetails.payment_type_id;
+                    }
+                } else if (paymentDetails.payment_method_id) {
+                    formaPagamento = paymentDetails.payment_method_id; // Fallback para método de pagamento
+                }
+
+                await pool.query(
+                    "UPDATE assinaturas SET status = \'ATIVA\', id_assinatura_mp = $1, atualizado_em = CURRENT_TIMESTAMP, forma_pagamento = $3 WHERE id = $2",
+                    [paymentDetails.id, assinaturaId, formaPagamento]
+                );
+
+                console.log(`✅ Assinatura ${assinaturaId} atualizada para ATIVA com forma de pagamento: ${formaPagamento}.`);
+            }
+        }
+
+        res.status(200).send("Webhook recebido com sucesso.");
+    } catch (error) {
+        console.error("❌ Erro ao processar webhook:", error);
+        res.status(500).send("Erro interno no servidor ao processar webhook.");
+    }
+};
+
+module.exports = {
+    criarPreferencia,
+    receberWebhook
+};
