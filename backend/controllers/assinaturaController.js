@@ -41,7 +41,9 @@ const assinaturaController = {
                     e.bairro AS endereco_bairro,
                     e.cidade AS endereco_cidade,
                     e.estado AS endereco_estado,
-                    e.cep AS endereco_cep
+                    e.cep AS endereco_cep,
+                    -- forma de pagamento
+                    a.forma_pagamento
                 FROM assinaturas a
                 LEFT JOIN boxes b ON a.box_id = b.id
                 LEFT JOIN LATERAL (
@@ -51,7 +53,7 @@ const assinaturaController = {
                     ORDER BY criado_em DESC
                     LIMIT 1
                 ) p ON true
-                LEFT JOIN enderecos e ON a.endereco_entrega_id = e.id -- CORRIGIDO AQUI: 'enderecos'
+                LEFT JOIN enderecos e ON a.endereco_entrega_id = e.id
                 WHERE a.utilizador_id = $1
                 ORDER BY a.data_inicio DESC`,
                 [userId]
@@ -102,7 +104,9 @@ const assinaturaController = {
                     e.bairro AS endereco_bairro,
                     e.cidade AS endereco_cidade,
                     e.estado AS endereco_estado,
-                    e.cep AS endereco_cep
+                    e.cep AS endereco_cep,
+                    -- forma de pagamento
+                    a.forma_pagamento
                 FROM assinaturas a
                 LEFT JOIN boxes b ON a.box_id = b.id
                 LEFT JOIN LATERAL (
@@ -112,7 +116,7 @@ const assinaturaController = {
                     ORDER BY criado_em DESC
                     LIMIT 1
                 ) p ON true
-                LEFT JOIN enderecos e ON a.endereco_entrega_id = e.id -- CORRIGIDO AQUI: 'enderecos'
+                LEFT JOIN enderecos e ON a.endereco_entrega_id = e.id
                 WHERE a.id = $1 AND a.utilizador_id = $2`,
                 [id, userId]
             );
