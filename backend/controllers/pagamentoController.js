@@ -8,7 +8,7 @@ const client = new MercadoPagoConfig({
 // Criar preferência de pagamento
 exports.criarPreferencia = async (req, res) => {
     try {
-        const { plano_id, endereco_entrega_id, valor_frete, box_id } = req.body; // box_id adicionado aqui
+        const { plano_id, endereco_entrega_id, valor_frete, box_id } = req.body; 
         const utilizadorId = req.userId;
 
         if (!plano_id || !endereco_entrega_id || valor_frete === undefined) {
@@ -97,13 +97,45 @@ exports.receberWebhook = async (req, res) => {
 
             if (paymentDetails.status === "approved" && paymentDetails.external_reference) {
                 const assinaturaId = parseInt(paymentDetails.external_reference, 10);
+                
+                // Extrair forma de pagamento
+                let formaPagamento = "Desconhecida";
+                if (paymentDetails.payment_type_id) {
+                    switch (paymentDetails.payment_type_id) {
+                        case "credit_card":
+                            formaPagamento = "Cartão de Crédito";
+                            break;
+                        case "debit_card":
+                            formaPagamento = "Cartão de Débito";
+                            break;
+                        case "ticket":
+                            formaPagamento = "Boleto";
+                            break;
+                        case "atm":
+                            formaPagamento = "Caixa Eletrônico";
+                            break;
+                        case "bank_transfer":
+                            formaPagamento = "Transferência Bancária";
+                            break;
+                        case "account_money":
+                            formaPagamento = "Dinheiro em Conta MP";
+                            break;
+                        case "pix":
+                            formaPagamento = "Pix";
+                            break;
+                        default:
+                            formaPagamento = paymentDetails.payment_type_id;
+                    }
+                } else if (paymentDetails.payment_method_id) {
+                    formaPagamento = paymentDetails.payment_method_id; // Fallback para método de pagamento
+                }
 
                 await pool.query(
-                    "UPDATE assinaturas SET status = \'ATIVA\', id_assinatura_mp = $1, atualizado_em = CURRENT_TIMESTAMP WHERE id = $2",
-                    [paymentDetails.id, assinaturaId]
+                    "UPDATE assinaturas SET status = \'ATIVA\', id_assinatura_mp = $1, atualizado_em = CURRENT_TIMESTAMP, forma_pagamento = $3 WHERE id = $2",
+                    [paymentDetails.id, assinaturaId, formaPagamento]
                 );
 
-                console.log(`✅ Assinatura ${assinaturaId} atualizada para ATIVA.`);
+                console.log(`✅ Assinatura ${assinaturaId} atualizada para ATIVA com forma de pagamento: ${formaPagamento}.`);
             }
         }
 
