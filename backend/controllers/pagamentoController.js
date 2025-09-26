@@ -1,17 +1,23 @@
 const { MercadoPagoConfig, Preference, Payment } = require("mercadopago");
 const pool = require("../config/db");
+const { validate: isUuid } = require("uuid"); // Importa a função de validação
 
 const client = new MercadoPagoConfig({
-    accessToken: process.env.MP_ACCESS_TOKEN_TEST, // token de teste
+    accessToken: process.env.MP_ACCESS_TOKEN_TEST,
 });
 
 // Criar preferência de pagamento
 const criarPreferencia = async (req, res) => {
     try {
-        const { plano_id, endereco_entrega_id, valor_frete, box_id } = req.body; 
+        const { plano_id, endereco_entrega_id, valor_frete, box_id } = req.body;
         const utilizadorId = req.userId;
 
-        if (!plano_id || !endereco_entrega_id || valor_frete === undefined) {
+        // **CORREÇÃO: Adicionada validação para os IDs recebidos**
+        if (!isUuid(endereco_entrega_id) || (box_id && !isUuid(box_id))) {
+            return res.status(400).json({ message: "ID de endereço ou box inválido." });
+        }
+
+        if (!plano_id || valor_frete === undefined) {
             return res.status(400).json({ message: "Dados insuficientes para criar o pagamento." });
         }
 
@@ -37,12 +43,11 @@ const criarPreferencia = async (req, res) => {
 
         const valor_total = preco_plano + parseFloat(valor_frete);
 
-        // Inserir a nova assinatura com mais detalhes, incluindo box_id
         const novaAssinatura = await pool.query(
             "INSERT INTO assinaturas (utilizador_id, plano_id, status, endereco_entrega_id, valor_frete, valor_assinatura, box_id, data_inicio, criado_em, atualizado_em) VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW(), NOW()) RETURNING id",
             [utilizadorId, plano_id, "PENDENTE", endereco_entrega_id, valor_frete, preco_plano, box_id]
         );
-        const assinaturaId = novaAssinatura.rows[0].id;
+        const assinaturaId = novaAssinatura.rows[0].id; // assinaturaId agora é um UUID
 
         const preference = new Preference(client);
         const preferenceBody = {
@@ -60,6 +65,7 @@ const criarPreferencia = async (req, res) => {
                 email: userEmail,
                 name: userName,
             },
+            // O external_reference agora é um UUID. toString() é opcional, mas seguro.
             external_reference: assinaturaId.toString(),
             back_urls: {
                 success: "https://www.google.com/sucesso",
@@ -67,8 +73,6 @@ const criarPreferencia = async (req, res) => {
                 pending: "https://www.google.com/pendente",
             },
             auto_return: "approved",
-
-            // 🔔 ESSA LINHA GARANTE QUE O MERCADO PAGO VAI CHAMAR SEU BACKEND
             notification_url: "https://projeto-bierbox.onrender.com/api/pagamentos/webhook",
         };
 
@@ -96,43 +100,37 @@ const receberWebhook = async (req, res) => {
             console.log("🔍 Detalhes do Pagamento:", paymentDetails);
 
             if (paymentDetails.status === "approved" && paymentDetails.external_reference) {
-                const assinaturaId = parseInt(paymentDetails.external_reference, 10);
                 
-                // Extrair forma de pagamento
+                // **ERRO CRÍTICO CORRIGIDO AQUI**
+                // Não usamos mais parseInt. A referência externa é o UUID da assinatura.
+                const assinaturaId = paymentDetails.external_reference;
+
+                // Valida se a referência externa é um UUID válido antes de usar no banco
+                if (!isUuid(assinaturaId)) {
+                    console.error(`❌ Erro no Webhook: external_reference não é um UUID válido: ${assinaturaId}`);
+                    // Retorna 200 para o Mercado Pago não tentar reenviar, mas loga o erro.
+                    return res.status(200).send("Webhook processado com erro de referência.");
+                }
+                
                 let formaPagamento = "Desconhecida";
                 if (paymentDetails.payment_type_id) {
                     switch (paymentDetails.payment_type_id) {
-                        case "credit_card":
-                            formaPagamento = "Cartão de Crédito";
-                            break;
-                        case "debit_card":
-                            formaPagamento = "Cartão de Débito";
-                            break;
-                        case "ticket":
-                            formaPagamento = "Boleto";
-                            break;
-                        case "atm":
-                            formaPagamento = "Caixa Eletrônico";
-                            break;
-                        case "bank_transfer":
-                            formaPagamento = "Transferência Bancária";
-                            break;
-                        case "account_money":
-                            formaPagamento = "Dinheiro em Conta MP";
-                            break;
-                        case "pix":
-                            formaPagamento = "Pix";
-                            break;
-                        default:
-                            formaPagamento = paymentDetails.payment_type_id;
+                        case "credit_card": formaPagamento = "Cartão de Crédito"; break;
+                        case "debit_card": formaPagamento = "Cartão de Débito"; break;
+                        case "ticket": formaPagamento = "Boleto"; break;
+                        case "atm": formaPagamento = "Caixa Eletrônico"; break;
+                        case "bank_transfer": formaPagamento = "Transferência Bancária"; break;
+                        case "account_money": formaPagamento = "Dinheiro em Conta MP"; break;
+                        case "pix": formaPagamento = "Pix"; break;
+                        default: formaPagamento = paymentDetails.payment_type_id;
                     }
                 } else if (paymentDetails.payment_method_id) {
-                    formaPagamento = paymentDetails.payment_method_id; // Fallback para método de pagamento
+                    formaPagamento = paymentDetails.payment_method_id;
                 }
 
                 await pool.query(
-                    "UPDATE assinaturas SET status = \'ATIVA\', id_assinatura_mp = $1, atualizado_em = CURRENT_TIMESTAMP, forma_pagamento = $3 WHERE id = $2",
-                    [paymentDetails.id, assinaturaId, formaPagamento]
+                    "UPDATE assinaturas SET status = 'ATIVA', id_assinatura_mp = $1, atualizado_em = CURRENT_TIMESTAMP, forma_pagamento = $3 WHERE id = $2",
+                    [paymentDetails.id.toString(), assinaturaId, formaPagamento] // paymentDetails.id também pode ser um número grande, então convertemos para string por segurança.
                 );
 
                 console.log(`✅ Assinatura ${assinaturaId} atualizada para ATIVA com forma de pagamento: ${formaPagamento}.`);

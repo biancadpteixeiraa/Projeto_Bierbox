@@ -1,4 +1,5 @@
 const pool = require("../config/db");
+const { validate: isUuid } = require("uuid"); // Importa a função de validação
 
 // @desc    Buscar todos os endereços do utilizador logado
 // @route   GET /api/enderecos
@@ -48,16 +49,20 @@ exports.addEndereco = async (req, res) => {
 // @route   PUT /api/enderecos/:id
 // @access  Privado
 exports.updateEndereco = async (req, res) => {
-    const { id } = req.params; // Pega o ID do endereço a ser atualizado a partir da URL
+    const { id } = req.params;
     const utilizadorId = req.userId;
     const { cep, rua, numero, complemento, bairro, cidade, estado, is_padrao } = req.body;
+
+    // **CORREÇÃO: Validar se o ID do endereço é um UUID válido**
+    if (!isUuid(id)) {
+        return res.status(400).json({ message: 'O ID do endereço fornecido é inválido.' });
+    }
 
     if (!cep || !rua || !numero || !bairro || !cidade || !estado) {
         return res.status(400).json({ message: 'Por favor, preencha todos os campos obrigatórios.' });
     }
 
     try {
-        // Verifica se o endereço pertence ao utilizador logado antes de atualizar
         const { rows: enderecoExistente } = await pool.query('SELECT * FROM enderecos WHERE id = $1 AND utilizador_id = $2', [id, utilizadorId]);
         if (enderecoExistente.length === 0) {
             return res.status(404).json({ message: 'Endereço não encontrado ou não pertence a este utilizador.' });
@@ -82,11 +87,15 @@ exports.updateEndereco = async (req, res) => {
 // @route   DELETE /api/enderecos/:id
 // @access  Privado
 exports.deleteEndereco = async (req, res) => {
-    const { id } = req.params; // Pega o ID do endereço a ser apagado a partir da URL
+    const { id } = req.params;
     const utilizadorId = req.userId;
 
+    // **CORREÇÃO: Validar se o ID do endereço é um UUID válido**
+    if (!isUuid(id)) {
+        return res.status(400).json({ message: 'O ID do endereço fornecido é inválido.' });
+    }
+
     try {
-        // Verifica se o endereço pertence ao utilizador logado antes de apagar
         const { rowCount } = await pool.query('DELETE FROM enderecos WHERE id = $1 AND utilizador_id = $2', [id, utilizadorId]);
 
         if (rowCount === 0) {

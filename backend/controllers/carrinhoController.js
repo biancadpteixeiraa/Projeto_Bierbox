@@ -1,4 +1,5 @@
 const pool = require("../config/db");
+const { validate: isUuid } = require("uuid"); // Importa a função de validação
 
 const getCarrinhoCompleto = async (usuario_id) => {
   const carrinhoResult = await pool.query(
@@ -7,7 +8,7 @@ const getCarrinhoCompleto = async (usuario_id) => {
   );
 
   if (carrinhoResult.rows.length === 0) {
-    return null; 
+    return null;
   }
 
   const carrinho = carrinhoResult.rows[0];
@@ -17,9 +18,9 @@ const getCarrinhoCompleto = async (usuario_id) => {
        ci.id,
        ci.box_id,
        b.nome,
-       b.imagem_principal_url, -- Adicionado: URL da imagem da box
+       b.imagem_principal_url,
        ci.quantidade_cervejas AS quantidade,
-       ci.tipo_plano, -- Adicionado: Tipo de plano (mensal/anual)
+       ci.tipo_plano,
        ci.preco_unitario
      FROM carrinho_itens ci
      JOIN boxes b ON ci.box_id = b.id
@@ -44,6 +45,15 @@ const getCarrinhoCompleto = async (usuario_id) => {
 const adicionarItem = async (req, res) => {
   const { box_id, quantidade, tipo_plano } = req.body;
   const usuario_id = req.userId;
+
+  // Validação do box_id como UUID
+  if (!isUuid(box_id)) {
+    return res.status(400).json({
+        success: false,
+        message: "O ID da box fornecido é inválido.",
+        erro: "Formato de ID inválido",
+    });
+  }
 
   try {
     let carrinhoResult = await pool.query(
@@ -75,7 +85,6 @@ const adicionarItem = async (req, res) => {
       });
     }
 
-    // Lógica para determinar a coluna de preço com base em tipo_plano e quantidade
     let precoColumnName;
     if (tipo_plano === "mensal") {
       if (quantidade === 4) {
@@ -185,8 +194,17 @@ const verCarrinho = async (req, res) => {
 // @route   DELETE /carrinho/remover/:box_id
 // @access  Privado
 const removerItem = async (req, res) => {
-  const box_id_param = req.params.box_id;
+  const { box_id } = req.params; // Renomeado para clareza
   const usuario_id = req.userId;
+
+  // **CORREÇÃO PRINCIPAL: Validar se o box_id é um UUID válido**
+  if (!isUuid(box_id)) {
+    return res.status(400).json({
+        success: false,
+        message: "O ID da box fornecido é inválido.",
+        erro: "Formato de ID inválido",
+    });
+  }
 
   try {
     const carrinhoResult = await pool.query(
@@ -206,14 +224,14 @@ const removerItem = async (req, res) => {
     const deleteResult = await pool.query(
       `DELETE FROM carrinho_itens
        WHERE carrinho_id = $1 AND box_id = $2 RETURNING id`,
-      [carrinho_id, box_id_param]
+      [carrinho_id, box_id] // Passa o box_id validado
     );
 
     if (deleteResult.rowCount === 0) {
       return res.status(404).json({
         success: false,
-        message: "Item não encontrado no carrinho ou não autorizado a remover.",
-        erro: "Item não encontrado ou não autorizado",
+        message: "Item não encontrado no carrinho.",
+        erro: "Item não encontrado",
       });
     }
 
