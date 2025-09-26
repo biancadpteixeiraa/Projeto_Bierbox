@@ -1,24 +1,40 @@
 const pool = require("../config/db");
 const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
+const jwt =require("jsonwebtoken");
 
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: "30d", 
+    expiresIn: "30d",
   });
 };
 
 const registerUser = async (req, res) => {
-  const { nome_completo, email, cpf, senha } = req.body;
+
+  const { nome_completo, email, cpf, senha, data_nascimento } = req.body;
+
+  if (!data_nascimento) {
+    return res.status(400).json({ success: false, message: "Erro: A data de nascimento é obrigatória." });
+  }
 
   try {
-    // Verifica se o email já existe
+    const hoje = new Date();
+    const nascimento = new Date(data_nascimento);
+    let idade = hoje.getFullYear() - nascimento.getFullYear();
+    const mes = hoje.getMonth() - nascimento.getMonth();
+    
+    if (mes < 0 || (mes === 0 && hoje.getDate() < nascimento.getDate())) {
+      idade--;
+    }
+
+    if (idade < 18) {
+      return res.status(400).json({ success: false, message: "Cadastro permitido apenas para maiores de 18 anos." });
+    }
+
     const existingUser = await pool.query("SELECT id FROM users WHERE email = $1", [email]);
     if (existingUser.rows.length > 0) {
       return res.status(409).json({ success: false, message: "Erro: Email já cadastrado." });
     }
 
-    // Verifica se o CPF já existe
     const existingCpf = await pool.query("SELECT id FROM users WHERE cpf = $1", [cpf]);
     if (existingCpf.rows.length > 0) {
       return res.status(409).json({ success: false, message: "Erro: CPF já cadastrado." });
@@ -28,8 +44,8 @@ const registerUser = async (req, res) => {
     const senha_hash = await bcrypt.hash(senha, salt);
 
     const newUser = await pool.query(
-      "INSERT INTO users (nome_completo, email, cpf, senha_hash) VALUES ($1, $2, $3, $4) RETURNING id, nome_completo, email",
-      [nome_completo, email, cpf, senha_hash]
+      "INSERT INTO users (nome_completo, email, cpf, senha_hash, data_nascimento) VALUES ($1, $2, $3, $4, $5) RETURNING id, nome_completo, email",
+      [nome_completo, email, cpf, senha_hash, data_nascimento]
     );
 
     const token = generateToken(newUser.rows[0].id);
