@@ -1,6 +1,19 @@
+// userController.js
 const pool = require("../config/db");
 const bcrypt = require("bcryptjs");
-const jwt =require("jsonwebtoken");
+const jwt = require("jsonwebtoken");
+const crypto = require("crypto"); // Pacote nativo do Node.js para gerar o token
+const nodemailer = require("nodemailer");
+const sendgridTransport = require("nodemailer-sendgrid-transport");
+
+// Configuração do transport do Nodemailer com a API Key do SendGrid
+const transporter = nodemailer.createTransport(
+  sendgridTransport({
+    auth: {
+      api_key: process.env.SENDGRID_API_KEY,
+    },
+  })
+);
 
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -9,7 +22,6 @@ const generateToken = (id) => {
 };
 
 const registerUser = async (req, res) => {
-
   const { nome_completo, email, cpf, senha, data_nascimento } = req.body;
 
   if (!data_nascimento) {
@@ -77,7 +89,6 @@ const loginUser = async (req, res) => {
     }
 
     const user = userResult.rows[0];
-
     const isMatch = await bcrypt.compare(senha, user.senha_hash);
 
     if (!isMatch) {
@@ -102,7 +113,97 @@ const loginUser = async (req, res) => {
   }
 };
 
+// NOVA FUNÇÃO: Solicitar recuperação de senha
+const forgotPassword = async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    const userResult = await pool.query("SELECT id, email FROM users WHERE email = $1", [email]);
+
+    if (userResult.rows.length === 0) {
+      // Por segurança, não informamos que o e-mail não foi encontrado.
+      return res.status(200).json({ success: true, message: "Se um usuário com este e-mail existir, um link de recuperação de senha foi enviado." });
+    }
+
+    const user = userResult.rows[0];
+
+    // Gerar um token aleatório
+    const token = crypto.randomBytes(32).toString("hex");
+    const expires = new Date(Date.now() + 3600000); // Expira em 1 hora
+
+    // Salvar o token e a data de expiração no usuário
+    await pool.query(
+      "UPDATE users SET reset_password_token = $1, reset_password_expires = $2 WHERE id = $3",
+      [token, expires, user.id]
+    );
+
+    // Criar o link de recuperação (ajuste a URL para o seu frontend)
+    const resetLink = `http://localhost:3000/reset-password/${token}`; // URL do seu frontend
+
+    // Enviar o e-mail
+    await transporter.sendMail({
+      to: user.email,
+      from: process.env.SENDGRID_FROM_EMAIL,
+      subject: "BierBox - Recuperação de Senha",
+      html: `
+        <p>Você solicitou a recuperação de senha para sua conta na BierBox.</p>
+        <p>Clique no link a seguir para redefinir sua senha:</p>
+        <a href="${resetLink}">${resetLink}</a>
+        <p>Este link é válido por 1 hora.</p>
+        <p>Se você não solicitou isso, por favor, ignore este e-mail.</p>
+      `,
+    } );
+
+    res.status(200).json({ success: true, message: "Se um usuário com este e-mail existir, um link de recuperação de senha foi enviado." });
+
+  } catch (error) {
+    console.error("Erro em forgotPassword:", error);
+    res.status(500).json({ success: false, message: "Erro interno do servidor." });
+  }
+};
+
+// NOVA FUNÇÃO: Redefinir a senha
+const resetPassword = async (req, res) => {
+  const { token, nova_senha } = req.body;
+
+  if (!token || !nova_senha) {
+    return res.status(400).json({ success: false, message: "Token e nova senha são obrigatórios." });
+  }
+
+  try {
+    // Encontrar o usuário pelo token e verificar se não expirou
+    const userResult = await pool.query(
+      "SELECT id FROM users WHERE reset_password_token = $1 AND reset_password_expires > NOW()",
+      [token]
+    );
+
+    if (userResult.rows.length === 0) {
+      return res.status(400).json({ success: false, message: "Token de recuperação de senha inválido ou expirado." });
+    }
+
+    const user = userResult.rows[0];
+
+    // Criptografar a nova senha
+    const salt = await bcrypt.genSalt(10);
+    const senha_hash = await bcrypt.hash(nova_senha, salt);
+
+    // Atualizar a senha e limpar os campos de recuperação
+    await pool.query(
+      "UPDATE users SET senha_hash = $1, reset_password_token = NULL, reset_password_expires = NULL WHERE id = $2",
+      [senha_hash, user.id]
+    );
+
+    res.status(200).json({ success: true, message: "Senha redefinida com sucesso!" });
+
+  } catch (error) {
+    console.error("Erro em resetPassword:", error);
+    res.status(500).json({ success: false, message: "Erro interno do servidor." });
+  }
+};
+
 module.exports = {
   registerUser,
   loginUser,
+  forgotPassword, // Exportar as novas funções
+  resetPassword,
 };
