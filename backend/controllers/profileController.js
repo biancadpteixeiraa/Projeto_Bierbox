@@ -1,151 +1,88 @@
 const pool = require("../config/db");
 const bcrypt = require("bcryptjs");
 
-// Função para obter os dados do perfil do usuário logado
 const getProfile = async (req, res) => {
   try {
     const userId = req.userId;
-
     const result = await pool.query(
       "SELECT id, nome_completo, email, cpf, foto_perfil_url, data_criacao FROM users WHERE id = $1",
       [userId]
     );
-
     if (result.rows.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: "Usuário não encontrado."
-      });
+      return res.status(404).json({ success: false, message: "Usuário não encontrado." });
     }
-
-    const user = result.rows[0];
-
-    res.json({
-      success: true,
-      user: {
-        id: user.id,
-        nome_completo: user.nome_completo,
-        email: user.email,
-        cpf: user.cpf,
-        foto_perfil_url: user.foto_perfil_url,
-        data_criacao: user.data_criacao
-      }
-    });
-
+    res.json({ success: true, user: result.rows[0] });
   } catch (error) {
     console.error("Erro ao buscar perfil do usuário:", error.message);
-    res.status(500).json({
-      success: false,
-      message: "Erro interno do servidor ao buscar perfil."
-    });
+    res.status(500).json({ success: false, message: "Erro interno do servidor ao buscar perfil." });
   }
 };
 
-// Função para atualizar os dados do perfil do usuário logado
 const updateProfile = async (req, res) => {
   try {
     const userId = req.userId;
     const { nome_completo, senha_atual, nova_senha } = req.body;
-
-    const userResult = await pool.query("SELECT id, nome_completo, senha_hash FROM users WHERE id = $1", [userId]);
-
+    const userResult = await pool.query("SELECT * FROM users WHERE id = $1", [userId]);
     if (userResult.rows.length === 0) {
       return res.status(404).json({ success: false, message: "Usuário não encontrado." });
     }
-
     const user = userResult.rows[0];
     let updatedFields = [];
     let queryParams = [];
     let paramIndex = 1;
-
     if (nome_completo !== undefined) {
       updatedFields.push(`nome_completo = $${paramIndex++}`);
       queryParams.push(nome_completo);
     }
-
     if (nova_senha !== undefined) {
       if (!senha_atual) {
         return res.status(400).json({ success: false, message: "Senha atual é obrigatória para alterar a senha." });
       }
-
       const isMatch = await bcrypt.compare(senha_atual, user.senha_hash);
       if (!isMatch) {
         return res.status(401).json({ success: false, message: "Senha atual incorreta." });
       }
-
       const salt = await bcrypt.genSalt(10);
       const nova_senha_hash = await bcrypt.hash(nova_senha, salt);
       updatedFields.push(`senha_hash = $${paramIndex++}`);
       queryParams.push(nova_senha_hash);
     }
-
     if (updatedFields.length === 0) {
       return res.status(400).json({ success: false, message: "Nenhum campo válido para atualização fornecido." });
     }
-
     const updateQuery = `UPDATE users SET ${updatedFields.join(", ")} WHERE id = $${paramIndex} RETURNING id, nome_completo, email, cpf, foto_perfil_url, data_criacao`;
     queryParams.push(userId);
-
     const updatedUserResult = await pool.query(updateQuery, queryParams);
-
-    res.json({
-      success: true,
-      message: "Perfil atualizado com sucesso!",
-      user: {
-        id: updatedUserResult.rows[0].id,
-        nome_completo: updatedUserResult.rows[0].nome_completo,
-        email: updatedUserResult.rows[0].email,
-        cpf: updatedUserResult.rows[0].cpf,
-        foto_perfil_url: updatedUserResult.rows[0].foto_perfil_url,
-        data_criacao: updatedUserResult.rows[0].data_criacao
-      }
-    });
-
+    res.json({ success: true, message: "Perfil atualizado com sucesso!", user: updatedUserResult.rows[0] });
   } catch (error) {
     console.error("Erro ao atualizar perfil do usuário:", error.message);
-    res.status(500).json({
-      success: false,
-      message: "Erro interno do servidor ao atualizar perfil."
-    });
+    res.status(500).json({ success: false, message: "Erro interno do servidor ao atualizar perfil." });
   }
 };
 
-// Função para excluir a conta do usuário logado
 const deleteAccount = async (req, res) => {
   try {
     const userId = req.userId;
-
     const result = await pool.query("DELETE FROM users WHERE id = $1 RETURNING id", [userId]);
-
     if (result.rows.length === 0) {
       return res.status(404).json({ success: false, message: "Usuário não encontrado para exclusão." });
     }
-
     res.json({ success: true, message: "Conta excluída com sucesso!" });
-
   } catch (error) {
     console.error("Erro ao excluir conta do usuário:", error.message);
-    res.status(500).json({
-      success: false,
-      message: "Erro interno do servidor ao excluir conta."
-    });
+    res.status(500).json({ success: false, message: "Erro interno do servidor ao excluir conta." });
   }
 };
 
-// @desc    Upload de foto de perfil
-// @route   POST /meu-perfil/upload-foto
-// @access  Privado
 const uploadProfilePhoto = async (req, res) => {
   try {
     const userId = req.userId;
-
     if (!req.file) {
       return res.status(400).json({ success: false, message: "Nenhum arquivo de imagem enviado." });
     }
 
-    const foto_perfil_url = `/uploads/${req.file.filename}`;
+    const foto_perfil_url = req.file.path;
 
-    // Atualizar o campo foto_perfil_url no banco de dados
     const result = await pool.query(
       "UPDATE users SET foto_perfil_url = $1 WHERE id = $2 RETURNING id, nome_completo, email, cpf, foto_perfil_url, data_criacao",
       [foto_perfil_url, userId]
@@ -155,26 +92,10 @@ const uploadProfilePhoto = async (req, res) => {
       return res.status(404).json({ success: false, message: "Usuário não encontrado para atualizar foto." });
     }
 
-    res.json({
-      success: true,
-      message: "Foto de perfil atualizada com sucesso!",
-      user: {
-        id: result.rows[0].id,
-        nome_completo: result.rows[0].nome_completo,
-        email: result.rows[0].email,
-        cpf: result.rows[0].cpf,
-        foto_perfil_url: result.rows[0].foto_perfil_url,
-        data_criacao: result.rows[0].data_criacao
-      }
-    });
-
+    res.json({ success: true, message: "Foto de perfil atualizada com sucesso!", user: result.rows[0] });
   } catch (error) {
-    console.error("Erro ao fazer upload da foto de perfil:", error.message);
-    res.status(500).json({
-      success: false,
-      message: "Erro ao fazer upload da foto de perfil.",
-      erro: error.message
-    });
+    console.error("Erro ao fazer upload da foto de perfil:", error);
+    res.status(500).json({ success: false, message: "Erro ao fazer upload da foto de perfil.", erro: error.message });
   }
 };
 

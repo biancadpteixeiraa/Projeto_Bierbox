@@ -3,41 +3,35 @@ const { getProfile, updateProfile, deleteAccount, uploadProfilePhoto } = require
 const { protect } = require("../middleware/authMiddleware");
 const multer = require("multer");
 const path = require("path");
+const cloudinary = require("cloudinary").v2;
+const { CloudinaryStorage } = require("multer-storage-cloudinary");
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: "bierbox_profiles",
+    allowed_formats: ["jpeg", "jpg", "png"],
+    transformation: [{ width: 200, height: 200, crop: "fill" }],
+  },
+});
+
+const upload = multer({
+  storage: storage,
+  limits: { fileSize: 1024 * 1024 * 2 }, 
+});
 
 const router = express.Router();
 
-// Configuração do Multer para armazenamento local
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "uploads/");
-  },
-  filename: (req, file, cb) => {
-    cb(null, `${req.userId}-${Date.now()}${path.extname(file.originalname)}`);
-  },
-});
-
-// Filtro de arquivos para permitir apenas JPEG e PNG e limitar o tamanho
-const upload = multer({
-  storage: storage,
-  limits: { fileSize: 1024 * 1024 }, // 1MB
-  fileFilter: (req, file, cb) => {
-    const filetypes = /jpeg|jpg|png/;
-    const mimetype = filetypes.test(file.mimetype);
-    const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
-
-    if (mimetype && extname) {
-      return cb(null, true);
-    }
-    cb(new Error("Apenas imagens JPEG e PNG são permitidas e o tamanho máximo é 1MB!"));
-  },
-});
-
-// Rotas de perfil existentes
 router.get("/", protect, getProfile);
 router.put("/", protect, updateProfile);
 router.delete("/", protect, deleteAccount);
 
-// Nova rota para upload de foto de perfil - POST /meu-perfil/upload-foto
 router.post("/upload-foto", protect, upload.single("profilePhoto"), uploadProfilePhoto);
 
 module.exports = router;
