@@ -1,12 +1,10 @@
-// userController.js
-const pool = require("../config/db");
+const pool = require("../config/db" );
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const crypto = require("crypto"); // Pacote nativo do Node.js para gerar o token
+const crypto = require("crypto");
 const nodemailer = require("nodemailer");
 const sendgridTransport = require("nodemailer-sendgrid-transport");
 
-// Configuração do transport do Nodemailer com a API Key do SendGrid
 const transporter = nodemailer.createTransport(
   sendgridTransport({
     auth: {
@@ -113,7 +111,6 @@ const loginUser = async (req, res) => {
   }
 };
 
-// NOVA FUNÇÃO: Solicitar recuperação de senha
 const forgotPassword = async (req, res) => {
   const { email } = req.body;
 
@@ -121,26 +118,20 @@ const forgotPassword = async (req, res) => {
     const userResult = await pool.query("SELECT id, email FROM users WHERE email = $1", [email]);
 
     if (userResult.rows.length === 0) {
-      // Por segurança, não informamos que o e-mail não foi encontrado.
       return res.status(200).json({ success: true, message: "Se um usuário com este e-mail existir, um link de recuperação de senha foi enviado." });
     }
 
     const user = userResult.rows[0];
-
-    // Gerar um token aleatório
     const token = crypto.randomBytes(32).toString("hex");
-    const expires = new Date(Date.now() + 3600000); // Expira em 1 hora
+    const expires = new Date(Date.now() + 3600000); 
 
-    // Salvar o token e a data de expiração no usuário
     await pool.query(
       "UPDATE users SET reset_password_token = $1, reset_password_expires = $2 WHERE id = $3",
       [token, expires, user.id]
     );
 
-    // Criar o link de recuperação (ajuste a URL para o seu frontend)
-    const resetLink = `http://localhost:3000/reset-password/${token}`; // URL do seu frontend
+    const resetLink = `http://localhost:3000/recuperar-senha/nova-senha/${token}`;
 
-    // Enviar o e-mail
     await transporter.sendMail({
       to: user.email,
       from: process.env.SENDGRID_FROM_EMAIL,
@@ -162,7 +153,6 @@ const forgotPassword = async (req, res) => {
   }
 };
 
-// NOVA FUNÇÃO: Redefinir a senha
 const resetPassword = async (req, res) => {
   const { token, nova_senha } = req.body;
 
@@ -171,7 +161,6 @@ const resetPassword = async (req, res) => {
   }
 
   try {
-    // Encontrar o usuário pelo token e verificar se não expirou
     const userResult = await pool.query(
       "SELECT id FROM users WHERE reset_password_token = $1 AND reset_password_expires > NOW()",
       [token]
@@ -182,12 +171,9 @@ const resetPassword = async (req, res) => {
     }
 
     const user = userResult.rows[0];
-
-    // Criptografar a nova senha
     const salt = await bcrypt.genSalt(10);
     const senha_hash = await bcrypt.hash(nova_senha, salt);
 
-    // Atualizar a senha e limpar os campos de recuperação
     await pool.query(
       "UPDATE users SET senha_hash = $1, reset_password_token = NULL, reset_password_expires = NULL WHERE id = $2",
       [senha_hash, user.id]
@@ -204,6 +190,6 @@ const resetPassword = async (req, res) => {
 module.exports = {
   registerUser,
   loginUser,
-  forgotPassword, // Exportar as novas funções
+  forgotPassword,
   resetPassword,
 };
