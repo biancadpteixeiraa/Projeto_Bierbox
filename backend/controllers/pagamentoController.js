@@ -1,18 +1,16 @@
 const { MercadoPagoConfig, Preference, Payment } = require("mercadopago");
 const pool = require("../config/db");
-const { validate: isUuid } = require("uuid"); // Importa a função de validação
+const { validate: isUuid } = require("uuid");
 
 const client = new MercadoPagoConfig({
     accessToken: process.env.MP_ACCESS_TOKEN_TEST,
 });
 
-// Criar preferência de pagamento
 const criarPreferencia = async (req, res) => {
     try {
         const { plano_id, endereco_entrega_id, valor_frete, box_id } = req.body;
         const utilizadorId = req.userId;
 
-        // **CORREÇÃO: Adicionada validação para os IDs recebidos**
         if (!isUuid(endereco_entrega_id) || (box_id && !isUuid(box_id))) {
             return res.status(400).json({ message: "ID de endereço ou box inválido." });
         }
@@ -47,7 +45,7 @@ const criarPreferencia = async (req, res) => {
             "INSERT INTO assinaturas (utilizador_id, plano_id, status, endereco_entrega_id, valor_frete, valor_assinatura, box_id, data_inicio, criado_em, atualizado_em) VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW(), NOW()) RETURNING id",
             [utilizadorId, plano_id, "PENDENTE", endereco_entrega_id, valor_frete, preco_plano, box_id]
         );
-        const assinaturaId = novaAssinatura.rows[0].id; // assinaturaId agora é um UUID
+        const assinaturaId = novaAssinatura.rows[0].id; 
 
         const preference = new Preference(client);
         const preferenceBody = {
@@ -65,7 +63,7 @@ const criarPreferencia = async (req, res) => {
                 email: userEmail,
                 name: userName,
             },
-            // O external_reference agora é um UUID. toString() é opcional, mas seguro.
+
             external_reference: assinaturaId.toString(),
             back_urls: {
                 success: "https://www.google.com/sucesso",
