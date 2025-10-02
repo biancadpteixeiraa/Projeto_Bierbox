@@ -2,12 +2,16 @@ const pool = require("../config/db");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
+// Função para gerar token
 const generateToken = (id) => {
     return jwt.sign({ id }, process.env.JWT_SECRET, {
         expiresIn: "30d",
     });
 };
 
+// @desc    Autenticar um administrador
+// @route   POST /api/admin/login
+// @access  Público
 const loginAdmin = async (req, res) => {
     const { email, senha } = req.body;
 
@@ -53,7 +57,6 @@ const loginAdmin = async (req, res) => {
     }
 };
 
-
 // @desc    Obter estatísticas para a dashboard
 // @route   GET /api/admin/stats
 // @access  Admin
@@ -89,9 +92,15 @@ const getDashboardStats = async (req, res) => {
         `);
 
         const ultimosPedidosResult = await pool.query(`
-            SELECT p.id, u.nome_completo AS cliente_nome, p.valor_total, p.status_pedido, p.criado_em
+            SELECT 
+                p.id, 
+                u.nome_completo AS cliente_nome, 
+                p.valor_total, 
+                p.status_pedido, 
+                p.criado_em
             FROM pedidos p
-            JOIN users u ON p.utilizador_id = u.id
+            JOIN assinaturas a ON p.assinatura_id = a.id
+            JOIN users u ON a.utilizador_id = u.id
             ORDER BY p.criado_em DESC
             LIMIT 5;
         `);
@@ -114,7 +123,119 @@ const getDashboardStats = async (req, res) => {
 };
 
 
+// @desc    [Admin] Listar todas as boxes
+// @route   GET /api/admin/boxes
+// @access  Admin
+const adminGetAllBoxes = async (req, res) => {
+    try {
+        const allBoxes = await pool.query("SELECT * FROM boxes ORDER BY id ASC");
+        res.status(200).json({ success: true, data: allBoxes.rows });
+    } catch (error) {
+        console.error("Erro ao buscar todas as boxes (Admin):", error);
+        res.status(500).json({ success: false, message: "Erro interno do servidor." });
+    }
+};
+
+// @desc    [Admin] Criar uma nova box
+// @route   POST /api/admin/boxes
+// @access  Admin
+const adminCreateBox = async (req, res) => {
+    const {
+        nome, descricao_curta, descricao_longa, especificacao,
+        preco_mensal_4_un, preco_anual_4_un, preco_mensal_6_un, preco_anual_6_un,
+        ativo, imagem_principal_url
+    } = req.body;
+
+    if (!nome || !preco_mensal_4_un) {
+        return res.status(400).json({ success: false, message: "Nome e pelo menos um preço são obrigatórios." });
+    }
+
+    try {
+        const newBox = await pool.query(
+            `INSERT INTO boxes (
+                nome, descricao_curta, descricao_longa, especificacao, 
+                preco_mensal_4_un, preco_anual_4_un, preco_mensal_6_un, preco_anual_6_un, 
+                ativo, imagem_principal_url
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *`,
+            [
+                nome, descricao_curta, descricao_longa, especificacao,
+                preco_mensal_4_un, preco_anual_4_un, preco_mensal_6_un, preco_anual_6_un,
+                ativo === false ? false : true,
+                imagem_principal_url
+            ]
+        );
+        res.status(201).json({ success: true, message: "Box criada com sucesso!", data: newBox.rows[0] });
+    } catch (error) {
+        console.error("Erro ao criar box (Admin):", error);
+        res.status(500).json({ success: false, message: "Erro interno do servidor." });
+    }
+};
+
+// @desc    [Admin] Atualizar uma box
+// @route   PUT /api/admin/boxes/:id
+// @access  Admin
+const adminUpdateBox = async (req, res) => {
+    const { id } = req.params;
+    const {
+        nome, descricao_curta, descricao_longa, especificacao,
+        preco_mensal_4_un, preco_anual_4_un, preco_mensal_6_un, preco_anual_6_un,
+        ativo, imagem_principal_url
+    } = req.body;
+
+    try {
+        const updatedBox = await pool.query(
+            `UPDATE boxes SET
+                nome = $1, descricao_curta = $2, descricao_longa = $3, especificacao = $4,
+                preco_mensal_4_un = $5, preco_anual_4_un = $6, preco_mensal_6_un = $7, preco_anual_6_un = $8,
+                ativo = $9, imagem_principal_url = $10, atualizado_em = NOW()
+            WHERE id = $11 RETURNING *`,
+            [
+                nome, descricao_curta, descricao_longa, especificacao,
+                preco_mensal_4_un, preco_anual_4_un, preco_mensal_6_un, preco_anual_6_un,
+                ativo, imagem_principal_url,
+                id
+            ]
+        );
+
+        if (updatedBox.rowCount === 0) {
+            return res.status(404).json({ success: false, message: "Box não encontrada." });
+        }
+
+        res.status(200).json({ success: true, message: "Box atualizada com sucesso!", data: updatedBox.rows[0] });
+    } catch (error) {
+        console.error("Erro ao atualizar box (Admin):", error);
+        res.status(500).json({ success: false, message: "Erro interno do servidor." });
+    }
+};
+
+// @desc    [Admin] Deletar uma box
+// @route   DELETE /api/admin/boxes/:id
+// @access  Admin
+const adminDeleteBox = async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const deleteResult = await pool.query("DELETE FROM boxes WHERE id = $1", [id]);
+
+        if (deleteResult.rowCount === 0) {
+            return res.status(404).json({ success: false, message: "Box não encontrada." });
+        }
+
+        res.status(200).json({ success: true, message: "Box deletada com sucesso." });
+    } catch (error) {
+        if (error.code === '23503') {
+            return res.status(400).json({ success: false, message: "Não é possível deletar esta box, pois ela está vinculada a assinaturas existentes." });
+        }
+        console.error("Erro ao deletar box (Admin):", error);
+        res.status(500).json({ success: false, message: "Erro interno do servidor." });
+    }
+};
+
 module.exports = {
     loginAdmin,
     getDashboardStats,
+    adminGetAllBoxes,
+    adminCreateBox,
+    adminUpdateBox,
+    adminDeleteBox,
 };
