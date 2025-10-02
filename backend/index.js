@@ -11,7 +11,8 @@ const freteRoutes = require("./routes/freteRoutes");
 const profileRoutes = require("./routes/profileRoutes");
 const enderecoRoutes = require("./routes/enderecoRoutes");
 const pagamentoRoutes = require("./routes/pagamentoRoutes");
-const assinaturaRoutes = require("./routes/assinaturaRoutes"); // NOVA LINHA
+const assinaturaRoutes = require("./routes/assinaturaRoutes");
+const adminRoutes = require('./routes/adminRoutes');
 
 const app = express();
 
@@ -20,13 +21,9 @@ app.use(cors({
 }));
 
 app.use((req, res, next) => {
-    // A rota do webhook do Mercado Pago é /api/pagamentos/webhook
     if (req.originalUrl === "/api/pagamentos/webhook") {
-        // Se for a rota do webhook, não use o parser de JSON.
-        // O SDK do Mercado Pago precisa do corpo da requisição em formato raw.
         next();
     } else {
-        // Para todas as outras rotas, use o parser de JSON normalmente.
         express.json()(req, res, next);
     }
 });
@@ -44,7 +41,8 @@ app.use("/meu-perfil", profileRoutes);
 app.use("/carrinho", carrinhoRoutes);
 app.use("/api/enderecos", enderecoRoutes);
 app.use("/api/pagamentos", pagamentoRoutes);
-app.use("/api/assinaturas", assinaturaRoutes); // NOVA LINHA
+app.use("/api/assinaturas", assinaturaRoutes);
+app.use('/api/admin', adminRoutes);
 
 const HOST = "0.0.0.0";
 const PORT = process.env.PORT || 4000;
