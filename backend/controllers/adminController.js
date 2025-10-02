@@ -53,6 +53,7 @@ const loginAdmin = async (req, res) => {
     }
 };
 
+
 // @desc    Obter estatísticas para a dashboard
 // @route   GET /api/admin/stats
 // @access  Admin
@@ -88,19 +89,12 @@ const getDashboardStats = async (req, res) => {
         `);
 
         const ultimosPedidosResult = await pool.query(`
-            SELECT 
-                p.id, 
-                u.nome_completo AS cliente_nome, 
-                p.valor_total, 
-                p.status_pedido, 
-                p.criado_em
+            SELECT p.id, u.nome_completo AS cliente_nome, p.valor_total, p.status_pedido, p.criado_em
             FROM pedidos p
-            JOIN assinaturas a ON p.assinatura_id = a.id
-            JOIN users u ON a.utilizador_id = u.id
+            JOIN users u ON p.utilizador_id = u.id
             ORDER BY p.criado_em DESC
             LIMIT 5;
         `);
-
         const ultimosUsuariosResult = await pool.query("SELECT id, nome_completo, email, data_criacao FROM users ORDER BY data_criacao DESC LIMIT 5");
 
         const stats = {
@@ -122,5 +116,5 @@ const getDashboardStats = async (req, res) => {
 
 module.exports = {
     loginAdmin,
-    getDashboardStats, 
+    getDashboardStats,
 };
