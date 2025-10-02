@@ -1,10 +1,10 @@
 const pool = require("../config/db");
-const { validate: isUuid } = require("uuid"); // Importa a função de validação
+const { validate: isUuid } = require("uuid");
 
 // @desc    Buscar todos os endereços do utilizador logado
 // @route   GET /api/enderecos
 // @access  Privado
-exports.getEnderecos = async (req, res) => {
+const getEnderecos = async (req, res) => {
     const utilizadorId = req.userId;
     try {
         const { rows } = await pool.query(
@@ -21,7 +21,7 @@ exports.getEnderecos = async (req, res) => {
 // @desc    Adicionar um novo endereço para o utilizador logado
 // @route   POST /api/enderecos
 // @access  Privado
-exports.addEndereco = async (req, res) => {
+const addEndereco = async (req, res) => {
     const utilizadorId = req.userId;
     const { cep, rua, numero, complemento, bairro, cidade, estado, is_padrao } = req.body;
 
@@ -45,17 +45,45 @@ exports.addEndereco = async (req, res) => {
     }
 };
 
+// @desc    Buscar um endereço específico pelo ID
+// @route   GET /api/enderecos/:id
+// @access  Privado
+const getEnderecoById = async (req, res) => {
+    const { id } = req.params;
+    const utilizadorId = req.userId;
+
+    // Validação de segurança para o ID
+    if (!isUuid(id)) {
+        return res.status(400).json({ message: 'ID de endereço inválido.' });
+    }
+
+    try {
+        const { rows } = await pool.query(
+            'SELECT * FROM enderecos WHERE id = $1 AND utilizador_id = $2',
+            [id, utilizadorId]
+        );
+
+        if (rows.length === 0) {
+            return res.status(404).json({ message: 'Endereço não encontrado ou não pertence a este utilizador.' });
+        }
+
+        res.status(200).json(rows[0]);
+    } catch (error) {
+        console.error('Erro ao buscar endereço por ID:', error);
+        res.status(500).json({ message: 'Erro no servidor ao buscar endereço.' });
+    }
+};
+
 // @desc    Atualizar um endereço existente
 // @route   PUT /api/enderecos/:id
 // @access  Privado
-exports.updateEndereco = async (req, res) => {
+const updateEndereco = async (req, res) => {
     const { id } = req.params;
     const utilizadorId = req.userId;
     const { cep, rua, numero, complemento, bairro, cidade, estado, is_padrao } = req.body;
 
-    // **CORREÇÃO: Validar se o ID do endereço é um UUID válido**
     if (!isUuid(id)) {
-        return res.status(400).json({ message: 'O ID do endereço fornecido é inválido.' });
+        return res.status(400).json({ message: 'ID de endereço inválido.' });
     }
 
     if (!cep || !rua || !numero || !bairro || !cidade || !estado) {
@@ -69,7 +97,7 @@ exports.updateEndereco = async (req, res) => {
         }
 
         if (is_padrao === true) {
-            await pool.query('UPDATE enderecos SET is_padrao = FALSE WHERE utilizador_id = $1', [utilizadorId]);
+            await pool.query('UPDATE enderecos SET is_padrao = FALSE WHERE utilizador_id = $1 AND id != $2', [utilizadorId, id]);
         }
 
         const { rows } = await pool.query(
@@ -86,13 +114,12 @@ exports.updateEndereco = async (req, res) => {
 // @desc    Apagar um endereço existente
 // @route   DELETE /api/enderecos/:id
 // @access  Privado
-exports.deleteEndereco = async (req, res) => {
+const deleteEndereco = async (req, res) => {
     const { id } = req.params;
     const utilizadorId = req.userId;
 
-    // **CORREÇÃO: Validar se o ID do endereço é um UUID válido**
     if (!isUuid(id)) {
-        return res.status(400).json({ message: 'O ID do endereço fornecido é inválido.' });
+        return res.status(400).json({ message: 'ID de endereço inválido.' });
     }
 
     try {
@@ -107,4 +134,12 @@ exports.deleteEndereco = async (req, res) => {
         console.error('Erro ao apagar endereço:', error);
         res.status(500).json({ message: 'Erro no servidor ao apagar endereço.' });
     }
+};
+
+module.exports = {
+    getEnderecos,
+    addEndereco,
+    getEnderecoById,
+    updateEndereco,
+    deleteEndereco,
 };

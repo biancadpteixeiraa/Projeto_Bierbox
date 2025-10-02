@@ -4,11 +4,12 @@ const enderecoController = require('../controllers/enderecoController');
 const { protect } = require('../middleware/authMiddleware');
 
 router.route('/')
-    .get(protect, enderecoController.getEnderecos)      // Buscar todos os endereços
-    .post(protect, enderecoController.addEndereco);     // Adicionar um novo endereço
+    .get(protect, enderecoController.getEnderecos) 
+    .post(protect, enderecoController.addEndereco);   
 
 router.route('/:id')
-    .put(protect, enderecoController.updateEndereco)       // Atualizar um endereço específico
-    .delete(protect, enderecoController.deleteEndereco);    // Apagar um endereço específico
+    .get(protect, enderecoController.getEnderecoById)
+    .put(protect, enderecoController.updateEndereco) 
+    .delete(protect, enderecoController.deleteEndereco); 
 
 module.exports = router;
