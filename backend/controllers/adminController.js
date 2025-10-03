@@ -281,15 +281,13 @@ const adminGetAllPedidos = async (req, res) => {
     try {
         const query = `
             SELECT 
-                p.id,
-                u.nome_completo AS cliente_nome,
-                p.valor_total,
-                p.status_pedido,
-                p.criado_em
-            FROM pedidos p
-            JOIN assinaturas a ON p.assinatura_id = a.id
-            JOIN users u ON a.utilizador_id = u.id
-            ORDER BY p.criado_em DESC
+                id,
+                assinatura_id,
+                valor_total,
+                status_pedido,
+                criado_em
+            FROM pedidos
+            ORDER BY criado_em DESC
         `;
         const pedidos = await pool.query(query);
         res.status(200).json({ success: true, data: pedidos.rows });
