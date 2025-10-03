@@ -2,7 +2,6 @@ const pool = require("../config/db");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
-// Função para gerar token
 const generateToken = (id) => {
     return jwt.sign({ id }, process.env.JWT_SECRET, {
         expiresIn: "30d",
@@ -122,7 +121,6 @@ const getDashboardStats = async (req, res) => {
     }
 };
 
-
 // @desc    [Admin] Listar todas as boxes
 // @route   GET /api/admin/boxes
 // @access  Admin
@@ -187,7 +185,7 @@ const adminUpdateBox = async (req, res) => {
             `UPDATE boxes SET
                 nome = $1, descricao_curta = $2, descricao_longa = $3, especificacao = $4,
                 preco_mensal_4_un = $5, preco_anual_4_un = $6, preco_mensal_6_un = $7, preco_anual_6_un = $8,
-                ativo = $9, imagem_principal_url = $10, atualizado_em = NOW()
+                ativo = $9, imagem_principal_url = $10, data_atualizacao = NOW()
             WHERE id = $11 RETURNING *`,
             [
                 nome, descricao_curta, descricao_longa, especificacao,
