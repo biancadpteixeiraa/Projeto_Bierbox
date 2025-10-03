@@ -274,6 +274,113 @@ const adminGetUserById = async (req, res) => {
     }
 };
 
+// @desc    [Admin] Listar todos os pedidos
+// @route   GET /api/admin/pedidos
+// @access  Admin
+const adminGetAllPedidos = async (req, res) => {
+    try {
+        const query = `
+            SELECT 
+                p.id,
+                u.nome_completo AS cliente_nome,
+                p.valor_total,
+                p.status_pedido,
+                p.criado_em
+            FROM pedidos p
+            JOIN assinaturas a ON p.assinatura_id = a.id
+            JOIN users u ON a.utilizador_id = u.id
+            ORDER BY p.criado_em DESC
+        `;
+        const pedidos = await pool.query(query);
+        res.status(200).json({ success: true, data: pedidos.rows });
+    } catch (error) {
+        console.error("Erro ao buscar todos os pedidos (Admin):", error);
+        res.status(500).json({ success: false, message: "Erro interno do servidor." });
+    }
+};
+
+// @desc    [Admin] Obter detalhes de um pedido específico
+// @route   GET /api/admin/pedidos/:id
+// @access  Admin
+const adminGetPedidoById = async (req, res) => {
+    const { id } = req.params;
+    try {
+        const query = `
+            SELECT 
+                p.*,
+                u.nome_completo AS cliente_nome,
+                u.email AS cliente_email,
+                u.cpf AS cliente_cpf,
+                b.nome AS box_nome,
+                end.*
+            FROM pedidos p
+            JOIN assinaturas a ON p.assinatura_id = a.id
+            JOIN users u ON a.utilizador_id = u.id
+            JOIN enderecos end ON a.endereco_entrega_id = end.id
+            LEFT JOIN boxes b ON a.box_id = b.id
+            WHERE p.id = $1
+        `;
+        const pedidoResult = await pool.query(query, [id]);
+
+        if (pedidoResult.rows.length === 0) {
+            return res.status(404).json({ success: false, message: "Pedido não encontrado." });
+        }
+
+        res.status(200).json({ success: true, data: pedidoResult.rows[0] });
+    } catch (error) {
+        console.error("Erro ao buscar detalhes do pedido (Admin):", error);
+        res.status(500).json({ success: false, message: "Erro interno do servidor." });
+    }
+};
+
+// @desc    [Admin] Atualizar um pedido (status e/ou código de rastreio)
+// @route   PUT /api/admin/pedidos/:id
+// @access  Admin
+const adminUpdatePedido = async (req, res) => {
+    const { id } = req.params;
+    const { status_pedido, codigo_rastreio } = req.body;
+
+    if (!status_pedido && !codigo_rastreio) {
+        return res.status(400).json({ success: false, message: "Pelo menos um campo (status_pedido ou codigo_rastreio) deve ser fornecido para atualização." });
+    }
+
+    try {
+        let queryFields = [];
+        let queryParams = [];
+        let paramIndex = 1;
+
+        if (status_pedido) {
+            queryFields.push(`status_pedido = $${paramIndex++}`);
+            queryParams.push(status_pedido);
+        }
+        if (codigo_rastreio) {
+            queryFields.push(`codigo_rastreio = $${paramIndex++}`);
+            queryParams.push(codigo_rastreio);
+        }
+
+        queryParams.push(id);
+
+        const updateQuery = `
+            UPDATE pedidos 
+            SET ${queryFields.join(', ')}, atualizado_em = NOW() 
+            WHERE id = $${paramIndex} 
+            RETURNING *
+        `;
+
+        const updatedPedido = await pool.query(updateQuery, queryParams);
+
+        if (updatedPedido.rowCount === 0) {
+            return res.status(404).json({ success: false, message: "Pedido não encontrado." });
+        }
+
+        res.status(200).json({ success: true, message: "Pedido atualizado com sucesso!", data: updatedPedido.rows[0] });
+
+    } catch (error) {
+        console.error("Erro ao atualizar pedido (Admin):", error);
+        res.status(500).json({ success: false, message: "Erro interno do servidor." });
+    }
+};
+
 module.exports = {
     loginAdmin,
     getDashboardStats,
@@ -283,4 +390,7 @@ module.exports = {
     adminDeleteBox,
     adminGetAllUsers,
     adminGetUserById,
+    adminGetAllPedidos,
+    adminGetPedidoById,
+    adminUpdatePedido,
 };
