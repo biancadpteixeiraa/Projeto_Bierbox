@@ -242,7 +242,7 @@ const adminGetAllUsers = async (req, res) => {
     }
 };
 
-// @desc    [Admin] Obter detalhes de um cliente específico
+// @desc    Obter detalhes de um cliente específico
 // @route   GET /api/admin/users/:id
 // @access  Admin
 const adminGetUserById = async (req, res) => {
@@ -297,9 +297,7 @@ const adminGetAllPedidos = async (req, res) => {
     }
 };
 
-// @desc    [Admin] Obter detalhes de um pedido específico
-// @route   GET /api/admin/pedidos/:id
-// @access  Admin
+// ✅ CORRIGIDO AQUI: troquei "end" por "e"
 const adminGetPedidoById = async (req, res) => {
     const { id } = req.params;
     try {
@@ -310,11 +308,11 @@ const adminGetPedidoById = async (req, res) => {
                 u.email AS cliente_email,
                 u.cpf AS cliente_cpf,
                 b.nome AS box_nome,
-                end.*
+                e.*
             FROM pedidos p
             JOIN assinaturas a ON p.assinatura_id = a.id
             JOIN users u ON a.utilizador_id = u.id
-            JOIN enderecos end ON a.endereco_entrega_id = end.id
+            JOIN enderecos e ON a.endereco_entrega_id = e.id
             LEFT JOIN boxes b ON a.box_id = b.id
             WHERE p.id = $1
         `;
