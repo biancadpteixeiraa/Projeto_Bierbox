@@ -229,6 +229,51 @@ const adminDeleteBox = async (req, res) => {
     }
 };
 
+// @desc    [Admin] Listar todos os clientes
+// @route   GET /api/admin/users
+// @access  Admin
+const adminGetAllUsers = async (req, res) => {
+    try {
+        const users = await pool.query("SELECT id, nome_completo, email, data_criacao, role, ativo FROM users ORDER BY data_criacao DESC");
+        res.status(200).json({ success: true, data: users.rows });
+    } catch (error) {
+        console.error("Erro ao buscar todos os usuários (Admin):", error);
+        res.status(500).json({ success: false, message: "Erro interno do servidor." });
+    }
+};
+
+// @desc    [Admin] Obter detalhes de um cliente específico
+// @route   GET /api/admin/users/:id
+// @access  Admin
+const adminGetUserById = async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const userResult = await pool.query("SELECT id, nome_completo, email, cpf, data_criacao, role, ativo FROM users WHERE id = $1", [id]);
+        
+        if (userResult.rows.length === 0) {
+            return res.status(404).json({ success: false, message: "Usuário não encontrado." });
+        }
+        const userInfo = userResult.rows[0];
+
+        const enderecosResult = await pool.query("SELECT * FROM enderecos WHERE utilizador_id = $1 ORDER BY is_padrao DESC", [id]);
+
+        const assinaturasResult = await pool.query("SELECT id, plano_id, status, data_inicio FROM assinaturas WHERE utilizador_id = $1 ORDER BY data_inicio DESC", [id]);
+
+        const userDetails = {
+            info: userInfo,
+            enderecos: enderecosResult.rows,
+            assinaturas: assinaturasResult.rows
+        };
+
+        res.status(200).json({ success: true, data: userDetails });
+
+    } catch (error) {
+        console.error("Erro ao buscar detalhes do usuário (Admin):", error);
+        res.status(500).json({ success: false, message: "Erro interno do servidor." });
+    }
+};
+
 module.exports = {
     loginAdmin,
     getDashboardStats,
@@ -236,4 +281,6 @@ module.exports = {
     adminCreateBox,
     adminUpdateBox,
     adminDeleteBox,
+    adminGetAllUsers,
+    adminGetUserById,
 };
