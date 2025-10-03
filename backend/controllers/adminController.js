@@ -297,7 +297,7 @@ const adminGetAllPedidos = async (req, res) => {
     }
 };
 
-// ✅ CORRIGIDO AQUI: troquei "end" por "e"
+// ✅ CORRIGIDO: LEFT JOIN para não quebrar se algum dado relacionado for null
 const adminGetPedidoById = async (req, res) => {
     const { id } = req.params;
     try {
@@ -310,9 +310,9 @@ const adminGetPedidoById = async (req, res) => {
                 b.nome AS box_nome,
                 e.*
             FROM pedidos p
-            JOIN assinaturas a ON p.assinatura_id = a.id
-            JOIN users u ON a.utilizador_id = u.id
-            JOIN enderecos e ON a.endereco_entrega_id = e.id
+            LEFT JOIN assinaturas a ON p.assinatura_id = a.id
+            LEFT JOIN users u ON a.utilizador_id = u.id
+            LEFT JOIN enderecos e ON a.endereco_entrega_id = e.id
             LEFT JOIN boxes b ON a.box_id = b.id
             WHERE p.id = $1
         `;
