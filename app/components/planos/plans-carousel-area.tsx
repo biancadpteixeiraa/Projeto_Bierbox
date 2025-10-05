@@ -5,33 +5,10 @@ import Button from "../ui/button";
 import PriceCard from "../ui/price-card";
 import { useEffect, useState } from "react";
 import { getBoxes } from "@/app/services/boxes";
+import { PlansCarouselSkeleton } from "../ui/skeletons";
 
 export default function PlansCarouselArea() {
 
-    const plans = [
-        {
-            annualValue: "400,00",
-            monthlyValue:"40,00",
-            path: "planos/plano1",
-            src:"/post.png"
-        },
-        {
-            annualValue: "100,00",
-            monthlyValue:"100,00",
-            path: "planos/plano2",
-            src:"/post.png"
-        },{
-            annualValue: "300,00",
-            monthlyValue:"30,00",
-            path: "planos/plano3",
-            src:"/post.png"
-        },{
-            annualValue: "600,00",
-            monthlyValue:"60,00",
-            path: "planos/plano4",
-            src:"/post.png"
-        },
-    ]
 
     const [boxes, setBoxes] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -47,6 +24,7 @@ export default function PlansCarouselArea() {
 
     return(
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-14 pb-28">
+            {loading && <PlansCarouselSkeleton/>}
             <PlansCarousel className="w-full">
                 {boxes.map((box, index) => (
                 <div

@@ -6,7 +6,11 @@ import { useEffect, useState } from "react";
 import { getBoxes } from "@/app/services/boxes";
 import { PlansCardsSkeleton } from "../ui/skeletons";
 
-export default function PlansCards(){
+export default function PlansCards({
+    label,
+    }: {
+    label?: string;
+} & React.HTMLAttributes<HTMLDivElement>){
 
         const [boxes, setBoxes] = useState<any[]>([]);
         const [loading, setLoading] = useState(true);
@@ -21,11 +25,11 @@ export default function PlansCards(){
         []);
 
     return(
-        <div className="flex flex-col px-6 lg:px-52 py-14 text-brown-primary">
+        <div className="max-w-6xl mx-auto flex flex-col px-6 py-14 lg:pt-20 text-brown-primary lg:relative lg:z-10">
             <h1 className="text-center text-lg font-primary pb-14 uppercase">
-                escolha o box ideal para você!
+                {label}
             </h1>
-            <div className="flex flex-col lg:flex-row items-center gap-10 justify-center">
+            <div className="flex flex-wrap lg:flex-row items-center gap-10 justify-center">
                 {loading && <PlansCardsSkeleton/>}
                 {
                     boxes.map((box)=>(

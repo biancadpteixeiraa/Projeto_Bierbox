@@ -1,0 +1,142 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { Disclosure, DisclosureButton, DisclosurePanel } from "@headlessui/react";
+import EnderecoForm from "../forms/checkout/encereco-form";
+import FreteForm from "../forms/checkout/frete-form";
+import ResumoFinanceiro from "../forms/checkout/resumo-financeiro";
+import { getBoxById } from "@/app/services/boxes";
+
+type FormData = {
+  endereco: {
+    rua: string;
+    cep: string;
+    numero: string;
+    bairro: string;
+    complemento: string;
+    cidade: string;
+    estado: string;
+  };
+  frete: {
+    tipo: string;
+    valor: number;
+  };
+};
+
+type CheckoutData = {
+  boxId: string;
+  plano: "mensal" | "anual";
+  quantidade: 4 | 6;
+};
+
+export default function CheckoutArea() {
+  const [step, setStep] = useState<"endereco" | "frete" | "resumo">("endereco");
+  const [formData, setFormData] = useState<FormData>({
+    endereco: { rua: "", cep: "", numero: "", bairro: "", complemento: "", cidade: "", estado: "" },
+    frete: { tipo: "", valor: 0 },
+  });
+
+    const [checkoutData, setCheckoutData] = useState<CheckoutData | null>(null);
+    const [box, setBox] = useState<any>(null);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("checkoutData");
+    if (saved) {
+      const parsed: CheckoutData = JSON.parse(saved);
+      setCheckoutData(parsed);
+
+      getBoxById(parsed.boxId).then((res) => {
+        if (res.success) {
+          setBox(res.box);
+        }
+      });
+    }
+  }, []);
+
+  return (
+    <div className="lg:grid lg:grid-cols-3 lg:gap-6 py-10 lg:py-20 max-w-7xl mx-auto px-6">
+      {/* Desktop */}
+      <div className="hidden lg:block">
+        <EnderecoForm
+          data={formData.endereco}
+          onChange={(endereco) => setFormData({ ...formData, endereco })}
+          onNext={() => setStep("frete")}
+          disabled={step !== "endereco"}
+        />
+      </div>
+      <div className="hidden lg:block">
+        <FreteForm
+          data={formData.frete}
+          onChange={(frete) => setFormData({ ...formData, frete })}
+          onNext={() => setStep("resumo")}
+          disabled={step !== "frete"}
+        />
+      </div>
+      <div className="hidden lg:block">
+        <ResumoFinanceiro 
+        data={formData} 
+        disabled={step !== "resumo"}
+        box={box}
+        checkoutData={checkoutData} 
+        />
+      </div>
+
+      {/* Mobile */}
+      <div className="flex flex-col lg:hidden gap-6">
+        <Disclosure defaultOpen>
+          {() => (
+            <div className="shadow-[2px_12px_13px_2px_rgb(00,00,00,0.1)] rounded-xl">
+              <DisclosureButton className="rounded-xl px-6 py-4 bg-beige-primary w-full flex items-start">
+                <h1 className="font-secondary text-brown-tertiary font-bold text-lg">Endereço de entrega</h1>
+              </DisclosureButton>
+              <DisclosurePanel>
+                <EnderecoForm
+                  data={formData.endereco}
+                  onChange={(endereco) => setFormData({ ...formData, endereco })}
+                  onNext={() => setStep("frete")}
+                />
+              </DisclosurePanel>
+            </div>
+          )}
+        </Disclosure>
+
+        <Disclosure>
+          {() => (
+            <div className="shadow-[2px_12px_13px_2px_rgb(00,00,00,0.1)] rounded-xl">
+              <DisclosureButton className="rounded-xl px-6 py-4 bg-beige-primary w-full flex items-start">
+                <h1 className="font-secondary text-brown-tertiary font-bold text-lg">Frete</h1>
+              </DisclosureButton>
+              {step !== "endereco" && (
+                <DisclosurePanel>
+                  <FreteForm
+                    data={formData.frete}
+                    onChange={(frete) => setFormData({ ...formData, frete })}
+                    onNext={() => setStep("resumo")}
+                  />
+                </DisclosurePanel>
+              )}
+            </div>
+          )}
+        </Disclosure>
+
+        <Disclosure>
+          {() => (
+            <div className="shadow-[2px_12px_13px_2px_rgb(00,00,00,0.1)] rounded-xl">
+              <DisclosureButton className="rounded-xl px-6 py-4 bg-beige-primary w-full flex items-start">
+                <h1 className="font-secondary text-brown-tertiary font-bold text-lg">Resumo Financeiro</h1>
+              </DisclosureButton>
+              {step === "resumo" && (
+                <DisclosurePanel>
+                  <ResumoFinanceiro 
+                  data={formData} 
+                  box={box}
+                  checkoutData={checkoutData} />
+                </DisclosurePanel>
+              )}
+            </div>
+          )}
+        </Disclosure>
+      </div>
+    </div>
+  );
+}

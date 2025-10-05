@@ -1,9 +1,10 @@
 'use client'
 import { Icon } from "@iconify/react";
-import Button from "../ui/button";
-import Input from "../ui/input";
+import Button from "../../ui/button";
+import Input from "../../ui/input";
 import { useState } from "react";
 import { useAuth } from "@/app/context/authContext";
+import { IMaskInput } from 'react-imask';
 
 export default function CadastroForm() {
   const { register, loading } = useAuth();
@@ -11,17 +12,17 @@ export default function CadastroForm() {
   const [nomeCompleto, setNomeCompleto] = useState('');
   const [email, setEmail] = useState('');
   const [cpf, setCpf] = useState('');
+  const [dataNascimento, setDataNascimento] = useState(''); 
   const [senha, setSenha] = useState('');
   const [confirmSenha, setConfirmSenha] = useState('');
-  const [termos, setTermos] = useState(false);
   const [mostrarSenha, setMostrarSenha] = useState(false);
   const [errors, setErrors] = useState<{ 
     nomeCompleto?: string; 
     email?: string; 
     cpf?: string; 
+    dataNascimento?: string;
     senha?: string; 
     confirmSenha?: string; 
-    termos?: string; 
   }>({});
 
   const validate = () => {
@@ -31,10 +32,10 @@ export default function CadastroForm() {
     if (!email) newErrors.email = "Email é obrigatório.";
     else if (!/\S+@\S+\.\S+/.test(email)) newErrors.email = "Informe um email válido.";
     if (!cpf) newErrors.cpf = "CPF é obrigatório.";
+    if (!dataNascimento) newErrors.dataNascimento = "Data de Nascimento é obrigatória.";
     if (!senha) newErrors.senha = "Senha é obrigatória.";
     else if (senha.length < 8) newErrors.senha = "Senha deve ter pelo menos 8 caracteres.";
     if (senha !== confirmSenha) newErrors.confirmSenha = "Senhas não coincidem.";
-    if (!termos) newErrors.termos = "Você precisa aceitar os termos.";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -43,8 +44,10 @@ export default function CadastroForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
+    
+    const formattedDate = dataNascimento ? new Date(dataNascimento).toISOString().split("T")[0] : "";
 
-    await register(nomeCompleto, email, cpf, senha);
+    await register(nomeCompleto, email, cpf, senha, formattedDate);
   };
 
   return (
@@ -79,14 +82,30 @@ export default function CadastroForm() {
         <label htmlFor="cpf" className="pb-2 font-secondary text-gray-tertiary text-xs sm:text-sm">
           Informe seu CPF:
         </label>
-        <Input
-          type="text"
-          placeholder="CPF aqui"
+        <IMaskInput
           id="cpf"
+          mask="000.000.000-00"
+          type="text"
           value={cpf}
-          onChange={e => setCpf(e.target.value)}
+          onAccept={(value: string) => setCpf(value)}
+          className="text-xs sm:text-sm w-full p-3 bg-transparent 
+          text-gray-tertiary/75 placeholder:text-gray-tertiary/75 rounded-xl border border-gray-tertiary/35"
+          placeholder="CPF aqui"
         />
         {errors.cpf && <p className="text-red-600 text-xs sm:text-sm mt-1">{errors.cpf}</p>}
+      </div>
+      <div>
+        <label htmlFor="dataNascimento" className="pb-2 font-secondary text-gray-tertiary text-xs sm:text-sm">
+          Informe sua Data de Nascimento:
+        </label>
+        <Input
+          className="uppercase"
+          type="date"
+          id="dataNascimento"
+          value={dataNascimento}
+          onChange={e => setDataNascimento(e.target.value)}
+        />
+        {errors.dataNascimento && <p className="text-red-600 text-xs sm:text-sm mt-1">{errors.dataNascimento}</p>}
       </div>
       <div className="flex flex-col">
         <div className="flex justify-between pb-2">
@@ -127,23 +146,11 @@ export default function CadastroForm() {
         />
         {errors.confirmSenha && <p className="text-red-600 text-xs sm:text-sm mt-1">{errors.confirmSenha}</p>}
       </div>
-      <div className="flex items-center pb-5 gap-2">
-        <input
-          type="checkbox"
-          checked={termos}
-          onChange={e => setTermos(e.target.checked)}
-          className="size-3 appearance-none rounded-sm border-2 border-gray-primary bg-beige-primary checked:border-gray-400 checked:bg-yellow-secondary"
-        />
-        <p className="font-secondary text-gray-quaternary text-xs sm:text-sm">
-          Estou de acordo com os <span className="underline">Termos de Uso</span> e <span className="underline">Políticas de Privacidade.</span>
-        </p>
-      </div>
-      {errors.termos && <p className="text-red-600 text-xs sm:text-sm mb-2">{errors.termos}</p>}
       <Button
         variant="quaternary"
         type="submit"
         disabled={loading}
-        className="w-full py-4 font-medium text-lg flex items-center justify-center"
+        className="mt-4 w-full py-4 font-medium text-lg flex items-center justify-center"
       >
         {loading ? (
           <svg className="animate-spin h-5 w-5 mr-3 text-white" viewBox="0 0 24 24">

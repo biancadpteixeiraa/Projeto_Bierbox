@@ -1,10 +1,10 @@
 import Header from "@/app/components/dashboard/header"
-import InfoPessoais from "@/app/components/dashboard/info-pessoais";
+import InfoPessoais from "@/app/components/dashboard/perfil-user/info-pessoais";
 
 export default function Page(){
 
     return (
-        <div>
+        <div className="h-screen">
             <Header />
             <InfoPessoais />
         </div>

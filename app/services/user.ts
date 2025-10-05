@@ -1,6 +1,5 @@
 import api from "./api";
 
-const API_URL = "https://54327051f610.ngrok-free.app";
 
 // Buscar dados do perfil do usuário logado
 export async function getUserInfo(token: string) {
@@ -11,16 +10,11 @@ export async function getUserInfo(token: string) {
   });
 
   const data = response.data;
-
-  if (data.success && data.user?.foto_perfil_url) {
-    data.user.foto_perfil_url = `${API_URL}${data.user.foto_perfil_url}`;
-  }
-
+  
   return data;
 }
 
 
-// Atualizar dados do perfil do usuário logado
 interface UpdateUserPayload {
   nome_completo?: string;
   senha_atual?: string;
