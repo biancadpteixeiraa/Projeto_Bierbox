@@ -66,9 +66,9 @@ const criarPreferencia = async (req, res) => {
 
             external_reference: assinaturaId.toString(),
             back_urls: {
-                success: "https://www.google.com/sucesso",
-                failure: "https://www.google.com/falha",
-                pending: "https://www.google.com/pendente",
+                success: "http://localhost:3000/checkout/aprovado",
+                pending: "http://localhost:3000/checkout/pendente",
+                failure: "http://localhost:3000/checkout/falha",
             },
             auto_return: "approved",
             notification_url: "https://projeto-bierbox.onrender.com/api/pagamentos/webhook",
@@ -99,14 +99,11 @@ const receberWebhook = async (req, res) => {
 
             if (paymentDetails.status === "approved" && paymentDetails.external_reference) {
                 
-                // **ERRO CRÍTICO CORRIGIDO AQUI**
-                // Não usamos mais parseInt. A referência externa é o UUID da assinatura.
                 const assinaturaId = paymentDetails.external_reference;
 
-                // Valida se a referência externa é um UUID válido antes de usar no banco
                 if (!isUuid(assinaturaId)) {
                     console.error(`❌ Erro no Webhook: external_reference não é um UUID válido: ${assinaturaId}`);
-                    // Retorna 200 para o Mercado Pago não tentar reenviar, mas loga o erro.
+                    
                     return res.status(200).send("Webhook processado com erro de referência.");
                 }
                 
@@ -128,7 +125,7 @@ const receberWebhook = async (req, res) => {
 
                 await pool.query(
                     "UPDATE assinaturas SET status = 'ATIVA', id_assinatura_mp = $1, atualizado_em = CURRENT_TIMESTAMP, forma_pagamento = $3 WHERE id = $2",
-                    [paymentDetails.id.toString(), assinaturaId, formaPagamento] // paymentDetails.id também pode ser um número grande, então convertemos para string por segurança.
+                    [paymentDetails.id.toString(), assinaturaId, formaPagamento] 
                 );
 
                 console.log(`✅ Assinatura ${assinaturaId} atualizada para ATIVA com forma de pagamento: ${formaPagamento}.`);
