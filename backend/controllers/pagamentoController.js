@@ -66,10 +66,10 @@ const criarPreferencia = async (req, res) => {
 
             external_reference: assinaturaId.toString(),
             back_urls: {
-                success: "http://localhost:3000/checkout/aprovado",
-                pending: "http://localhost:3000/checkout/pendente",
-                failure: "http://localhost:3000/checkout/falha",
-            },
+                success: "https://projeto-bierbox.onrender.com/checkout/aprovado",
+                pending: "https://projeto-bierbox.onrender.com/checkout/pendente",
+                failure: "https://projeto-bierbox.onrender.com/checkout/falha",
+                },
             auto_return: "approved",
             notification_url: "https://projeto-bierbox.onrender.com/api/pagamentos/webhook",
         };
