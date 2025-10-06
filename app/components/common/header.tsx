@@ -42,7 +42,7 @@ const cartOpen = () => {
     <header className="bg-white flex flex-col font-secondary">
         <div className='bg-beige-primary py-1 px-10'>
             <nav aria-label="Global" className="mx-auto flex max-w-6xl items-center">
-                <div className="flex w-full lg:flex-1 lg:justify-start justify-center">
+                <div className="flex w-full md:flex-1 md:justify-start justify-center">
                     <a href="/" className="">
                         <span className="sr-only">BierBox</span>
                         <img 
@@ -52,13 +52,13 @@ const cartOpen = () => {
                         />
                     </a>
                 </div>
-                <div className="flex flex-1 justify-end gap-20">
+                <div className="flex flex-1 justify-end gap-10">
                     {isAuthenticated?.user ? (
                         <Link href={`/dashboard/${isAuthenticated.user.id}`}>
-                        <Icon icon="mdi:gear" className="text-4xl text-brown-secondary"/>
+                            <Icon icon="uil:user" className="text-4xl text-brown-secondary"/>
                         </Link>
                     ) : (
-                        <div className='hidden lg:flex lg:items-center gap-2'>
+                        <div className='hidden md:flex md:items-center gap-2'>
                         <UserRound className="size-6 text-brown-secondary" />
                         <p className='text-brown-secondary text-xs font-medium'>
                             Olá!
@@ -70,7 +70,7 @@ const cartOpen = () => {
                     </div>
                         )
                     }
-                    <div className='flex items-center pr-4 lg:pr-0'>
+                    <div className='flex items-center pr-4 md:pr-0'>
                         <button onClick={cartOpen}>
                             <Icon icon="mdi:refrigerator" className="size-8 text-brown-secondary"/>
                         </button>
@@ -79,7 +79,7 @@ const cartOpen = () => {
                         </span>
                     </div>
                 </div>
-                <div className="flex lg:hidden justify-end">
+                <div className="flex md:hidden justify-end">
                     <button
                         type="button"
                         onClick={() => setMobileMenuOpen(true)}
@@ -90,7 +90,7 @@ const cartOpen = () => {
                     </button>
                 </div>
             </nav>
-            <Dialog open={mobileMenuOpen} onClose={setMobileMenuOpen} className="lg:hidden">
+            <Dialog open={mobileMenuOpen} onClose={setMobileMenuOpen} className="md:hidden">
                 <div className="fixed inset-0 z-50" />
                 <DialogPanel className="fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-beige-primary sm:max-w-sm sm:ring-1 sm:ring-brown-secondary rounded-l-xl">
                 <div className="flex items-center justify-between px-6 py-4">
@@ -116,14 +116,22 @@ const cartOpen = () => {
                     <div className="">
                         
                         <div className='flex items-center gap-2 -mx-1'>
-                            <UserRound className="size-9 text-brown-secondary" />
-                            <p className='text-brown-secondary text-lg'>
-                                Olá!
-                                <br />
-                                <span><Link href={'/login'} className='underline font-bold'>Entre</Link> </span>
-                                ou
-                                <span> <Link href={'/cadastro'} className='underline font-bold'>Cadastre-se</Link></span>
-                            </p>
+                            {isAuthenticated?.user ? (
+                        <Link href={`/dashboard/${isAuthenticated.user.id}`}>
+                            MINHA CONTA
+                        </Link>
+                    ) : (
+                            <>
+                                <UserRound className="size-9 text-brown-secondary" />
+                                <p className='text-brown-secondary text-lg'>
+                                    Olá!
+                                    <br />
+                                    <span><Link href={'/login'} className='underline font-bold'>Entre</Link> </span>
+                                    ou
+                                    <span> <Link href={'/cadastro'} className='underline font-bold'>Cadastre-se</Link></span>
+                                </p>
+                            </>
+                        )}
                         </div>
                     </div>
                     <div className="space-y-2 py-8">
@@ -131,7 +139,7 @@ const cartOpen = () => {
                             <Link
                                 key={link.href}
                                 href={link.href}
-                                className={`block py-2 text-lg text-brown-primary lg:mx-8 mx-auto hover:font-semibold ${
+                                className={`block py-2 text-lg text-brown-primary md:mx-8 mx-auto hover:font-semibold ${
                                 pathname === link.href ? 'font-semibold underline' : ''
                                 }`}
                                 >
@@ -143,14 +151,14 @@ const cartOpen = () => {
                 </DialogPanel>
             </Dialog>
         </div>
-        <div className='bg-yellow-primary hidden lg:block py-1'>
-            <nav aria-label="Global" className="mx-auto flex max-w-7xl items-center justify-center px-5 py-4 lg:px-8">
-                <PopoverGroup className="hidden lg:flex lg:gap-x-20">
+        <div className='bg-yellow-primary hidden md:block py-1'>
+            <nav aria-label="Global" className="mx-auto flex max-w-7xl items-center justify-center px-5 py-4 md:px-8">
+                <PopoverGroup className="hidden md:flex lg:gap-x-20 text-nowrap">
                  {linksMenu.map((link) => (
                         <Link
                         key={link.href}
                         href={link.href}
-                        className={`text-sm text-beige-primary lg:mx-9 mx-auto hover:font-semibold ${
+                        className={`text-sm text-beige-primary md:mx-9 mx-auto hover:font-semibold ${
                         pathname === link.href ? 'font-semibold' : ''
                         }`}
                         >

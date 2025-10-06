@@ -4,6 +4,7 @@ import { Montserrat } from "next/font/google";
 import { AuthProvider } from "../context/authContext";
 import { CarrinhoProvider } from "../context/cartContext";
 import { ToastContainer } from "react-toastify";
+import AgeConfirmationModal from "../components/common/age-modal";
 
 
 const delaGothic = Dela_Gothic_One({
@@ -27,8 +28,9 @@ export default function RootLayout({
         <AuthProvider>
           <CarrinhoProvider>
             <ToastContainer 
-          position="top-center"/>
+            position="top-center"/>
             {children}
+            <AgeConfirmationModal /> 
           </CarrinhoProvider>
         </AuthProvider>
       </body>

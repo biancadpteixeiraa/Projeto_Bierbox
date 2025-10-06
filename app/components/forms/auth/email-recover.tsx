@@ -1,49 +1,38 @@
 'use client'
-import Button from "../ui/button";
-import Input from "../ui/input";
+import Button from "../../ui/button";
+import Input from "../../ui/input";
 import { useState } from "react";
 import { useAuth } from "@/app/context/authContext";
 
-export default function LoginForm() {
-  const { login } = useAuth();
+export default function EmailRecover() {
+  const { forgotPassword } = useAuth();
   const [email, setEmail] = useState('');
-  const [senha, setSenha] = useState('');
-  const [loadingLogin, setLoadingLogin] = useState(false);
+  const [loadingRecover, setLoadingRecover] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; senha?: string }>({});
 
   const validate = () => {
     const newErrors: { email?: string; senha?: string } = {};
     
-    if (!email) {
-      newErrors.email = "O email é obrigatório.";
-    } else if (!/\S+@\S+\.\S+/.test(email)) {
+    if (!/\S+@\S+\.\S+/.test(email)) {
       newErrors.email = "Informe um email válido.";
     }
 
-    if (!senha) {
-      newErrors.senha = "A senha é obrigatória.";
-    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
 
-    setLoadingLogin(true);
-    try {
-      await login(email, senha);
-    } catch (error) {
-      console.error("Erro ao logar", error);
-    } finally {
-      setLoadingLogin(false);
-    }
-  };
+    setLoadingRecover(true);
+    await forgotPassword(email);
+    setLoadingRecover(false);
+    };
 
   return (
-    <form onSubmit={handleSubmit} className="w-full flex flex-col gap-6">
+    <form onSubmit={handleSubmit} className="w-full flex flex-col gap-10">
       <div>
         <label
           htmlFor="email"
@@ -63,38 +52,13 @@ export default function LoginForm() {
         )}
       </div>
 
-      <div>
-        <label
-          htmlFor="senha"
-          className="pb-2 font-secondary text-gray-tertiary text-xs sm:text-sm"
-        >
-          Digite sua senha:
-        </label>
-        <Input
-          id="senha"
-          type="password"
-          placeholder="Senha aqui"
-          value={senha}
-          onChange={(e) => setSenha(e.target.value)}
-        />
-        {errors.senha && (
-          <p className="text-red-500 text-xs sm:text-sm mt-1">{errors.senha}</p>
-        )}
-        <button
-          type="button"
-          className="font-secondary underline text-gray-quaternary text-xs sm:text-sm pb-10 pt-6"
-        >
-          Esqueci minha senha!
-        </button>
-      </div>
-
       <Button
         type="submit"
-        disabled={loadingLogin}
+        disabled={loadingRecover}
         className="w-full py-4 font-medium text-lg flex items-center justify-center"
         variant="quaternary"
       >
-        {loadingLogin ? (
+        {loadingRecover ? (
           <svg
             className="animate-spin h-5 w-5 mr-3 text-white"
             viewBox="0 0 24 24"
@@ -114,7 +78,7 @@ export default function LoginForm() {
             ></path>
           </svg>
         ) : (
-          "Entrar"
+          "Enviar link de recuperação"
         )}
       </Button>
     </form>

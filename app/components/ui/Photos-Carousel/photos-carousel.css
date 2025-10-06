@@ -17,11 +17,12 @@
     padding-left: var(--slide-spacing); 
 } 
 
-@media (min-width: 640px) { 
+@media (min-width: 540px) { 
     .embla { 
-        --slide-size: 50%; 
+        --slide-size: 30%; 
     } 
 } 
+
 
 @media (min-width: 768px) { 
     .embla { 

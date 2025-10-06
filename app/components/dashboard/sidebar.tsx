@@ -13,32 +13,35 @@ export default function Sidebar() {
   const { logout } = useAuth();
 
   return (
-    <div className="flex h-full w-full flex-col items-center justify-center md:py-4 py-1 bg-beige-secondary">
+    <div className="flex h-full w-full flex-col items-center justify-center md:py-4 py-0 bg-beige-secondary">
       <button
-        className="absolute left-4 top-6 z-50 block md:hidden"
+        className="absolute right-4 top-6 z-40 block md:hidden"
         onClick={() => setMenuOpen(!menuOpen)}
       >
-        {menuOpen ? <XMarkIcon className="h-11 w-11 text-white" /> : <Bars3Icon className="h-11 w-11 text-white" />}
+        {menuOpen ? <XMarkIcon className="h-8 w-8 text-brown-tertiary" /> : <Bars3Icon className="h-8 w-8 text-brown-tertiary" />}
       </button>
 
       <div
-        className={`flex grow flex-col justify-between  md:space-x-2 md:pt-0 fixed inset-y-0 left-0 z-40 w-64 bg-main-blue ps-4 pt-18 transition-transform duration-300 ease-in-out 
-          ${menuOpen ? 'translate-x-0' : '-translate-x-full'} md:relative md:translate-x-0`}
+        className={`flex grow w-full sm:max-w-sm flex-col justify-between px-4 md:px-2 md:pt-0 fixed inset-y-0 right-0 z-30 w-64 bg-beige-primary border-l 
+          border-brown-tertiary md:border-none  md:bg-beige-secondary pt-18 transition-transform duration-300 ease-in-out md:rounded-none rounded-l-2xl
+          ${menuOpen ? 'translate-x-0' : 'translate-x-full'} md:relative md:translate-x-0`}
       >
-        <button className='m-0' onClick={() => setMenuOpen(false)}>
+        <button className='pt-6' onClick={() => setMenuOpen(false)}>
         <Link href="/">
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-5 px-12">
                   <Icon icon="solar:arrow-left-outline" className="text-3xl text-yellow-secondary"/>
-                  <p className="text-lg font-secondary text-yellow-secondary font-semibold">
+                  <p className="text-base font-secondary text-yellow-secondary font-semibold">
                       Voltar ao início
                   </p>
               </div>
           </Link>
-          <NavLinks/>
+          <div className="flex flex-col justify-center items-start pt-12 px-16 w-full">
+            <NavLinks/>
+          </div>
         </button >
         
-        <div className='flex flex-col items-center justify-center md:mb-4 mb-6'>
-            <Button onClick={logout} className='w-full' variant='quaternary'>Sair</Button>
+        <div className='flex flex-col items-center justify-center md:mb-8 mb-6 px-10'>
+            <Button onClick={logout} className='w-full py-3 uppercase font-medium' variant='quaternary'>Sair</Button>
         </div>
       </div>
       

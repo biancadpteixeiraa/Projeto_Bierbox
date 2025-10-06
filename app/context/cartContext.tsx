@@ -62,7 +62,7 @@ export function CarrinhoProvider({ children }: { children: React.ReactNode }) {
   );
 
   if (itemExistente) {
-    toast.warning("Esse item já está no seu carrinho!");
+    toast.warning("Essa Box já está no seu carrinho!");
     return;
   }
 
@@ -70,14 +70,14 @@ export function CarrinhoProvider({ children }: { children: React.ReactNode }) {
     const data = await addToCarrinho(token, box_id, quantidade, tipo_plano);
     if (data.success) {
       setCarrinho(data.carrinho);
-      toast.success("Item adicionado ao carrinho!");
+      toast.success("Box adicionada ao carrinho!");
     } else {
-      toast.error(data.message || "Erro ao adicionar item ao carrinho!");
-      console.error("Erro ao adicionar item ao carrinho:", data.message);
+      toast.error(data.message || "Erro ao adicionar Box ao carrinho!");
+      console.error("Erro ao adicionar Box ao carrinho:", data.message);
     }
   } catch (err) {
     console.error(err);
-    toast.error("Erro inesperado ao adicionar item!");
+    toast.error("Erro inesperado ao adicionar Box!");
   }
 };
 
@@ -87,10 +87,10 @@ export function CarrinhoProvider({ children }: { children: React.ReactNode }) {
     const data = await removeFromCarrinho(token, box_id);
     if (data.success){
       setCarrinho(data.carrinho)
-      toast.success("Item removido do carrinho com sucesso!")
+      toast.success("Box removida do carrinho com sucesso!")
     } else {
-      toast.error("Erro ao remover item do carrinho!")
-      console.error("Erro ao remover item do carrinho: " + data.message);
+      toast.error("Erro ao remover Box do carrinho!")
+      console.error("Erro ao remover Box do carrinho: " + data.message);
     }
   };
 

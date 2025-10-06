@@ -8,7 +8,7 @@ type PhotosCarouselProps = {
   children: ReactNode
 } & React.HTMLAttributes<HTMLDivElement>
 
-export function PhotosCarousel({
+export default function PhotosCarousel({
   children,
   className,
   ...props

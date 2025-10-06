@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/app/context/authContext";
 import { getUserInfo, updateUserInfo } from "@/app/services/user";
 import { toast } from "react-toastify";
+import { IMaskInput } from 'react-imask';
 
 export default function UserForm() {
   const { token, logout } = useAuth();
@@ -79,77 +80,98 @@ export default function UserForm() {
   return (
     <form
       onSubmit={handleSubmit}
-      className="w-full flex flex-col gap-8"
+      className="w-full flex flex-col lg:justify-between lg:h-full pb-20"
     >
-      <div>
-        <label htmlFor="nome" className="pb-2 font-secondary text-gray-tertiary text-base">
-          Nome Completo
-        </label>
-        <Input
-          id="nome"
-          value={nome}
-          onChange={(e) => setNome(e.target.value)}
-          placeholder="Nome aqui"
-        />
-      </div>
+      <div className="flex flex-col gap-5 pb-10 xl:pb-20">
+        <div>
+          <div className="pb-1">
+            <label htmlFor="nome" className="font-secondary text-gray-tertiary text-xs">
+              Nome Completo
+            </label>
+          </div>
+          <Input
+            id="nome"
+            value={nome}
+            onChange={(e) => setNome(e.target.value)}
+            placeholder="Nome aqui"
+            className="px-5"
+          />
+        </div>
 
-      <div>
-        <label htmlFor="email" className="pb-2 font-secondary text-gray-tertiary text-base">
-          E-mail
-        </label>
-        <Input
-          id="email"
-          value={email}
-          readOnly
-          placeholder="Email aqui"
-        />
-      </div>
+        <div>
+          <div className="pb-1">
+            <label htmlFor="email" className="font-secondary text-gray-tertiary text-xs">
+              E-mail
+            </label>
+          </div>
+          <Input
+            id="email"
+            value={email}
+            readOnly
+            placeholder="Email aqui"
+            className="px-5 bg-gray-50/50 cursor-not-allowed text-gray-tertiary/45"
+          />
+        </div>
 
-      <div>
-        <label htmlFor="cpf" className="pb-2 font-secondary text-gray-tertiary text-base">
-          CPF cadastrado
-        </label>
-        <Input
-          id="cpf"
-          value={cpf}
-          readOnly
-          placeholder="CPF aqui"
-        />
-      </div>
+        <div>
+          <div className="pb-1">
+            <label htmlFor="cpf" className="font-secondary text-gray-tertiary text-xs">
+              CPF cadastrado
+            </label>
+          </div>
+          <IMaskInput
+            id="cpf"
+            mask="000.000.000-00"
+            type="text"
+            value={cpf}
+            className="text-xs sm:text-sm w-full py-3 
+            rounded-xl border border-gray-tertiary/35
+            px-5 bg-gray-50/50 cursor-not-allowed text-gray-tertiary/45"
+            placeholder="CPF aqui"
+          />
+        </div>
 
-      <div>
-        <label htmlFor="senha" className="pb-2 font-secondary text-gray-tertiary text-base">
-          Insira sua senha atual:
-        </label>
-        <Input
-          id="senha"
-          type="password"
-          value={senhaAtual}
-          onChange={(e) => setSenhaAtual(e.target.value)}
-          placeholder="Senha aqui"
-        />
-      </div>
+        <div>
+          <div className="pb-1">
+            <label htmlFor="senha" className="font-secondary text-gray-tertiary text-xs">
+              Insira sua senha atual:
+            </label>
+          </div>
+          <Input
+            id="senha"
+            type="password"
+            value={senhaAtual}
+            onChange={(e) => setSenhaAtual(e.target.value)}
+            placeholder="Senha aqui"
+            className="px-5"
+          />
+        </div>
 
-      <div className="pb-36">
-        <label htmlFor="novaSenha" className="pb-2 font-secondary text-gray-tertiary text-base">
-          Insira sua nova senha:
-        </label>
-        <Input
-          id="novaSenha"
-          type="password"
-          value={novaSenha}
-          onChange={(e) => setNovaSenha(e.target.value)}
-          placeholder="Confirme sua senha aqui"
-        />
+        <div className="">
+          <div className="pb-1">
+            <label htmlFor="novaSenha" className="font-secondary text-gray-tertiary text-xs">
+              Insira sua nova senha:
+            </label>
+          </div>
+          <Input
+            id="novaSenha"
+            type="password"
+            value={novaSenha}
+            onChange={(e) => setNovaSenha(e.target.value)}
+            placeholder="Confirme sua senha aqui"
+            className="px-5"
+          />
+        </div>
       </div>
 
       <Button 
         type="submit"
         variant="quaternary"
-        className="w-full py-4 font-medium text-xl"
+        className="w-full py-3 font-medium text-lg"
       >
         Atualizar meus Dados
       </Button>
+      
     </form>
   );
 }

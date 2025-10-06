@@ -3,9 +3,9 @@
 export default function MapaBierweg(){
 
     return(
-        <div className="w-full overflow-hidden h-[650px]">
+        <div className="w-full overflow-hidden h-[520px]">
             <img src="/Bierweg.png" alt="Banner Formulário de Estilos" 
-            className="w-full h-full object-fit"/>
+            className="w-full h-full object-fit object-center"/>
         </div>
     );
 }

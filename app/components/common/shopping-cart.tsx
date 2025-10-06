@@ -6,6 +6,7 @@ import { Refrigerator, X } from 'lucide-react';
 import Button from '../ui/button';
 import { useCarrinho } from '@/app/context/cartContext';
 import { useEffect } from 'react';
+import Link from 'next/link';
 
 interface ShoppingCartProps {
   isOpen: boolean;
@@ -28,7 +29,7 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
     return acc + price;
   }, 0).toFixed(2).replace('.', ',') || "0,00";
   return (
-    <Dialog open={isOpen} onClose={onClose} className="relative z-10 font-secondary">
+    <Dialog open={isOpen} onClose={onClose} className="relative z-30 font-secondary">
       <DialogBackdrop
         transition
         className="fixed inset-0 bg-gray-500/75 transition-opacity duration-500 ease-in-out data-closed:opacity-0"
@@ -119,9 +120,11 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
                     <p>R$ {total || "0,00"}</p>
                   </div>
                   <div className="mt-6">
-                    <Button variant='quinary' className='w-full font-bold'>
-                      Finalizar Pedido
-                    </Button>
+                    <Link href="/checkout">
+                      <Button variant='quinary' className='w-full font-bold'>
+                        Finalizar Pedido
+                      </Button>
+                    </Link>
                   </div>
                 </div>
               </div>

@@ -1,4 +1,4 @@
-import CadastroForm from "@/app/components/forms/cadastro";
+import CadastroForm from "@/app/components/forms/auth/cadastro";
 import { Icon } from "@iconify/react";
 import Link from "next/link";
 

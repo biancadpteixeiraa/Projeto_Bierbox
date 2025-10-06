@@ -13,7 +13,7 @@ export default function Page(){
         <div>
             <Header/>
             <PlansBanner/>
-            <PlansCards/>
+            <PlansCards label="escolha o box ideal para você!"/>
             <PlansCarouselArea/>
             <BannerArea/>
             <div className="h-[100px]"/>

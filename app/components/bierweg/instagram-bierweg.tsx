@@ -1,4 +1,4 @@
-import { PhotosCarousel } from "../ui/Photos-Carousel/photos-carousel";
+import PhotosCarousel from "../ui/Photos-Carousel/photos-carousel";
 
 export default function InstagramBierweg(){
 
@@ -38,9 +38,9 @@ export default function InstagramBierweg(){
     ]
     
     return(
-        <div className="max-w-7xl mx-auto flex flex-col items-start pl-14 pr-0 lg:px-14 pt-14 pb-24 font-primary text-brown-primary ">
-            <h1 className="text-4xl pb-12">
-                Siga a gente no Instagram!
+        <div className="max-w-6xl mx-auto flex flex-col items-start pl-14 pr-0 lg:px-14 pt-20 pb-24 font-primary text-brown-primary ">
+            <h1 className="text-2xl pb-12">
+                Acompanhe a Rota da Cerveja!
             </h1>
             <PhotosCarousel className="w-full">
                 {photos.map((photo) => (
