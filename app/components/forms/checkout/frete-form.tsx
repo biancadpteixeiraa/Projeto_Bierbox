@@ -3,26 +3,77 @@
 import CheckoutCard from "../../ui/checkout-card";
 import Button from "../../ui/button";
 import { IMaskInput } from 'react-imask';
+import { toast } from "react-toastify";
+import { calculoFrete } from "@/app/services/frete";
+import { useEffect, useState } from "react";
 
 type FormDataFrete = {
   tipo: string;
-  valor: number;
+  preco: string;
 };
+
+type FreteOpcao = {
+ nome: string;
+ empresa: string;
+ prazo: string;
+ preco: string;
+}
 
 export default function FreteForm({
   data,
   onChange,
   onNext,
   disabled,
+  cep,
+  onEdit,
 }: {
   data: FormDataFrete;
   onChange: (data: FormDataFrete) => void;
   onNext: () => void;
   disabled?: boolean;
+  cep: string;
+  onEdit: () => void;
 }) {
+  const [isLoading, setIsLoading] = useState(false);
+  const [frete, setFrete] = useState<FreteOpcao[]>([]);
+
+  useEffect(() => {
+    if (cep && cep.length === 9) {
+      handleCalcularFrete();
+    }
+  }, [cep]);
+
+const handleCalcularFrete = async () => {
+  if (!cep) {
+    toast.warning("Digite um CEP válido.");
+    return;
+  }
+  setIsLoading(true); // <- antes da chamada
+  try {
+    const data = await calculoFrete(cep);
+    if (data.success) {
+      setFrete(data.opcoes);
+    } else {
+      toast.error(data.message || "Erro ao calcular frete.");
+      setFrete([]);
+    }
+  } catch (error) {
+    toast.error("Erro ao calcular frete.");
+    console.error(error);
+    setFrete([]);
+  } finally {
+    setIsLoading(false);
+  }
+};
+
   const handleNext = () => {
     if (data.tipo) onNext();
   };
+
+  const handleSelectFrete = (opcao: FreteOpcao) => {
+    onChange({tipo:opcao.nome, preco: opcao.preco });
+  };
+
 
   return (
     <div>
@@ -30,93 +81,71 @@ export default function FreteForm({
         <h1 className="hidden lg:block font-secondary text-brown-tertiary font-bold text-lg">
           Frete
         </h1>
+        <button
+          onClick={onEdit}
+          className={`
+          ${disabled ? "block" : 'hidden'} 
+          text-xs text-brown-tertiary underline underline-offset-2`}
+          >
+          Editar
+        </button>
       </div>
       <CheckoutCard className="h-[440px] justify-between">
         <div className="flex flex-col gap-8 pb-14">
             <div className="flex flex-col items-start justify-center">
-            <label htmlFor="rua" className="text-brown-tertiary font-semibold">Informe seu CEP:</label>
+            <label htmlFor="cepFrete" className="text-brown-tertiary font-semibold">Informe seu CEP:</label>
             <IMaskInput
                 mask="00000-000"
                 type="text"
-                disabled={disabled}
+                disabled
+                readOnly
                 className="text-xs sm:text-sm w-full py-2 px-3 bg-transparent text-brown-tertiary/75 placeholder:text-brown-tertiary/75 rounded-lg border border-brown-tertiary"
                 placeholder="CEP"
+                value={cep}
+                id="cepFrete"
               />
             </div>
+            {isLoading && (
+              <p className="text-sm text-brown-tertiary">Calculando opções de frete...</p>
+            )}
+            {!isLoading && frete.length === 0 && (
+              <div>
+                <p className="text-sm text-brown-tertiary">Nenhuma opção de frete calculada.</p>
+              </div>
+            )}
+            {!isLoading && frete.length > 0 && (
             <div className="flex flex-col gap-3">
-            <div className="flex items-center  p-3 text-brown-tertiary rounded-lg shadow-[0px_2px_14px_0px_rgb(00,00,00,0.1)]">
-                <div className="w-full flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                    <input
-                    type="radio"
-                    name="frete"
-                    value="sedex"
-                    checked={data.tipo === "sedex"}
-                    onChange={() => onChange({ tipo: "sedex", valor: 20 })}
-                    disabled={disabled}
-                    className="size-4 cursor-pointer appearance-none rounded-full border border-brown-tertiary checked:bg-brown-tertiary transition-all checked:ring-2 checked:ring-inset checked:ring-white"
-                    />
-                    <div className="flex flex-col items-start">
-                    <h2 className="font-primary text-[10px]">SEDEX</h2>
-                    <p className="text-[10px] font-medium">Até 5 dias úteis</p>
+                {frete.map((opcao) => (
+                <div
+                key={opcao.nome}
+                className="flex items-center  p-3 text-brown-tertiary rounded-lg shadow-[0px_2px_14px_0px_rgb(00,00,00,0.1)]"
+                onClick={() => handleSelectFrete(opcao)}>
+                    <div className="w-full flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                        <input
+                        type="radio"
+                        name="frete"
+                        value={opcao.nome}
+                        checked={data.tipo === opcao.nome}
+                        onChange={() => handleSelectFrete(opcao)}
+                        disabled={disabled || isLoading}
+                        className="size-4 cursor-pointer appearance-none rounded-full border border-brown-tertiary checked:bg-brown-tertiary transition-all checked:ring-2 checked:ring-inset checked:ring-white"
+                        />
+                        <div className="flex flex-col items-start">
+                        <h2 className="font-primary text-[10px]">{opcao.nome} ({opcao.empresa})</h2>
+                        <p className="text-[10px] font-medium">Até {opcao.prazo || "-"} dias úteis</p>
+                        </div>
+                    </div>
+                    <div>
+                        <p className="text-[10px] font-bold">
+                          R$ {opcao.preco || 'Indisponível'}
+                        </p>
+                    </div>
                     </div>
                 </div>
-                <div>
-                    <p className="text-[10px] font-bold">
-                    R$21,29
-                    </p>
-                </div>
-                </div>
+                ))}
             </div>
-            <div className="flex items-center  p-3 text-brown-tertiary rounded-lg shadow-[0px_2px_14px_0px_rgb(00,00,00,0.1)]">
-                <div className="w-full flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                    <input
-                    type="radio"
-                    name="frete"
-                    value="pac"
-                    checked={data.tipo === "pac"}
-                    onChange={() => onChange({ tipo: "pac", valor: 20 })}
-                    disabled={disabled}
-                    className="size-4 cursor-pointer appearance-none rounded-full border border-brown-tertiary checked:bg-brown-tertiary transition-all checked:ring-2 checked:ring-inset checked:ring-white"
-                    />
-                    <div className="flex flex-col items-start">
-                    <h2 className="font-primary text-[10px]">PAC</h2>
-                    <p className="text-[10px] font-medium">Até 10 dias úteis</p>
-                    </div>
-                </div>
-                <div>
-                    <p className="text-[10px] font-bold">
-                    R$18,49
-                    </p>
-                </div>
-                </div>
-            </div>
-            <div className="flex items-center  p-3 text-brown-tertiary rounded-lg shadow-[0px_2px_14px_0px_rgb(00,00,00,0.1)]">
-                <div className="w-full flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                    <input
-                    type="radio"
-                    name="frete"
-                    value="jadlog"
-                    checked={data.tipo === "jadlog"}
-                    onChange={() => onChange({ tipo: "jadlog", valor: 20 })}
-                    disabled={disabled}
-                    className="size-4 cursor-pointer appearance-none rounded-full border border-brown-tertiary checked:bg-brown-tertiary transition-all checked:ring-2 checked:ring-inset checked:ring-white"
-                    />
-                    <div className="flex flex-col items-start">
-                    <h2 className="font-primary text-[10px]">JADLOG</h2>
-                    <p className="text-[10px] font-medium">Até 7 dias úteis</p>
-                    </div>
-                </div>
-                <div>
-                    <p className="text-[10px] font-bold">
-                    R$23,80
-                    </p>
-                </div>
-                </div>
-            </div>
-            </div>
+            )}
         </div>
         <Button
           variant="quaternary"

@@ -53,23 +53,18 @@ const cartOpen = () => {
                     </a>
                 </div>
                 <div className="flex flex-1 justify-end gap-10">
-                    {isAuthenticated?.user ? (
-                        <Link href={`/dashboard/${isAuthenticated.user.id}`}>
-                            <Icon icon="uil:user" className="text-4xl text-brown-secondary"/>
-                        </Link>
-                    ) : (
+                    {!isAuthenticated?.user && (
                         <div className='hidden md:flex md:items-center gap-2'>
-                        <UserRound className="size-6 text-brown-secondary" />
-                        <p className='text-brown-secondary text-xs font-medium'>
-                            Olá!
-                            <br />
-                            <span><Link href={'/login'} className='underline font-bold'>Entre</Link> </span>
-                            ou
-                            <span> <Link href={'/cadastro'} className='underline font-bold'>Cadastre-se</Link></span>
-                        </p>
-                    </div>
-                        )
-                    }
+                            <UserRound className="size-6 text-brown-secondary" />
+                            <p className='text-brown-secondary text-xs font-medium'>
+                                Olá!
+                                <br />
+                                <span><Link href={'/login'} className='underline font-bold'>Entre</Link> </span>
+                                ou
+                                <span> <Link href={'/cadastro'} className='underline font-bold'>Cadastre-se</Link></span>
+                            </p>
+                        </div>
+                    )}
                     <div className='flex items-center pr-4 md:pr-0'>
                         <button onClick={cartOpen}>
                             <Icon icon="mdi:refrigerator" className="size-8 text-brown-secondary"/>
@@ -78,6 +73,11 @@ const cartOpen = () => {
                             {carrinho?.itens?.length || 0}
                         </span>
                     </div>
+                    {isAuthenticated?.user && (
+                        <Link href={`/dashboard/${isAuthenticated.user.id}`} className='hidden md:flex items-center'>
+                            <Icon icon="uil:user" className="text-4xl text-brown-secondary"/>
+                        </Link>
+                    )}
                 </div>
                 <div className="flex md:hidden justify-end">
                     <button
@@ -117,8 +117,9 @@ const cartOpen = () => {
                         
                         <div className='flex items-center gap-2 -mx-1'>
                             {isAuthenticated?.user ? (
-                        <Link href={`/dashboard/${isAuthenticated.user.id}`}>
-                            MINHA CONTA
+                        <Link href={`/dashboard/${isAuthenticated.user.id}`} className='flex items-center gap-2'>
+                            <Icon icon="uil:user" className="text-4xl text-brown-secondary"/> 
+                            <p>MINHA CONTA</p>
                         </Link>
                     ) : (
                             <>

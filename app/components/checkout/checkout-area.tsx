@@ -9,6 +9,7 @@ import { getBoxById } from "@/app/services/boxes";
 
 type FormData = {
   endereco: {
+    id?: string;
     rua: string;
     cep: string;
     numero: string;
@@ -16,10 +17,11 @@ type FormData = {
     complemento: string;
     cidade: string;
     estado: string;
+    is_padrao: boolean;
   };
   frete: {
     tipo: string;
-    valor: number;
+    preco: string;
   };
 };
 
@@ -32,12 +34,16 @@ type CheckoutData = {
 export default function CheckoutArea() {
   const [step, setStep] = useState<"endereco" | "frete" | "resumo">("endereco");
   const [formData, setFormData] = useState<FormData>({
-    endereco: { rua: "", cep: "", numero: "", bairro: "", complemento: "", cidade: "", estado: "" },
-    frete: { tipo: "", valor: 0 },
+    endereco: { id: "", rua: "", cep: "", numero: "", bairro: "", complemento: "", cidade: "", estado: "", is_padrao: false },
+    frete: { tipo: "", preco: "" },
   });
 
     const [checkoutData, setCheckoutData] = useState<CheckoutData | null>(null);
     const [box, setBox] = useState<any>(null);
+
+    const handleEdit = (targetStep: "endereco" | "frete" | "resumo") => {
+      setStep(targetStep);
+    };
 
   useEffect(() => {
     const saved = localStorage.getItem("checkoutData");
@@ -62,14 +68,17 @@ export default function CheckoutArea() {
           onChange={(endereco) => setFormData({ ...formData, endereco })}
           onNext={() => setStep("frete")}
           disabled={step !== "endereco"}
+          onEdit={() => handleEdit("endereco")}
         />
       </div>
       <div className="hidden lg:block">
         <FreteForm
+          cep={formData.endereco.cep}
           data={formData.frete}
           onChange={(frete) => setFormData({ ...formData, frete })}
           onNext={() => setStep("resumo")}
           disabled={step !== "frete"}
+          onEdit={() => handleEdit("frete")}
         />
       </div>
       <div className="hidden lg:block">
@@ -94,6 +103,7 @@ export default function CheckoutArea() {
                   data={formData.endereco}
                   onChange={(endereco) => setFormData({ ...formData, endereco })}
                   onNext={() => setStep("frete")}
+                  onEdit={() => handleEdit("endereco")}
                 />
               </DisclosurePanel>
             </div>
@@ -109,9 +119,11 @@ export default function CheckoutArea() {
               {step !== "endereco" && (
                 <DisclosurePanel>
                   <FreteForm
+                    cep={formData.endereco.cep}
                     data={formData.frete}
                     onChange={(frete) => setFormData({ ...formData, frete })}
                     onNext={() => setStep("resumo")}
+                    onEdit={() => handleEdit("frete")}
                   />
                 </DisclosurePanel>
               )}

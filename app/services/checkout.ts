@@ -9,7 +9,7 @@ export async function criarPreferenciaPagamento(
   valor_frete: number,
 ) {
   const response = await api.post(
-    "/pagamentos/criar-preferencia",
+    "/api/pagamentos/criar-preferencia",
     {
       plano_id, 
       box_id,

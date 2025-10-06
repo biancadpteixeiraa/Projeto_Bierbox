@@ -67,7 +67,7 @@ export default function InstagramArea() {
       } catch (err) {
         console.error("Erro ao carregar fotos do Instagram:", err);
       } finally {
-        //setLoading(false);
+        setLoading(false);
       }
     };
 
@@ -76,7 +76,7 @@ export default function InstagramArea() {
 
   return (
     <div className="max-w-6xl mx-auto flex flex-col items-start pl-14 pr-0 lg:px-16 pb-24 pt-24 font-primary text-brown-primary">
-      <h1 className="text-xl pb-12 lg:pr-0 pr-14 lg:text-start text-center">Siga a gente no Instagram!</h1>
+      <h1 className="text-xl pb-12 lg:pr-0 pr-14 lg:text-start text-center">Siga a gente no Instagram!</h1> 
 
       {loading ? (
         <InstagramPhotosSkeleton/>
@@ -93,14 +93,14 @@ export default function InstagramArea() {
                   <img
                     src={photo.media_url}
                     alt={`Foto ${photo.id}`}
-                    className="object-cover size-56 rounded-lg lg:size-96"
+                    className="object-cover size-56 rounded-lg lg:size-72"
                   />
                 )}
                 {photo.media_type === "VIDEO" && (
                   <img
                     src={photo.thumbnail_url}
                     alt={`Vídeo ${photo.id}`}
-                    className="object-cover size-56 rounded-lg lg:size-96"
+                    className="object-cover size-56 rounded-lg lg:size-72"
                   />
                 )}
               </a>
