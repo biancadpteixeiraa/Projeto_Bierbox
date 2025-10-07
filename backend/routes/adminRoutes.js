@@ -12,11 +12,12 @@ const {
     adminGetAllPedidos,  
     adminGetPedidoById,  
     adminUpdatePedido,
+    adminGetAllAssinaturas,     
+    adminGetAssinaturaById,      
+    adminCancelarAssinatura,      
+    adminToggleStatusAssinatura   
     
-    adminGetAllAssinaturas,
-    adminGetAssinaturaById
-} = require('../controllers/adminController');
-
+    } = require('../controllers/adminController');
 const { protect } = require('../middleware/authMiddleware');
 const { adminProtect } = require('../middleware/adminMiddleware');
 
@@ -31,11 +32,3 @@ router.get('/users/:id', protect, adminProtect, adminGetUserById);
 router.get('/pedidos', protect, adminProtect, adminGetAllPedidos); 
 router.get('/pedidos/:id', protect, adminProtect, adminGetPedidoById);  
 router.put('/pedidos/:id', protect, adminProtect, adminUpdatePedido); 
-router.get('/assinaturas', protect, adminProtect, adminGetAllAssinaturas);
-router.get('/assinaturas/:id', protect, adminProtect, adminGetAssinaturaById);
-
-router.get('/test-auth', protect, adminProtect, (req, res) => {
-    res.status(200).json({ success: true, message: 'Acesso de administrador concedido!' });
-});
-
-module.exports = router;
