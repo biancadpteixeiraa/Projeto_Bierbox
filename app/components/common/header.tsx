@@ -23,6 +23,7 @@ export default function Header() {
   const pathname = usePathname();
 
   const linksMenu = [
+    { href: '/', label: 'Home' },
     { href: '/planos', label: 'Planos de Assinatura' },
     { href: '/descubra', label: 'Descubra sua Box' },
     { href: '/rota-da-cerveja', label: 'Rota da Cerveja' },
@@ -66,7 +67,7 @@ const cartOpen = () => {
                         </div>
                     )}
                     <div className='flex items-center pr-4 md:pr-0'>
-                        <button onClick={cartOpen}>
+                        <button onClick={cartOpen} aria-label="Abrir carrinho de compras">
                             <Icon icon="mdi:refrigerator" className="size-8 text-brown-secondary"/>
                         </button>
                         <span className='flex items-center justify-center text-[10px] bg-brown-tertiary text-beige-primary rounded-full min-w-[15px] h-4 px-1 font-medium -ml-1'>
@@ -83,16 +84,23 @@ const cartOpen = () => {
                     <button
                         type="button"
                         onClick={() => setMobileMenuOpen(true)}
+                        aria-expanded={mobileMenuOpen}
+                        aria-controls="mobile-menu"
                         className="-m-2.5 inline-flex items-center justify-center rounded-md p-2.5 text-gray-secondary"
                     >
-                        <span className="sr-only">Menu</span>
+                        <span className="sr-only">Abrir menu principal</span>
                         <MenuIcon aria-hidden="true" className="size-6" />
                     </button>
                 </div>
             </nav>
             <Dialog open={mobileMenuOpen} onClose={setMobileMenuOpen} className="md:hidden">
                 <div className="fixed inset-0 z-50" />
-                <DialogPanel className="fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-beige-primary sm:max-w-sm sm:ring-1 sm:ring-brown-secondary rounded-l-xl">
+                <DialogPanel className="fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-beige-primary sm:max-w-sm sm:ring-1 sm:ring-brown-secondary rounded-l-xl"
+                id="mobile-menu"
+                aria-modal="true"
+                aria-labelledby="menu-title"
+                >
+                <div id="menu-title" className="sr-only">Menu de Navegação Principal</div> 
                 <div className="flex items-center justify-between px-6 py-4">
                     <a href="/" className="-m-1.5 p-1.5">
                         <span className="sr-only">BierBox</span>
@@ -107,14 +115,13 @@ const cartOpen = () => {
                         onClick={() => setMobileMenuOpen(false)}
                         className="-m-2.5 rounded-md p-2.5 text-gray-secondary"
                         >
-                        <span className="sr-only">Close menu</span>
+                        <span className="sr-only">Fechar menu</span>
                         <X aria-hidden="true" className="size-6" />
                     </button>
                 </div>
                 <hr className=" h-0.25 w-full bg-brown-primary" />
                 <div className="mt-6 flow-root px-6 py-4">
-                    <div className="">
-                        
+                    <div>
                         <div className='flex items-center gap-2 -mx-1'>
                             {isAuthenticated?.user ? (
                         <Link href={`/dashboard/${isAuthenticated.user.id}`} className='flex items-center gap-2'>
@@ -140,6 +147,7 @@ const cartOpen = () => {
                             <Link
                                 key={link.href}
                                 href={link.href}
+                                aria-current={pathname === link.href ? 'page' : undefined} 
                                 className={`block py-2 text-lg text-brown-primary md:mx-8 mx-auto hover:font-semibold ${
                                 pathname === link.href ? 'font-semibold underline' : ''
                                 }`}
@@ -154,14 +162,15 @@ const cartOpen = () => {
         </div>
         <div className='bg-yellow-primary hidden md:block py-1'>
             <nav aria-label="Global" className="mx-auto flex max-w-7xl items-center justify-center px-5 py-4 md:px-8">
-                <PopoverGroup className="hidden md:flex lg:gap-x-20 text-nowrap">
+                <PopoverGroup className="hidden md:flex lg:gap-x-16 text-nowrap">
                  {linksMenu.map((link) => (
                         <Link
                         key={link.href}
                         href={link.href}
-                        className={`text-sm text-beige-primary md:mx-9 mx-auto hover:font-semibold ${
+                        className={`text-sm text-beige-primary mx-3 lg:mx-6 mx-auto hover:font-semibold ${
                         pathname === link.href ? 'font-semibold' : ''
                         }`}
+                        aria-current={pathname === link.href ? 'page' : undefined} 
                         >
                             {link.label}
                         </Link>

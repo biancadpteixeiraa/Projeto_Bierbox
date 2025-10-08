@@ -6,7 +6,7 @@ import Button from "../../ui/button";
 import { IMaskInput } from 'react-imask';
 import { useAuth } from "@/app/context/authContext";
 import { useEffect, useState } from "react";
-import { addEndereco, getEnderecos } from "@/app/services/enderecos";
+import { addEndereco, getEnderecos, updateEndereco } from "@/app/services/enderecos";
 import { toast } from "react-toastify";
 
 type FormDataEndereco = {
@@ -21,7 +21,12 @@ type FormDataEndereco = {
   is_padrao: boolean;
 };
 
-export default function EnderecoForm({data, onChange, onNext, disabled,onEdit,
+export default function EnderecoForm({
+  data, 
+  onChange, 
+  onNext, 
+  disabled,
+  onEdit,
 }: {
   data: FormDataEndereco;
   onChange: (data: FormDataEndereco) => void;
@@ -32,7 +37,8 @@ export default function EnderecoForm({data, onChange, onNext, disabled,onEdit,
 
   const { token } = useAuth();
   const [enderecos, setEnderecos] = useState<any[]>([]);
-  const [isCreating, setIsCreating] = useState(enderecos.length === 0);
+  const [isCreating, setIsCreating] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -52,22 +58,40 @@ export default function EnderecoForm({data, onChange, onNext, disabled,onEdit,
     fetchEnderecos();
   }, [token]);
 
-  const handleNext = async () => {
-    if (!token) return;
+const handleNext = async () => {
+  if (!token) return;
 
-    if (!data.rua || !data.numero || !data.cep || !data.cidade || !data.estado) {
-      toast.warning("Preencha todos os campos obrigatórios do endereço.");
-      return;
-    }
+  // 1️⃣ Apenas selecionou um endereço existente
+  if (!isCreating && !isEditing && data.id) {
+    onNext();
+    return;
+  }
 
-    // Se o usuário apenas selecionou um endereço existente:
-    if (data.id && !isCreating) {
-      onNext();
-      return;
-    }
+  // 2️⃣ Validação dos campos obrigatórios
+  if (!data.rua || !data.numero || !data.cep || !data.cidade || !data.estado) {
+    toast.warning("Preencha todos os campos obrigatórios do endereço.");
+    return;
+  }
 
-    try {
-      await addEndereco(
+  try {
+    if (isEditing && data.id) {
+      // 🔸 Atualiza endereço existente
+      await updateEndereco(
+        token,
+        data.id,
+        data.cep,
+        data.rua,
+        data.numero,
+        data.bairro,
+        data.complemento,
+        data.cidade,
+        data.estado,
+        data.is_padrao
+      );
+      toast.success("Endereço atualizado com sucesso!");
+    } else if (isCreating) {
+      // 🔸 Cria novo endereço
+      const novoEndereco = await addEndereco(
         token,
         data.cep,
         data.rua,
@@ -79,21 +103,52 @@ export default function EnderecoForm({data, onChange, onNext, disabled,onEdit,
         data.is_padrao
       );
 
-      toast.success("Endereço adicionado com sucesso!");
+      // ✅ Atualiza o formData com o ID retornado pelo backend
+      if (novoEndereco?.id) {
+        onChange({ ...data, id: novoEndereco.id });
+      }
 
-      const atualizados = await getEnderecos(token);
-      setEnderecos(atualizados);
-      setIsCreating(false);
-      onNext();
-    } catch (err) {
-      console.error("Erro ao salvar endereço:", err);
-      toast.error("Erro ao salvar endereço. Tente novamente.");
+      toast.success("Endereço adicionado com sucesso!");
     }
+
+    // 🔹 Atualiza lista e volta ao estado normal
+    const atualizados = await getEnderecos(token);
+    setEnderecos(atualizados);
+    setIsCreating(false);
+    setIsEditing(false);
+    onNext();
+  } catch (err) {
+    console.error("Erro ao salvar endereço:", err);
+    toast.error("Erro ao salvar endereço. Tente novamente.");
+  }
+};
+
+
+
+  // 🔹 Ações auxiliares
+  const handleEdit = (endereco: any) => {
+    onChange(endereco);
+    setIsEditing(true);
+    setIsCreating(true); // abre o form
   };
 
+  const handleAddNew = () => {
+    onChange({
+      rua: "",
+      cep: "",
+      numero: "",
+      bairro: "",
+      complemento: "",
+      cidade: "",
+      estado: "",
+      is_padrao: false,
+    });
+    setIsCreating(true);
+    setIsEditing(false);
+  };
   
-  const shouldRenderForm = enderecos.length === 0 || isCreating;
-  const shouldRenderList = enderecos.length > 0 && !isCreating;
+  const shouldRenderForm = isCreating;
+  const shouldRenderList = !isCreating && enderecos.length > 0;
   
   if (loading)
     return (
@@ -108,32 +163,31 @@ export default function EnderecoForm({data, onChange, onNext, disabled,onEdit,
         <h1 className="hidden lg:block font-secondary text-brown-tertiary font-bold text-lg">
           Endereço de entrega
         </h1>
-        <button
-          onClick={onEdit}
-          aria-label="Editar endereço"
-          className={`
-          ${disabled ? "block" : 'hidden'} 
-          text-xs text-brown-tertiary underline underline-offset-2`}
+        {disabled && (
+          <button
+            onClick={onEdit}
+            aria-label="Editar endereço"
+            className="text-xs text-brown-tertiary underline underline-offset-2"
           >
-          Editar
-        </button>
+            Editar
+          </button>
+        )}
       </div>
       {
         shouldRenderList && (
-          <CheckoutCard className="h-[440px] justify-between">
+          <CheckoutCard disabled={disabled} className="min-h-[440px] justify-between">
               <div className="flex flex-col gap-4 pb-10">
                   {enderecos.map((endereco) => (
                   <div key={endereco.id} className="flex items-center p-3 py-5 text-brown-tertiary rounded-lg shadow-[0px_2px_14px_0px_rgb(00,00,00,0.1)]">
-                    <div className="w-full flex items-center">
+                    <div className="w-full flex items-start justify-between">
                       <div className="flex items-start gap-3">
                           <input
                           type="radio"
-                          disabled={disabled}
                           name="endereco"
-                          checked={data.id === endereco.id}
+                          disabled={disabled}
                           value={endereco.id}
                           onChange={() => onChange({ ...endereco })}
-                          className="mt-1 size-4 cursor-pointer appearance-none rounded-full border border-brown-tertiary bg-white checked:bg-brown-tertiary transition-all checked:ring-2 checked:ring-inset checked:ring-white"
+                          className="bg-gray-100 mt-1 size-4 cursor-pointer appearance-none rounded-full border border-brown-tertiary checked:bg-brown-tertiary transition-all checked:ring-2 checked:ring-inset checked:ring-white"
                           />
                           <div className="flex flex-col items-start gap-1">
                             <h2 className="text-xs font-bold">
@@ -147,12 +201,23 @@ export default function EnderecoForm({data, onChange, onNext, disabled,onEdit,
                             </p>
                           </div>
                       </div>
+                      <div className="flex flex-col items-end">
+                        <button
+                          onClick={() => handleEdit(endereco)}
+                          aria-label="Editar endereço"
+                          className={`
+                          ${disabled ? "hidden" : 'block'} 
+                          text-xs text-brown-tertiary underline underline-offset-2`}
+                          >
+                          Editar
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ))}
                 <button
                 aria-label="Adicionar novo endereço"
-                onClick={() => setIsCreating(!isCreating)}
+                onClick={handleAddNew}
                 className="md:text-sm text-xs text-blue-primary font-bold underline hover:text-blue-hover transition text-center"
               >
                 + Adicionar Novo Endereço
@@ -162,7 +227,7 @@ export default function EnderecoForm({data, onChange, onNext, disabled,onEdit,
                 aria-label="Avançar para a próxima etapa"
                 variant="quaternary"
                 onClick={handleNext}
-                disabled={disabled || data.rua.trim() === ""}
+                disabled={disabled || !data.id}
                 className="py-2 font-medium"
               >
                 Avançar
@@ -172,8 +237,8 @@ export default function EnderecoForm({data, onChange, onNext, disabled,onEdit,
       }
       {
         shouldRenderForm && (
-          <CheckoutCard className="h-[440px] justify-between">
-            <div className="flex flex-col gap-4 pb-10">
+          <CheckoutCard disabled={disabled} className="h-[440px] justify-between">
+            <div className="flex flex-col pb-10 gap-5 justify-between h-full">
                 <div className="flex flex-col items-start justify-center">
                 <Input
                     variant="secondary"
@@ -276,13 +341,13 @@ export default function EnderecoForm({data, onChange, onNext, disabled,onEdit,
                 </div>
             </div>
             <Button
-              aria-label="Avançar para a próxima etapa"
+              aria-label="Salvar e avançar"
               variant="quaternary"
               onClick={handleNext}
               disabled={disabled || data.rua.trim() === ""}
               className="py-2 font-medium"
             >
-              Avançar
+              {isEditing ? "Salvar alterações" : "Avançar"}
             </Button>
           </CheckoutCard>
         ) 

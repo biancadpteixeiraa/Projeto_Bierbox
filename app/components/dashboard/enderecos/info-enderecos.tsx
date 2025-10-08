@@ -10,6 +10,8 @@ import {
 import { useAuth } from "@/app/context/authContext";
 import EnderecoForm from "../../forms/form-enderecos";
 import { toast } from "react-toastify";
+import Modal from "../modal";
+import { EnderecoListSkeleton } from "../../ui/skeletons";
 
 type Endereco = {
   id: string;
@@ -43,6 +45,26 @@ export default function InfoEnderecos() {
   const [novoEndereco, setNovoEndereco] = useState<Endereco>(DEFAULT_ENDERECO);
   const [loading, setLoading] = useState(true);
   const [enderecoEmEdicao, setEnderecoEmEdicao] = useState<Endereco | null>(null);
+
+  const [modalOpen, setModalOpen] = useState(false);
+  const [enderecoParaExcluirId, setEnderecoParaExcluirId] = useState<string | null>(null);
+
+  const openModal = (id: string) => { // A função openModal deve receber o ID
+    setEnderecoParaExcluirId(id);
+    setModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setModalOpen(false);
+    setEnderecoParaExcluirId(null); // Limpa o ID ao fechar
+  };
+
+  const handleConfirmarExclusao = async () => {
+    if(enderecoParaExcluirId){
+        await handleExcluir(enderecoParaExcluirId);
+        closeModal();
+    }
+  };
 
   useEffect(() => {
     const fetchEnderecos = async () => {
@@ -162,8 +184,6 @@ const handleSalvarEdicao = useCallback(async () => {
  const handleExcluir = useCallback(async (id: string | number) => {
   if (!token) return;
 
-  if (!window.confirm("Tem certeza que deseja excluir este endereço?")) return;
-
   try {
    await deleteEndereco(token, id.toString());
    setEnderecos((prev) => prev.filter((e) => e.id !== id));
@@ -180,7 +200,7 @@ const handleSalvarEdicao = useCallback(async () => {
 
 
 
-  if (loading) return <p className="p-14">Carregando...</p>;
+  if (loading) return <EnderecoListSkeleton />;
 
   return (
     <div className="pl-8 lg:pl-12 pr-8 lg:pr-36 h-full flex flex-col max-w-screen-2xl">
@@ -260,13 +280,14 @@ const handleSalvarEdicao = useCallback(async () => {
                     onSalvar={handleSalvarEdicao}
                     onCancelar={() => toggleEditar(endereco)}
                     onEditar={() => toggleEditar(endereco)}   // <- habilita edição
-                    onExcluir={() => handleExcluir(endereco.id)} // <- habilita exclusão
+                    onExcluir={() => openModal(endereco.id)} // <- habilita exclusão
                   />
               );
             })}
           </div>
         </>
       )}
+      <Modal title="Deseja excluir esse Endereço?" description="Ao confirmar, esses dados de endereço serão excluídos." isOpen={modalOpen} onClose={closeModal} onConfirm={handleConfirmarExclusao} />
     </div>
   );
 }

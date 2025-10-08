@@ -1,71 +1,26 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Disclosure, DisclosureButton, DisclosurePanel } from "@headlessui/react";
 import EnderecoForm from "../forms/checkout/encereco-form";
 import FreteForm from "../forms/checkout/frete-form";
 import ResumoFinanceiro from "../forms/checkout/resumo-financeiro";
 import { getBoxById } from "@/app/services/boxes";
+import { useCheckout } from "@/app/context/checkoutContext";
 
-type FormData = {
-  endereco: {
-    id?: string;
-    rua: string;
-    cep: string;
-    numero: string;
-    bairro: string;
-    complemento: string;
-    cidade: string;
-    estado: string;
-    is_padrao: boolean;
-  };
-  frete: {
-    tipo: string;
-    preco: string;
-  };
-};
-
-type CheckoutData = {
-  boxId: string;
-  plano: "mensal" | "anual";
-  quantidade: 4 | 6;
-};
 
 export default function CheckoutArea() {
-  const [step, setStep] = useState<"endereco" | "frete" | "resumo">("endereco");
-  const [formData, setFormData] = useState<FormData>({
-    endereco: { id: "", rua: "", cep: "", numero: "", bairro: "", complemento: "", cidade: "", estado: "", is_padrao: false },
-    frete: { tipo: "", preco: "" },
-  });
+  const { step, setStep, endereco, setEndereco, frete, setFrete, box, checkoutData } = useCheckout();
 
-    const [checkoutData, setCheckoutData] = useState<CheckoutData | null>(null);
-    const [box, setBox] = useState<any>(null);
-
-    const handleEdit = (targetStep: "endereco" | "frete" | "resumo") => {
-      setStep(targetStep);
-    };
-
-  useEffect(() => {
-    const saved = localStorage.getItem("checkoutData");
-    if (saved) {
-      const parsed: CheckoutData = JSON.parse(saved);
-      setCheckoutData(parsed);
-
-      getBoxById(parsed.boxId).then((res) => {
-        if (res.success) {
-          setBox(res.box);
-        }
-      });
-    }
-  }, []);
+  const handleEdit = useCallback((targetStep: "endereco" | "frete" | "resumo") => setStep(targetStep), [setStep]);
 
   return (
     <div className="lg:grid lg:grid-cols-3 lg:gap-6 py-10 lg:py-20 max-w-7xl mx-auto px-6">
       {/* Desktop */}
       <div className="hidden lg:block">
         <EnderecoForm
-          data={formData.endereco}
-          onChange={(endereco) => setFormData({ ...formData, endereco })}
+          data={endereco}
+          onChange={setEndereco}
           onNext={() => setStep("frete")}
           disabled={step !== "endereco"}
           onEdit={() => handleEdit("endereco")}
@@ -73,9 +28,9 @@ export default function CheckoutArea() {
       </div>
       <div className="hidden lg:block">
         <FreteForm
-          cep={formData.endereco.cep}
-          data={formData.frete}
-          onChange={(frete) => setFormData({ ...formData, frete })}
+          cep={endereco.cep}
+          data={frete}
+          onChange={setFrete}
           onNext={() => setStep("resumo")}
           disabled={step !== "frete"}
           onEdit={() => handleEdit("frete")}
@@ -83,16 +38,16 @@ export default function CheckoutArea() {
       </div>
       <div className="hidden lg:block">
         <ResumoFinanceiro 
-        data={formData} 
-        disabled={step !== "resumo"}
-        box={box}
-        checkoutData={checkoutData} 
+          data={{ endereco, frete }}
+          disabled={step !== "resumo"}
+          box={box}
+          checkoutData={checkoutData}
         />
       </div>
 
       {/* Mobile */}
       <div className="flex flex-col lg:hidden gap-6">
-        <Disclosure defaultOpen>
+        <Disclosure defaultOpen={step === "endereco" || step === "frete" || step === "resumo"}>
           {() => (
             <div className="shadow-[2px_12px_13px_2px_rgb(00,00,00,0.1)] rounded-xl">
               <DisclosureButton className="rounded-xl px-6 py-4 bg-beige-primary w-full flex items-start">
@@ -100,9 +55,10 @@ export default function CheckoutArea() {
               </DisclosureButton>
               <DisclosurePanel>
                 <EnderecoForm
-                  data={formData.endereco}
-                  onChange={(endereco) => setFormData({ ...formData, endereco })}
+                  data={endereco}
+                  onChange={setEndereco}
                   onNext={() => setStep("frete")}
+                  disabled={step !== "endereco"}
                   onEdit={() => handleEdit("endereco")}
                 />
               </DisclosurePanel>
@@ -110,19 +66,22 @@ export default function CheckoutArea() {
           )}
         </Disclosure>
 
-        <Disclosure>
+        <Disclosure defaultOpen={step === "frete"}>
           {() => (
             <div className="shadow-[2px_12px_13px_2px_rgb(00,00,00,0.1)] rounded-xl">
-              <DisclosureButton className="rounded-xl px-6 py-4 bg-beige-primary w-full flex items-start">
+              <DisclosureButton 
+              className={`rounded-xl px-6 py-4 w-full flex items-start ${step === 'endereco' ? 'opacity-50 cursor-not-allowed' : 'bg-beige-primary'}`}
+              disabled={step === "endereco"}>
                 <h1 className="font-secondary text-brown-tertiary font-bold text-lg">Frete</h1>
               </DisclosureButton>
-              {step !== "endereco" && (
+              {(step === "frete" || step === "resumo") && (
                 <DisclosurePanel>
                   <FreteForm
-                    cep={formData.endereco.cep}
-                    data={formData.frete}
-                    onChange={(frete) => setFormData({ ...formData, frete })}
+                    cep={endereco.cep}
+                    data={frete}
+                    onChange={setFrete}
                     onNext={() => setStep("resumo")}
+                    disabled={step !== "frete"}
                     onEdit={() => handleEdit("frete")}
                   />
                 </DisclosurePanel>
@@ -131,18 +90,22 @@ export default function CheckoutArea() {
           )}
         </Disclosure>
 
-        <Disclosure>
+        <Disclosure defaultOpen={step === "resumo"}>
           {() => (
             <div className="shadow-[2px_12px_13px_2px_rgb(00,00,00,0.1)] rounded-xl">
-              <DisclosureButton className="rounded-xl px-6 py-4 bg-beige-primary w-full flex items-start">
+              <DisclosureButton 
+              className={`rounded-xl px-6 py-4 w-full flex items-start ${step !== 'resumo' ? 'opacity-50 cursor-not-allowed' : 'bg-beige-primary'}`}
+              disabled={step !== "resumo"}>
                 <h1 className="font-secondary text-brown-tertiary font-bold text-lg">Resumo Financeiro</h1>
               </DisclosureButton>
               {step === "resumo" && (
                 <DisclosurePanel>
                   <ResumoFinanceiro 
-                  data={formData} 
-                  box={box}
-                  checkoutData={checkoutData} />
+                    data={{ endereco, frete }}
+                    disabled={step !== "resumo"}
+                    box={box}
+                    checkoutData={checkoutData} 
+                  />
                 </DisclosurePanel>
               )}
             </div>

@@ -27,10 +27,10 @@ export default function Footer(){
                     </div>
                     <div className="flex flex-col w-full lg:w-5/12 items-start justify-between">
                         <div className="hidden lg:flex gap-4 pb-6">
-                            <a href="https://www.instagram.com/bierbox_/" className="apparence-none">
+                            <a href="https://www.instagram.com/bierbox_/" className="apparence-none" target="_blank" rel="noopener noreferrer">
                                 <Icon icon="ri:instagram-fill" className="text-beige-primary text-[38px]" aria-label="Siga a BierBox no Instagram"/>
                             </a>
-                            <a href="https://www.facebook.com/profile.php?id=61581163895373" className="apparence-none">
+                            <a href="https://www.facebook.com/profile.php?id=61581163895373" className="apparence-none" target="_blank" rel="noopener noreferrer">
                                 <Icon icon="uil:facebook" className="text-beige-primary text-[38px]" aria-label="Siga a BierBox no Facebook"/>
                             </a>
                         </div>
@@ -48,10 +48,10 @@ export default function Footer(){
                         <p className="leading-8 font-secondary text-beige-primary text-base font-semibold pr-2">
                             Siga nossas redes sociais:
                         </p>
-                        <a href="https://www.instagram.com/bierbox_/" className="apparence-none">
+                        <a href="https://www.instagram.com/bierbox_/" className="apparence-none" target="_blank" rel="noopener noreferrer">
                             <Icon icon="ri:instagram-fill" className="text-beige-primary text-[35px] mr-2" aria-label="Siga a BierBox no Instagram"/>
                         </a>
-                        <a href="https://www.facebook.com/profile.php?id=61581163895373" className="apparence-none">
+                        <a href="https://www.facebook.com/profile.php?id=61581163895373" className="apparence-none" target="_blank" rel="noopener noreferrer">
                             <Icon icon="uil:facebook" className="text-beige-primary text-[35px]" aria-label="Siga a BierBox no Facebook"/>
                         </a>
                     </div>

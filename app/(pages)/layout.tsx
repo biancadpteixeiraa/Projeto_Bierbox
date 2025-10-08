@@ -5,6 +5,7 @@ import { AuthProvider } from "../context/authContext";
 import { CarrinhoProvider } from "../context/cartContext";
 import { ToastContainer } from "react-toastify";
 import AgeConfirmationModal from "../components/common/age-modal";
+import { CheckoutProvider } from "../context/checkoutContext";
 
 
 const delaGothic = Dela_Gothic_One({
@@ -14,7 +15,7 @@ const delaGothic = Dela_Gothic_One({
 
 const montserrat = Montserrat({
   subsets: ['latin'],
-  weight: ["400", "500", "600", "700"],
+  weight: ["400", "500", "600", "700", "800"],
 });
 
 export default function RootLayout({
@@ -27,10 +28,12 @@ export default function RootLayout({
       <body className='antialiased bg-beige-primary text-brown-secodary'>
         <AuthProvider>
           <CarrinhoProvider>
-            <ToastContainer 
-            position="top-center"/>
-            {children}
-            <AgeConfirmationModal /> 
+            <CheckoutProvider>
+              <ToastContainer 
+              position="top-center"/>
+              {children}
+              <AgeConfirmationModal /> 
+            </CheckoutProvider>
           </CarrinhoProvider>
         </AuthProvider>
       </body>

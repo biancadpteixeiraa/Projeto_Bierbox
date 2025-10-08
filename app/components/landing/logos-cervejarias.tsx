@@ -35,7 +35,7 @@ export default function LogosCervejarias(){
             <h1 className="text-center text-lg font-primary pb-8 uppercase">
                 Conheça nossas empresas parceiras
             </h1>
-            <div className="flex items-center justify-center">
+            <div className="flex items-center justify-center" role="list">
                 <LogosCarousel slides={logos}/>
             </div>
         </div>

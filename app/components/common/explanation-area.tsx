@@ -10,19 +10,19 @@ export default function ExplanationArea(){
             </h1>
             <div className="max-w-8xl mx-auto flex flex-col lg:flex-row items-center gap-8 xl:gap-24 justify-center text-center pb-2">
                 <div className="flex flex-col items-center justify-center">
-                    <Icon icon="fluent:clipboard-task-list-ltr-24-regular" className="text-[85px]"/>
-                    <h2 className="text-base font-bold font-secondary pt-8 leading-5">Escolha o kit de sua <br /> preferência: Box com 3, 5 <br />ou 7 chopes/cervejas.</h2>
+                    <Icon icon="fluent:clipboard-task-list-ltr-24-regular" className="text-[85px]" aria-hidden="true"/>
+                    <h2 className="text-base font-bold font-secondary pt-8 leading-5">Escolha o kit de sua <br /> preferência: Box com 4 ou <br /> 6 chopes/cervejas.</h2>
                 </div>
-                <Icon icon="bitcoin-icons:arrow-right-filled" className="text-3xl mb-16 hidden lg:block"/>
-                <Icon icon="bitcoin-icons:arrow-down-filled" className="text-3xl block lg:hidden"/>
+                <Icon icon="bitcoin-icons:arrow-right-filled" className="text-3xl mb-16 hidden lg:block" aria-hidden="true"/>
+                <Icon icon="bitcoin-icons:arrow-down-filled" className="text-3xl block lg:hidden" aria-hidden="true"/>
                 <div className="flex flex-col items-center justify-center">
-                    <Icon icon="carbon:bottles-01" className="text-[85px]"/>
+                    <Icon icon="carbon:bottles-01" className="text-[85px]" aria-hidden="true"/>
                     <h2 className="text-base font-bold font-secondary pt-8 leading-5">Nós selecionamos os <br /> melhores e mais variados <br /> rótulos.</h2>
                 </div>
-                <Icon icon="bitcoin-icons:arrow-right-filled" className="text-3xl mb-16 hidden lg:block"/>
-                <Icon icon="bitcoin-icons:arrow-down-filled" className="text-3xl block lg:hidden"/>
+                <Icon icon="bitcoin-icons:arrow-right-filled" className="text-3xl mb-16 hidden lg:block" aria-hidden="true"/>
+                <Icon icon="bitcoin-icons:arrow-down-filled" className="text-3xl block lg:hidden" aria-hidden="true"/>
                 <div className="flex flex-col items-center justify-center">
-                    <Icon icon="la:shipping-fast" className="text-[85px]"/>
+                    <Icon icon="la:shipping-fast" className="text-[85px]" aria-hidden="true"/>
                     <h2 className="text-base font-bold font-secondary pt-8 leading-5">O box chega em sua casa <br /> todo mês com sabores <br /> novos e exclusivos.</h2>
                 </div>
             </div>

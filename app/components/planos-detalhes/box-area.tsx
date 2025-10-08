@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, usePathname, useRouter } from "next/navigation";
-import { ChevronDownIcon, Link } from "lucide-react";
+import { ChevronDownIcon } from "lucide-react";
 import { BoxGallery } from "../ui/box-gallery";
 import Button from "../ui/button";
 import { getBoxById } from "@/app/services/boxes";
@@ -11,6 +11,7 @@ import { useCarrinho } from "@/app/context/cartContext";
 import { toast } from "react-toastify";
 import { calculoFrete } from "@/app/services/frete";
 import { IMaskInput } from 'react-imask';
+import { BoxAreaSkeleton } from "../ui/skeletons";
 
 export default function BoxArea() {
   const [box, setBox] = useState<any>(null);
@@ -28,6 +29,20 @@ export default function BoxArea() {
 
   useEffect(() => {
     if (!id) return;
+
+    try {
+      const savedCheckout = localStorage.getItem("checkoutData");
+      if (savedCheckout) {
+        const parsed = JSON.parse(savedCheckout);
+        if (parsed.boxId === id) {
+          setPlano(parsed.plano);
+          setQuantidade(parsed.quantidade);
+        }
+      }
+    } catch (error) {
+      console.error("Erro ao ler checkoutData:", error);
+      localStorage.removeItem("checkoutData");
+    }
 
     getBoxById(id as string)
       .then((data) => {
@@ -87,32 +102,24 @@ export default function BoxArea() {
   };
 
   const handleComprarAgora = () => {
-  if (!isAuthenticated) {
-    toast.warning("Por favor, faça login para continuar a compra.");
-    localStorage.setItem("redirectAfterAuth", pathname);
-    router.push("/login");
-    return;
-  }
+    if (!isAuthenticated) {
+      toast.warning("Faça login para continuar.");
+      localStorage.setItem("redirectAfterAuth", pathname);
+      router.push("/login");
+      return;
+    }
 
-  if (!box) {
-    toast.warning("Box não carregada ainda.");
-    return;
-  }
-  if (!plano || !quantidade) {
-    toast.warning("Selecione o plano e a quantidade antes de continuar.");
-    return;
-  }
+    if (!box || !plano || !quantidade) {
+      toast.warning("Selecione o plano e a quantidade antes de continuar.");
+      return;
+    }
 
-  localStorage.setItem(
-    "checkoutData",
-    JSON.stringify({ boxId: box.id, plano, quantidade })
-  );
-
-  router.push("/checkout");
-};
+    localStorage.setItem("checkoutData", JSON.stringify({ boxId: box.id, plano, quantidade }));
+    router.push("/checkout");
+  };
 
 
-  if (!box) return <p className="text-center py-10">Carregando box...</p>;
+  if (!box) return <BoxAreaSkeleton />;
 
   return (
     <div className="max-w-6xl mx-auto flex flex-col md:flex-row pt-20 pb-14 lg:gap-12 px-0 md:px-5">

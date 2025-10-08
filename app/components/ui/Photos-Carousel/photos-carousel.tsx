@@ -16,12 +16,12 @@ export default function PhotosCarousel({
   const [emblaRef] = useEmblaCarousel({ loop: false, align: 'start' })
 
   return (
-    <div {...props} className={cn("embla relative w-full", className)}>
+    <div {...props} className={cn("photos-carousel-root embla relative w-full", className)} role="region" aria-label="Carrossel de Postagens do Instagram">
       <div className="embla__viewport" ref={emblaRef}>
-        <div className="embla__container">
+        <div className="embla__container" role="feed">
           {Array.isArray(children)
             ? children.map((child, index) => (
-                <div key={index} className="embla__slide">
+                <div key={index} className="embla__slide" role="listitem">
                   {child}
                 </div>
               ))

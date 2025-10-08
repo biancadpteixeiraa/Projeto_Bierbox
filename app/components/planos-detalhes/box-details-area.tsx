@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { getBoxById } from "@/app/services/boxes";
-import { useAuth } from "@/app/context/authContext";
+import { BoxDetailsSkeleton } from "../ui/skeletons";
 
 export default function BoxDetails() {
   const [box, setBox] = useState<any>(null);
@@ -23,7 +23,7 @@ export default function BoxDetails() {
   }, [id]);
 
 
-  if (!box) return <p className="text-center py-10">Carregando detalhes...</p>;
+  if (!box) return <BoxDetailsSkeleton />;
 
   return (
     <div className="max-w-6xl mx-auto px-5">

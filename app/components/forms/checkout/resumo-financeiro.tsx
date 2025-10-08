@@ -101,7 +101,7 @@ export default function ResumoFinanceiro({
       <h1 className="hidden lg:block font-secondary text-brown-tertiary font-bold text-lg pb-5">
         Resumo Financeiro
       </h1>
-      <CheckoutCard className="h-[440px] justify-between">
+      <CheckoutCard disabled={disabled} className="h-[440px] justify-between">
         <div className="flex flex-col gap-6">
           <div className="flex items-start gap-3">
             <img src={box?.imagens[2]} alt="imagem da box" 

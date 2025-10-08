@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 
 type BoxGalleryProps = {
   images: string[];
@@ -42,7 +42,7 @@ export function BoxGallery({ images }: BoxGalleryProps) {
       {/* imagem grande com setas */}
       <div className="relative w-full">
         <img
-          className="w-full md:max-w-[600px] h-full rounded-lg object-fill object-center"
+          className="w-full md:max-w-[600px] h-full rounded-lg object-cover object-center"
           src={images[activeIndex]}
           alt={`gallery-main-${activeIndex}`}
         />
@@ -50,17 +50,17 @@ export function BoxGallery({ images }: BoxGalleryProps) {
         {/* Botão esquerda */}
         <button
           onClick={prevImage}
-          className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white p-2 rounded-full"
+          className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white p-1 rounded-full"
         >
-          <ChevronLeft size={24} />
+          <ArrowLeft size={24}/>
         </button>
 
         {/* Botão direita */}
         <button
           onClick={nextImage}
-          className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white p-2 rounded-full"
+          className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white p-1 rounded-full"
         >
-          <ChevronRight size={24} />
+          <ArrowRight size={24}/>
         </button>
       </div>
     </div>

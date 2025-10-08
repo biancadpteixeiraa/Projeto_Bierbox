@@ -25,7 +25,7 @@ export default function PlansCards({
         []);
 
     return(
-        <div className="max-w-6xl mx-auto flex flex-col px-6 py-14 lg:pt-20 text-brown-primary lg:relative lg:z-10">
+        <div id="planos" className="max-w-6xl mx-auto flex flex-col px-6 py-14 lg:pt-20 text-brown-primary lg:relative lg:z-10">
             <h1 className="text-center text-lg font-primary pb-14 uppercase">
                 {label}
             </h1>
@@ -35,10 +35,10 @@ export default function PlansCards({
                     boxes.map((box)=>(
                         <Card className="max-w-96 p-4 bg-white rounded-md"
                         key={box.id}>
-                            <h1 className="uppercase text-xl font-secondary font-semibold pb-2 transition-all duration-300 group-hover:text-2xl">
+                            <h1 className="uppercase text-xl font-secondary font-semibold pb-2 transition-all duration-300">
                                 {box.nome}
                             </h1>
-                            <p className="uppercase text-xs font-secondary font-medium pb-6 transition-all duration-300 group-hover:text-sm"> 
+                            <p className="uppercase text-xs font-secondary font-medium pb-6 transition-all duration-300"> 
                                 cerveja artesanal
                             </p>
                             <Link 

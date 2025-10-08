@@ -90,7 +90,7 @@ const handleCalcularFrete = async () => {
           Editar
         </button>
       </div>
-      <CheckoutCard className="h-[440px] justify-between">
+      <CheckoutCard disabled={disabled} className="h-[440px] justify-between">
         <div className="flex flex-col gap-8 pb-14">
             <div className="flex flex-col items-start justify-center">
             <label htmlFor="cepFrete" className="text-brown-tertiary font-semibold">Informe seu CEP:</label>

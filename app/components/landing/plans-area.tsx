@@ -31,17 +31,18 @@ export default function PlansArea(){
                     boxes.map((box)=>(
                         <Card className="w-56 max-h-72"
                         key={box.id}>
-                            <h1 className="text-2xl font-primary pb-4 transition-all duration-300 group-hover:text-3xl">
+                            <h2 className="text-2xl font-primary pb-4 transition-all duration-300 ">
                                 {box.nome}
-                            </h1>
-                            <p className="text-lg font-secondary font-bold pb-1 transition-all duration-300 group-hover:text-xl">
+                            </h2>
+                            <p className="text-lg font-secondary font-bold pb-1 transition-all duration-300 ">
                                 R${box.preco_anual_4_un}/ANO
                             </p>
-                            <p className="text-base font-secondary font-semibold pb-6 transition-all duration-300 group-hover:text-lg">
+                            <p className="text-base font-secondary font-semibold pb-6 transition-all duration-300">
                                 R${box.preco_mensal_4_un}/MÊS
                             </p>
                             <Link 
                                 href={`/planos/${box.id}`}
+                                aria-label={`Ver detalhes e assinar o plano ${box.nome}`}
                             >
                                 <Button variant="secondary" className="w-full font-semibold py-2">
                                     Eu quero!

@@ -17,10 +17,11 @@ export default function BierwegArea(){
                 <div className="w-full aspect-video rounded-2xl overflow-hidden">
                 <iframe
                     className="w-full h-full"
-                    src="/Beer_Cup_Video.mp4"
-                    title="YouTube video player"
+                    src="/BierWeg, a Rota da Cerveja.mp4"
+                    title="Vídeo de apresentação da Rota da Cerveja de Guarapuava"
                     allow="autoplay; encrypted-media"
                     allowFullScreen
+                    
                 />
                 </div>
             </div>

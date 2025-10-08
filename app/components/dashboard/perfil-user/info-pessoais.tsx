@@ -14,6 +14,7 @@ import {
 } from "@/app/services/user";
 import UserAvatar from "./user-avatar";
 import DeleteUser from "./delete-user";
+import { UserInfoSkeleton } from "../../ui/skeletons";
 
 interface User {
   foto_perfil_url?: string;
@@ -138,7 +139,7 @@ export default function InfoPessoais() {
    }
   };
 
-  if (loading) return <p className="p-14">Carregando...</p>;
+  if (loading) return <UserInfoSkeleton />;
 
   return (
    <div className="pl-8 lg:pl-12 h-full flex flex-col max-w-screen-2xl">
@@ -195,7 +196,7 @@ export default function InfoPessoais() {
        <DeleteUser onDelete={openModal} />
      </div>
     </div>
-    <Modal isOpen={modalOpen} onClose={closeModal} onConfirm={handleDeleteUser} />
+    <Modal title="Deseja excluir sua conta?" description="Ao excluir, todos os dados e informações serão apagados do sistema." isOpen={modalOpen} onClose={closeModal} onConfirm={handleDeleteUser} />
    </div>
   );
 }

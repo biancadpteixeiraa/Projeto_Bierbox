@@ -14,12 +14,12 @@ export default function FAQ() {
       id: 2,
       pergunta: "Como funciona a assinatura?",
       resposta:
-        "Você escolhe seu plano, seleciona os chopes e recebe em casa todo mês sem preocupação.",
+        "Você escolhe seu plano, seleciona a quantidade de chopes e recebe em casa todo mês sem preocupação.",
     },
     {
       id: 3,
       pergunta: "Posso cancelar quando quiser?",
-      resposta: "Sim, você pode cancelar sua assinatura a qualquer momento sem taxas extras.",
+      resposta: "Sim, você pode cancelar sua assinatura a qualquer momento com uma taxa extra.",
     },
     {
       id: 4,
@@ -44,17 +44,20 @@ export default function FAQ() {
               key={pergunta.id}
               className="border-2 border-brown-tertiary rounded-xl my-4"
             >
-              <Disclosure>
+              <Disclosure as="div">
                 {({ open }) => (
                   <div>
-                    <DisclosureButton className="py-3 w-full text-start px-6 flex items-center justify-between">
-                      {pergunta.pergunta}
-                      <ChevronDownIcon
-                        className={`size-7 text-brown-primary transition-transform duration-300 ${
-                          open ? "rotate-180" : ""
-                        }`}
-                      />
-                    </DisclosureButton>
+                    <h2>
+                      <DisclosureButton className="py-3 w-full text-start px-6 flex items-center justify-between">
+                        {pergunta.pergunta}
+                        <ChevronDownIcon
+                          aria-hidden="true"
+                          className={`size-7 text-brown-primary transition-transform duration-300 ${
+                            open ? "rotate-180" : ""
+                          }`}
+                        />
+                      </DisclosureButton>
+                    </h2>
                     <DisclosurePanel className="text-brown-tertiary font-medium font-secondary px-6 pt-3 pb-6">
                       {pergunta.resposta}
                     </DisclosurePanel>
@@ -65,7 +68,7 @@ export default function FAQ() {
           ))}
         </div>
         <div className="flex items-center justify-end w-full lg:w-1/2">
-          <img src="/faq.png" alt="" className="md:size-[500px] size-auto" />
+          <img src="/faq.png" alt="Ilustração de duas pessoas olhando um grande ponto de interrogação" className="md:size-[500px] size-auto" />
         </div>
       </div>
     </div>

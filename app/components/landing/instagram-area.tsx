@@ -16,6 +16,7 @@ interface InstagramPhoto {
 export default function InstagramArea() {
   const [photos, setPhotos] = useState<InstagramPhoto[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     const loadPhotos = async () => {
@@ -64,8 +65,10 @@ export default function InstagramArea() {
 
           setPhotos([...data.photos, ...mocks]);
         }
+        setError(false);
       } catch (err) {
         console.error("Erro ao carregar fotos do Instagram:", err);
+        setError(true);
       } finally {
         setLoading(false);
       }
@@ -75,10 +78,10 @@ export default function InstagramArea() {
   }, []);
 
   return (
-    <div className="max-w-6xl mx-auto flex flex-col items-start pl-14 pr-0 lg:px-16 pb-24 pt-24 font-primary text-brown-primary">
+    <div className="max-w-6xl mx-auto flex flex-col items-start pl-14 pr-0 md:px-16 pb-24 pt-24 font-primary text-brown-primary">
       <h1 className="text-xl pb-12 lg:pr-0 pr-14 lg:text-start text-center">Siga a gente no Instagram!</h1> 
 
-      {loading ? (
+      {loading || error ? (
         <InstagramPhotosSkeleton/>
       ) : (
         <PhotosCarousel className="w-full">
@@ -88,19 +91,20 @@ export default function InstagramArea() {
                 href={photo.permalink}
                 target="_blank"
                 rel="noopener noreferrer"
+                aria-label={`Ver postagem original no Instagram (ID: ${photo.id})`} 
               >
                 {photo.media_type === "IMAGE" && (
                   <img
                     src={photo.media_url}
-                    alt={`Foto ${photo.id}`}
-                    className="object-cover size-56 rounded-lg lg:size-72"
+                    alt={`Postagem de imagem da BierBox no Instagram`}
+                    className="object-cover size-56 rounded-lg !lg:size-auto"
                   />
                 )}
                 {photo.media_type === "VIDEO" && (
                   <img
                     src={photo.thumbnail_url}
-                    alt={`Vídeo ${photo.id}`}
-                    className="object-cover size-56 rounded-lg lg:size-72"
+                    alt={`Postagem de vídeo da BierBox no Instagram`}
+                    className="object-cover size-56 rounded-lg !lg:size-auto"
                   />
                 )}
               </a>

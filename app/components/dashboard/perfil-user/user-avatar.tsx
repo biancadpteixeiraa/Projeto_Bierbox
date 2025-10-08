@@ -49,7 +49,7 @@ export default function UserAvatar({
   return (
     <div className="relative size-36 flex flex-col items-center">
       {imgLoading && !imgError && (
-        <div className="absolute inset-0 flex items-center justify-center rounded-full border bg-gray-100">
+        <div className="absolute inset-0 flex items-center justify-center rounded-full border bg-gray-100 h-36 w-36">
           <span className="animate-spin rounded-full border-4 border-brown-primary border-t-transparent size-8" />
         </div>
       )}
