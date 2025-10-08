@@ -172,6 +172,10 @@ const adminCreateBox = async (req, res) => {
     preco_anual_6_un,
     ativo,
     imagem_principal_url,
+    imagem_url_2,
+    imagem_url_3,
+    imagem_url_4,
+    imagem_url_5,
   } = req.body;
 
   if (!nome || !preco_mensal_4_un) {
@@ -186,8 +190,9 @@ const adminCreateBox = async (req, res) => {
       `INSERT INTO boxes (
         nome, descricao_curta, descricao_longa, especificacao,
         preco_mensal_4_un, preco_anual_4_un, preco_mensal_6_un,
-        preco_anual_6_un, ativo, imagem_principal_url
-      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *`,
+        preco_anual_6_un, ativo, imagem_principal_url,
+        imagem_url_2, imagem_url_3, imagem_url_4, imagem_url_5
+      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING *`,
       [
         nome,
         descricao_curta,
@@ -199,6 +204,10 @@ const adminCreateBox = async (req, res) => {
         preco_anual_6_un,
         ativo === false ? false : true,
         imagem_principal_url,
+        imagem_url_2,
+        imagem_url_3,
+        imagem_url_4,
+        imagem_url_5,
       ]
     );
 
@@ -225,6 +234,10 @@ const adminUpdateBox = async (req, res) => {
     preco_anual_6_un,
     ativo,
     imagem_principal_url,
+    imagem_url_2,
+    imagem_url_3,
+    imagem_url_4,
+    imagem_url_5,
   } = req.body;
 
   try {
@@ -232,8 +245,9 @@ const adminUpdateBox = async (req, res) => {
       `UPDATE boxes SET
         nome=$1, descricao_curta=$2, descricao_longa=$3, especificacao=$4,
         preco_mensal_4_un=$5, preco_anual_4_un=$6, preco_mensal_6_un=$7,
-        preco_anual_6_un=$8, ativo=$9, imagem_principal_url=$10, data_atualizacao=NOW()
-      WHERE id=$11 RETURNING *`,
+        preco_anual_6_un=$8, ativo=$9, imagem_principal_url=$10,
+        imagem_url_2=$11, imagem_url_3=$12, imagem_url_4=$13, imagem_url_5=$14, data_atualizacao=NOW()
+      WHERE id=$15 RETURNING *`,
       [
         nome,
         descricao_curta,
@@ -245,6 +259,10 @@ const adminUpdateBox = async (req, res) => {
         preco_anual_6_un,
         ativo,
         imagem_principal_url,
+        imagem_url_2,
+        imagem_url_3,
+        imagem_url_4,
+        imagem_url_5,
         id,
       ]
     );
@@ -498,7 +516,6 @@ const adminGetAssinaturaById = async (req, res) => {
                 u.nome_completo AS cliente_nome,
                 u.email AS cliente_email,
                 b.nome AS box_nome,
-                a.plano_id AS tipo_plano,
                 a.valor_assinatura AS valor_box,
                 a.data_inicio,
                 a.status,
@@ -524,6 +541,7 @@ const adminGetAssinaturaById = async (req, res) => {
         }
 
         const assinaturaDetalhes = assinaturaResult.rows[0];
+
 
         const historicoPagamentosResult = await pool.query(
             `SELECT criado_em AS data_pagamento, valor_total, status_pedido

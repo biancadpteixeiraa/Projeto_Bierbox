@@ -15,7 +15,7 @@ const {
     adminGetAllAssinaturas, 
     adminGetAssinaturaById, 
     adminCancelAssinatura, 
-    adminPauseAssinatura, 
+    adminPauseAssinatura,
     adminReactivateAssinatura 
 } = require('../controllers/adminController'); 
 
@@ -33,7 +33,6 @@ router.get('/users/:id', protect, adminProtect, adminGetUserById);
 router.get('/pedidos', protect, adminProtect, adminGetAllPedidos); 
 router.get('/pedidos/:id', protect, adminProtect, adminGetPedidoById); 
 router.put('/pedidos/:id', protect, adminProtect, adminUpdatePedido);
-
 router.get('/assinaturas', protect, adminProtect, adminGetAllAssinaturas);
 router.get('/assinaturas/:id', protect, adminProtect, adminGetAssinaturaById);
 router.put('/assinaturas/:id/cancelar', protect, adminProtect, adminCancelAssinatura);
