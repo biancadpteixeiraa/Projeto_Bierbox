@@ -223,53 +223,41 @@ const adminCreateBox = async (req, res) => {
 // @access Admin
 const adminUpdateBox = async (req, res) => {
   const { id } = req.params;
-  const {
-    nome,
-    descricao_curta,
-    descricao_longa,
-    especificacao,
-    preco_mensal_4_un,
-    preco_anual_4_un,
-    preco_mensal_6_un,
-    preco_anual_6_un,
-    ativo,
-    imagem_principal_url,
-    imagem_url_2,
-    imagem_url_3,
-    imagem_url_4,
-    imagem_url_5,
-  } = req.body;
+  const fieldsToUpdate = req.body;
 
   try {
-    const updatedBox = await pool.query(
-      `UPDATE boxes SET
-        nome=$1, descricao_curta=$2, descricao_longa=$3, especificacao=$4,
-        preco_mensal_4_un=$5, preco_anual_4_un=$6, preco_mensal_6_un=$7,
-        preco_anual_6_un=$8, ativo=$9, imagem_principal_url=$10,
-        imagem_url_2=$11, imagem_url_3=$12, imagem_url_4=$13, imagem_url_5=$14, data_atualizacao=NOW()
-      WHERE id=$15 RETURNING *`,
-      [
-        nome,
-        descricao_curta,
-        descricao_longa,
-        especificacao,
-        preco_mensal_4_un,
-        preco_anual_4_un,
-        preco_mensal_6_un,
-        preco_anual_6_un,
-        ativo,
-        imagem_principal_url,
-        imagem_url_2,
-        imagem_url_3,
-        imagem_url_4,
-        imagem_url_5,
-        id,
-      ]
-    );
-
-    if (updatedBox.rowCount === 0) {
+    const existingBox = await pool.query("SELECT * FROM boxes WHERE id = $1", [id]);
+    if (existingBox.rows.length === 0) {
       return res.status(404).json({ success: false, message: "Box não encontrada." });
     }
+
+    const queryFields = [];
+    const queryParams = [];
+    let paramIndex = 1;
+
+
+    for (const key in fieldsToUpdate) {
+     
+      if (fieldsToUpdate.hasOwnProperty(key) && key !== 'id') {
+        queryFields.push(`${key} = $${paramIndex++}`);
+        queryParams.push(fieldsToUpdate[key]);
+      }
+    }
+
+    if (queryFields.length === 0) {
+      return res.status(400).json({ success: false, message: "Nenhum campo fornecido para atualização." });
+    }
+
+    queryParams.push(id);
+
+    const updateQuery = `
+      UPDATE boxes
+      SET ${queryFields.join(', ')}, data_atualizacao = NOW()
+      WHERE id = $${paramIndex}
+      RETURNING *
+    `;
+
+    const updatedBox = await pool.query(updateQuery, queryParams);
 
     res.status(200).json({ success: true, message: "Box atualizada com sucesso!", data: updatedBox.rows[0] });
   } catch (error) {
