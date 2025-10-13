@@ -16,6 +16,9 @@ const adminRoutes = require('./routes/adminRoutes');
 
 const app = express();
 
+console.log("🚀 DATABASE_URL encontrada?", process.env.DATABASE_URL ? "SIM" : "NÃO");
+console.log("📌 Valor da DATABASE_URL:", process.env.DATABASE_URL);
+
 app.use(cors({
   origin: "*",
 }));
