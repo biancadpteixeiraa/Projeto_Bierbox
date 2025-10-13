@@ -2,13 +2,6 @@ const pool = require("../config/db");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
-// Função para gerar token JWT
-const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: "30d",
-  });
-};
-
 // @desc Autenticar um administrador
 // @route POST /api/admin/login
 // @access Público
@@ -289,6 +282,73 @@ const adminDeleteBox = async (req, res) => {
     }
 
     console.error("Erro ao deletar box (Admin):", error);
+    res.status(500).json({ success: false, message: "Erro interno do servidor." });
+  }
+};
+
+// @desc [Admin] Upload de imagem de box
+// @route POST /api/admin/boxes/:id/upload
+// @access Admin
+const adminUploadBoxImage = async (req, res) => {
+  const { id } = req.params;
+  const { field } = req.body; // campo da box que será atualizado: imagem_principal_url, imagem_url_2, etc.
+
+  if (!req.file) {
+    return res.status(400).json({ success: false, message: "Nenhum arquivo enviado." });
+  }
+
+  if (!field) {
+    return res.status(400).json({ success: false, message: "Campo da imagem não informado." });
+  }
+
+  const allowedFields = [
+    "imagem_principal_url",
+    "imagem_url_2",
+    "imagem_url_3",
+    "imagem_url_4",
+    "imagem_url_5",
+  ];
+
+  if (!allowedFields.includes(field)) {
+    return res.status(400).json({ success: false, message: "Campo de imagem inválido." });
+  }
+
+  try {
+    const boxResult = await pool.query("SELECT * FROM boxes WHERE id = $1", [id]);
+    if (boxResult.rows.length === 0) {
+      return res.status(404).json({ success: false, message: "Box não encontrada." });
+    }
+
+    const streamUpload = (req) => {
+      return new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+          { folder: "bierbox_boxes" },
+          (error, result) => {
+            if (result) resolve(result);
+            else reject(error);
+          }
+        );
+        streamifier.createReadStream(req.file.buffer).pipe(stream);
+      });
+    };
+
+    const result = await streamUpload(req);
+
+    const updateQuery = `
+      UPDATE boxes
+      SET ${field} = $1, data_atualizacao = NOW()
+      WHERE id = $2
+      RETURNING *
+    `;
+    const updatedBox = await pool.query(updateQuery, [result.secure_url, id]);
+
+    res.status(200).json({
+      success: true,
+      message: "Imagem da box atualizada com sucesso!",
+      data: updatedBox.rows[0],
+    });
+  } catch (error) {
+    console.error("Erro ao fazer upload da imagem da box (Admin):", error);
     res.status(500).json({ success: false, message: "Erro interno do servidor." });
   }
 };
@@ -670,4 +730,5 @@ module.exports = {
   adminCancelAssinatura,
   adminPauseAssinatura,
   adminReactivateAssinatura,
+  adminUploadBoxImage,
 };

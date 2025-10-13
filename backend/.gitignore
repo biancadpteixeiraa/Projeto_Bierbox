@@ -1,6 +1,5 @@
 # Ignorar dependências
 node_modules/
-
 # Ignorar builds do Next.js (se algum dia aparecer no backend)
 .next/
 
