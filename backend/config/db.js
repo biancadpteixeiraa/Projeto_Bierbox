@@ -3,8 +3,9 @@ require('dotenv').config();
 
 let pool;
 
+
 if (process.env.DATABASE_URL) {
-  // Se estiver no ambiente de produção (Render), use a DATABASE_URL
+  console.log("✅ Usando DATABASE_URL:", process.env.DATABASE_URL); // <-- ADICIONE ISSO
   pool = new Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: {
@@ -12,7 +13,7 @@ if (process.env.DATABASE_URL) {
     }
   });
 } else {
-  // Se estiver no ambiente local, use as variáveis do .env
+  console.log("⚠️ DATABASE_URL não encontrada! Usando conexão local.");
   pool = new Pool({
     user: process.env.DB_USER,
     host: process.env.DB_HOST,
@@ -21,5 +22,6 @@ if (process.env.DATABASE_URL) {
     port: process.env.DB_PORT,
   });
 }
+
 
 module.exports = pool;
