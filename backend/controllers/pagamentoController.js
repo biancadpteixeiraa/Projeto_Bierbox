@@ -1,4 +1,4 @@
-const { MercadoPagoConfig, Preference, Payment, Subscription } = require("mercadopago");
+const { MercadoPagoConfig, Preference, Payment } = require("mercadopago");
 const pool = require("../config/db");
 const { validate: isUuid } = require("uuid");
 
@@ -49,7 +49,7 @@ const criarAssinatura = async (req, res) => {
         );
         const assinaturaId = novaAssinatura.rows[0].id; 
 
-        const subscriptionClient = new Subscription(client);
+        const subscriptionClient = new client.preapproval();
         const subscriptionBody = {
             reason: titulo_plano,
             payer_email: userEmail,
@@ -129,7 +129,7 @@ const receberWebhook = async (req, res) => {
             }
         } else if (type === "preapproval") {
             // Lógica para webhooks de Assinatura (Preapproval)
-            const subscriptionClient = new Subscription(client);
+            const subscriptionClient = new client.preapproval();
             const subscriptionDetails = await subscriptionClient.get({ id: data.id });
 
             console.log("🔍 Detalhes da Assinatura (Webhook Preapproval):", subscriptionDetails);
