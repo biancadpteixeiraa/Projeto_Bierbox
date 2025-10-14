@@ -83,7 +83,7 @@ const criarAssinatura = async (req, res) => {
         transaction_amount: Number(valor_total_recorrente),
         currency_id: "BRL"
     },
-    notification_url: `${baseUrl}/api/pagamentos/webhook`
+    notification_url: `https://projeto-bierbox.onrender.com/api/pagamentos/webhook`
     };
 
 
