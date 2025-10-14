@@ -3,10 +3,14 @@ const router = express.Router();
 const pagamentoController = require('../controllers/pagamentoController');
 const { protect } = require('../middleware/authMiddleware');
 
-// Criar preferência (primeira compra)
+// ===================== CRIAR PREFERÊNCIA =====================
+// Cria uma preferência de pagamento para o usuário
+// 🔹 Mantido protegido com login (Bearer Token)
 router.post('/criar-preferencia', protect, pagamentoController.criarPreferencia);
 
-// Webhook Mercado Pago
+// ===================== WEBHOOK =====================
+// Recebe notificações do Mercado Pago sobre pagamentos
+// 🔹 Público, não precisa de autenticação
 router.post('/webhook', pagamentoController.receberWebhook);
 
 module.exports = router;
