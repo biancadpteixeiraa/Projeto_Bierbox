@@ -74,11 +74,8 @@ const criarAssinatura = async (req, res) => {
 
     const subscriptionBody = {
     reason: titulo_plano,
-    payer: {
-        email: payerEmail
-    },
+    payer_email: payerEmail, // ← campo direto, não dentro de "payer"
     external_reference: assinaturaId,
-    status: "pending",
     auto_recurring: {
         frequency: plano_id === "PLANO_MENSAL" ? 1 : 12,
         frequency_type: "months",
