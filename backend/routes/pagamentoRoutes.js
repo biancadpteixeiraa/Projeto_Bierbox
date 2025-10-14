@@ -3,10 +3,10 @@ const router = express.Router();
 const pagamentoController = require('../controllers/pagamentoController');
 const { protect } = require('../middleware/authMiddleware');
 
-// @route   POST /api/pagamentos/criar-preferencia
+// @route   POST /api/pagamentos/criar-assinatura
 // @desc    Criar uma preferência de pagamento
 // @access  Privado (precisa de login)
-router.post('/criar-preferencia', protect, pagamentoController.criarPreferencia);
+router.post('/criar-assinatura', protect, pagamentoController.criarAssinatura);
 
 // @route   POST /api/pagamentos/webhook
 // @desc    Receber notificações do Mercado Pago
