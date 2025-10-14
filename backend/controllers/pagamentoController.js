@@ -62,24 +62,30 @@ const criarAssinatura = async (req, res) => {
     // 2) monta o body para PreApproval (assinatura recorrente)
     const baseUrl = getBaseUrl();
     if (!baseUrl.startsWith("http")) {
-      console.error("BASE_URL inválida:", baseUrl);
-      return res.status(500).json({ message: "Configuração de BASE_URL inválida no servidor." });
+    console.error("BASE_URL inválida:", baseUrl);
+    return res.status(500).json({ message: "Configuração de BASE_URL inválida no servidor." });
     }
 
+    // Detecta se está usando token de teste
+    const isTestEnv = mpAccessToken === process.env.MP_ACCESS_TOKEN_TEST;
+
+    // Define email do pagador conforme ambiente
+    const payerEmail = isTestEnv ? "test_user_2695420795@testuser.com" : userEmail;
+
     const subscriptionBody = {
-      reason: titulo_plano,
-      payer_email: userEmail,
-      back_url: `https://projeto-bierbox.onrender.com/checkout/assinatura-status`,
-      external_reference: assinaturaId,
-      auto_recurring: {
+    reason: titulo_plano,
+    payer_email: payerEmail,
+    back_url: `https://projeto-bierbox.onrender.com/checkout/assinatura-status`,
+    external_reference: assinaturaId,
+    auto_recurring: {
         frequency: plano_id === "PLANO_MENSAL" ? 1 : 12,
         frequency_type: "months",
         transaction_amount: Number(valor_total_recorrente),
         currency_id: "BRL"
-      },
-      // opcional: adicione notification_url caso queira receber eventos específicos para preapproval (verificar painel MP)
-      notification_url: `${baseUrl}/api/pagamentos/webhook`
+    },
+    notification_url: `${baseUrl}/api/pagamentos/webhook`
     };
+
 
     // 3) cria a assinatura no Mercado Pago via PreApproval
     const subscriptionClient = new PreApproval(client);
