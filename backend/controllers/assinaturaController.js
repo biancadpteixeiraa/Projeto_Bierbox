@@ -15,7 +15,7 @@ const assinaturaController = {
                         ELSE a.valor_assinatura
                     END AS box_preco,
                     p.status_pedido AS ultimo_status_pedido, p.codigo_rastreio AS ultimo_codigo_rastreio,
-                    e.rua AS endereco_rua, e.numero AS endereco_numero, e.complemento AS endereco_complemento,
+                    e.id AS endereco_id, e.rua AS endereco_rua, e.numero AS endereco_numero, e.complemento AS endereco_complemento,
                     e.bairro AS endereco_bairro, e.cidade AS endereco_cidade, e.estado AS endereco_estado, e.cep AS endereco_cep,
                     a.forma_pagamento
                 FROM assinaturas a
@@ -42,7 +42,7 @@ const assinaturaController = {
             if (!isUuid(id)) {
                 return res.status(400).json({ success: false, message: "ID de assinatura inválido." });
             }
-            const result = await pool.query(
+                        const result = await pool.query(
                 `SELECT 
                     a.id, a.plano_id, a.status, a.data_inicio, a.data_cancelamento, a.id_assinatura_mp,
                     a.valor_assinatura, a.valor_frete, a.box_id, b.nome AS box_nome, b.imagem_principal_url AS box_imagem_url,
@@ -52,7 +52,7 @@ const assinaturaController = {
                         ELSE a.valor_assinatura
                     END AS box_preco,
                     p.status_pedido AS ultimo_status_pedido, p.codigo_rastreio AS ultimo_codigo_rastreio,
-                    e.rua AS endereco_rua, e.numero AS endereco_numero, e.complemento AS endereco_complemento,
+                    e.id AS endereco_id, e.rua AS endereco_rua, e.numero AS endereco_numero, e.complemento AS endereco_complemento,
                     e.bairro AS endereco_bairro, e.cidade AS endereco_cidade, e.estado AS endereco_estado, e.cep AS endereco_cep,
                     a.forma_pagamento
                 FROM assinaturas a
