@@ -3,10 +3,10 @@ const router = express.Router();
 const pagamentoController = require('../controllers/pagamentoController');
 const { protect } = require('../middleware/authMiddleware');
 
-// ====================== PRIMEIRA COMPRA ======================
+// Criar preferência (primeira compra)
 router.post('/criar-preferencia', protect, pagamentoController.criarPreferencia);
 
-// ====================== WEBHOOK ======================
+// Webhook Mercado Pago
 router.post('/webhook', pagamentoController.receberWebhook);
 
 module.exports = router;

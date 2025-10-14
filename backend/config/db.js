@@ -1,5 +1,6 @@
 const { Pool } = require('pg');
 require('dotenv').config();
+require('./cron/recorrencia');
 
 let pool;
 
