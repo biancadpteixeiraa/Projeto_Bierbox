@@ -52,7 +52,7 @@ const criarAssinaturaRecorrente = async (req, res) => {
     const subscriptionBody = {
       reason: titulo_plano,
       payer_email: payerEmail,
-      back_url: `${process.env.BASE_URL}/checkout/assinatura-status`,
+      back_url: "https://projeto-bierbox.onrender.com/checkout/assinatura-status",
       external_reference: assinaturaId,
       auto_recurring: {
         frequency: plano_id === "PLANO_MENSAL" ? 1 : 12,
