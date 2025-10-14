@@ -1,4 +1,4 @@
-const { MercadoPagoConfig, Preference, Payment } = require("mercadopago");
+const { MercadoPagoConfig, CustomerCard, Payment } = require("mercadopago");
 const pool = require("../config/db");
 const { validate: isUuid } = require("uuid");
 
@@ -6,9 +6,10 @@ const client = new MercadoPagoConfig({
     accessToken: process.env.MP_ACCESS_TOKEN_TEST,
 });
 
-const criarPreferencia = async (req, res) => {
+// ====================== PRIMEIRA COMPRA (gera link e captura token se cartão) ======================
+const criarPagamentoPrimeiraCompra = async (req, res) => {
     try {
-        const { plano_id, endereco_entrega_id, valor_frete, box_id } = req.body;
+        const { plano_id, endereco_entrega_id, valor_frete, box_id, card_token } = req.body;
         const utilizadorId = req.userId;
 
         if (!isUuid(endereco_entrega_id) || (box_id && !isUuid(box_id))) {
@@ -27,67 +28,93 @@ const criarPreferencia = async (req, res) => {
         const userName = userResult.rows[0].nome_completo;
 
         let preco_plano;
-        let titulo_plano;
-
-        if (plano_id === "PLANO_MENSAL") {
-            preco_plano = 80.00;
-            titulo_plano = "BierBox - Assinatura Mensal";
-        } else if (plano_id === "PLANO_ANUAL") {
-            preco_plano = 70.00;
-            titulo_plano = "BierBox - Assinatura Anual";
-        } else {
-            return res.status(400).json({ message: "plano_id inválido." });
-        }
+        if (plano_id === "PLANO_MENSAL") preco_plano = 80.00;
+        else if (plano_id === "PLANO_ANUAL") preco_plano = 70.00;
+        else return res.status(400).json({ message: "plano_id inválido." });
 
         const valor_total = preco_plano + parseFloat(valor_frete);
 
+        // cria assinatura
         const novaAssinatura = await pool.query(
             "INSERT INTO assinaturas (utilizador_id, plano_id, status, endereco_entrega_id, valor_frete, valor_assinatura, box_id, data_inicio, criado_em, atualizado_em) VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW(), NOW()) RETURNING id",
             [utilizadorId, plano_id, "PENDENTE", endereco_entrega_id, valor_frete, preco_plano, box_id]
         );
         const assinaturaId = novaAssinatura.rows[0].id; 
 
-        const preference = new Preference(client);
-        const preferenceBody = {
-            items: [
-                {
-                    id: plano_id,
-                    title: titulo_plano,
-                    description: "Assinatura do clube de cervejas BierBox",
-                    quantity: 1,
-                    unit_price: valor_total,
-                    currency_id: "BRL",
-                },
-            ],
-            payer: {
-                email: userEmail,
-                name: userName,
-            },
+        // se tiver token de cartão, salva no usuário para recorrência futura
+        if (card_token) {
+            await pool.query(
+                "UPDATE users SET mp_card_token = $1 WHERE id = $2",
+                [card_token, utilizadorId]
+            );
+        }
 
+        // Cria link para pagamento da primeira compra
+        const paymentClient = new Payment(client);
+        const paymentData = {
+            transaction_amount: valor_total,
+            token: card_token || undefined,
+            description: `Assinatura BierBox - ${plano_id}`,
+            payer: { email: userEmail },
             external_reference: assinaturaId.toString(),
-            back_urls: {
-                success: `${BASE_URL}/checkout/aprovado`,
-                pending: `${BASE_URL}/checkout/pendente`,
-                failure: `${BASE_URL}/checkout/falha`,
-                },
-            auto_return: "approved",
-            notification_url: "https://projeto-bierbox.onrender.com/api/pagamentos/webhook",
+            installments: 1,
         };
 
-        const result = await preference.create({ body: preferenceBody } );
-        res.status(201).json({ checkoutUrl: result.init_point });
+        const result = await paymentClient.create({ body: paymentData });
+        res.status(201).json({ payment_id: result.id, status: result.status, link_pagamento: result.init_point });
 
     } catch (error) {
-        console.error("Erro ao criar preferência de pagamento:", error);
-        res.status(500).json({ message: "Erro no servidor ao criar preferência de pagamento." });
+        console.error("Erro criar pagamento primeira compra:", error);
+        res.status(500).json({ message: "Erro no servidor ao criar pagamento." });
     }
 };
 
-// Webhook para receber notificações do Mercado Pago
-const receberWebhook = async (req, res) => {
-    console.log("🚨 Webhook disparado pelo Mercado Pago!");
-    console.log("Body recebido:", req.body);
+// ====================== CRON JOB / COBRANÇA AUTOMÁTICA ======================
+const gerarPagamentoRecorrente = async (assinaturaId) => {
+    try {
+        const assinaturaResult = await pool.query(
+            `SELECT a.id, a.plano_id, a.box_id, a.endereco_entrega_id, a.utilizador_id, u.email, u.nome_completo, u.mp_card_token
+             FROM assinaturas a
+             JOIN users u ON u.id = a.utilizador_id
+             WHERE a.id = $1 AND a.status = 'ATIVA'`,
+            [assinaturaId]
+        );
+        if (!assinaturaResult.rows.length) return null;
 
+        const assinatura = assinaturaResult.rows[0];
+        if (!assinatura.mp_card_token) return null; // não tem token → não cobramos
+
+        // calcular valor do plano + frete (implementar calcularFrete)
+        const valor_frete = await calcularFrete(assinatura.endereco_entrega_id);
+        let preco_plano = assinatura.plano_id === "PLANO_MENSAL" ? 80.00 : 70.00;
+        const valor_total = preco_plano + parseFloat(valor_frete);
+
+        const paymentClient = new Payment(client);
+        const paymentData = {
+            transaction_amount: valor_total,
+            token: assinatura.mp_card_token,
+            description: `Assinatura BierBox - ${assinatura.plano_id}`,
+            payer: { email: assinatura.email },
+            installments: 1,
+            external_reference: assinatura.id.toString(),
+        };
+
+        const result = await paymentClient.create({ body: paymentData });
+
+        await pool.query(
+            "INSERT INTO pagamentos (assinatura_id, valor, status, criado_em) VALUES ($1, $2, $3, NOW())",
+            [assinatura.id, valor_total, result.status]
+        );
+
+        return result.status;
+    } catch (error) {
+        console.error("Erro gerar pagamento recorrente:", error);
+        return null;
+    }
+};
+
+// ====================== WEBHOOK ======================
+const receberWebhook = async (req, res) => {
     const { type, data } = req.body;
 
     try {
@@ -95,51 +122,30 @@ const receberWebhook = async (req, res) => {
             const paymentClient = new Payment(client);
             const paymentDetails = await paymentClient.get({ id: data.id });
 
-            console.log("🔍 Detalhes do Pagamento:", paymentDetails);
+            const assinaturaId = paymentDetails.external_reference;
+            if (!isUuid(assinaturaId)) return res.status(200).send("Erro de referência.");
 
-            if (paymentDetails.status === "approved" && paymentDetails.external_reference) {
-                
-                const assinaturaId = paymentDetails.external_reference;
+            let statusCiclo = paymentDetails.status === "approved" ? "APROVADO" : "INADIMPLENTE";
 
-                if (!isUuid(assinaturaId)) {
-                    console.error(`❌ Erro no Webhook: external_reference não é um UUID válido: ${assinaturaId}`);
-                    
-                    return res.status(200).send("Webhook processado com erro de referência.");
-                }
-                
-                let formaPagamento = "Desconhecida";
-                if (paymentDetails.payment_type_id) {
-                    switch (paymentDetails.payment_type_id) {
-                        case "credit_card": formaPagamento = "Cartão de Crédito"; break;
-                        case "debit_card": formaPagamento = "Cartão de Débito"; break;
-                        case "ticket": formaPagamento = "Boleto"; break;
-                        case "atm": formaPagamento = "Caixa Eletrônico"; break;
-                        case "bank_transfer": formaPagamento = "Transferência Bancária"; break;
-                        case "account_money": formaPagamento = "Dinheiro em Conta MP"; break;
-                        case "pix": formaPagamento = "Pix"; break;
-                        default: formaPagamento = paymentDetails.payment_type_id;
-                    }
-                } else if (paymentDetails.payment_method_id) {
-                    formaPagamento = paymentDetails.payment_method_id;
-                }
+            await pool.query(
+                "UPDATE assinaturas SET status_pagamento_atual = $1, atualizado_em = NOW() WHERE id = $2",
+                [statusCiclo, assinaturaId]
+            );
 
-                await pool.query(
-                    "UPDATE assinaturas SET status = 'ATIVA', id_assinatura_mp = $1, atualizado_em = CURRENT_TIMESTAMP, forma_pagamento = $3 WHERE id = $2",
-                    [paymentDetails.id.toString(), assinaturaId, formaPagamento] 
-                );
-
-                console.log(`✅ Assinatura ${assinaturaId} atualizada para ATIVA com forma de pagamento: ${formaPagamento}.`);
-            }
+            await pool.query(
+                "UPDATE pagamentos SET status = $1, atualizado_em = NOW() WHERE assinatura_id = $2",
+                [statusCiclo, assinaturaId]
+            );
         }
-
-        res.status(200).send("Webhook recebido com sucesso.");
+        res.status(200).send("Webhook processado com sucesso.");
     } catch (error) {
-        console.error("❌ Erro ao processar webhook:", error);
-        res.status(500).send("Erro interno no servidor ao processar webhook.");
+        console.error("Erro processando webhook:", error);
+        res.status(500).send("Erro interno no servidor.");
     }
 };
 
 module.exports = {
-    criarPreferencia,
-    receberWebhook
+    criarPagamentoPrimeiraCompra,
+    gerarPagamentoRecorrente,
+    receberWebhook,
 };
