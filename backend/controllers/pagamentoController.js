@@ -1,106 +1,146 @@
-const { MercadoPagoConfig, PreApproval } = require("mercadopago");
+const { MercadoPagoConfig, Preference, Payment } = require("mercadopago");
 const pool = require("../config/db");
 const { validate: isUuid } = require("uuid");
 
-const mpAccessToken = process.env.MERCADO_PAGO_ACCESS_TOKEN || process.env.MP_ACCESS_TOKEN_TEST;
-const client = new MercadoPagoConfig({ accessToken: mpAccessToken });
+const client = new MercadoPagoConfig({
+    accessToken: process.env.MP_ACCESS_TOKEN_TEST,
+});
 
-const criarAssinaturaRecorrente = async (req, res) => {
-  try {
-    const { plano_id, quantidade_unidades, endereco_entrega_id, valor_frete, box_id } = req.body;
-    const utilizadorId = req.userId;
+const criarPreferencia = async (req, res) => {
+    try {
+        const { plano_id, endereco_entrega_id, valor_frete, box_id } = req.body;
+        const utilizadorId = req.userId;
 
-    if (!isUuid(endereco_entrega_id) || !isUuid(box_id)) {
-      return res.status(400).json({ message: "ID de endereço ou box inválido." });
+        if (!isUuid(endereco_entrega_id) || (box_id && !isUuid(box_id))) {
+            return res.status(400).json({ message: "ID de endereço ou box inválido." });
+        }
+
+        if (!plano_id || valor_frete === undefined) {
+            return res.status(400).json({ message: "Dados insuficientes para criar o pagamento." });
+        }
+
+        const userResult = await pool.query("SELECT email, nome_completo FROM users WHERE id = $1", [utilizadorId]);
+        if (userResult.rows.length === 0) {
+            return res.status(404).json({ message: "Utilizador não encontrado." });
+        }
+        const userEmail = userResult.rows[0].email;
+        const userName = userResult.rows[0].nome_completo;
+
+        let preco_plano;
+        let titulo_plano;
+
+        if (plano_id === "PLANO_MENSAL") {
+            preco_plano = 80.00;
+            titulo_plano = "BierBox - Assinatura Mensal";
+        } else if (plano_id === "PLANO_ANUAL") {
+            preco_plano = 70.00;
+            titulo_plano = "BierBox - Assinatura Anual";
+        } else {
+            return res.status(400).json({ message: "plano_id inválido." });
+        }
+
+        const valor_total = preco_plano + parseFloat(valor_frete);
+
+        const novaAssinatura = await pool.query(
+            "INSERT INTO assinaturas (utilizador_id, plano_id, status, endereco_entrega_id, valor_frete, valor_assinatura, box_id, data_inicio, criado_em, atualizado_em) VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW(), NOW()) RETURNING id",
+            [utilizadorId, plano_id, "PENDENTE", endereco_entrega_id, valor_frete, preco_plano, box_id]
+        );
+        const assinaturaId = novaAssinatura.rows[0].id; 
+
+        const preference = new Preference(client);
+        const preferenceBody = {
+            items: [
+                {
+                    id: plano_id,
+                    title: titulo_plano,
+                    description: "Assinatura do clube de cervejas BierBox",
+                    quantity: 1,
+                    unit_price: valor_total,
+                    currency_id: "BRL",
+                },
+            ],
+            payer: {
+                email: userEmail,
+                name: userName,
+            },
+
+            external_reference: assinaturaId.toString(),
+            back_urls: {
+                success: `https://projeto-bierbox.onrender.com/checkout/aprovado`,
+                pending: `https://projeto-bierbox.onrender.com/checkout/pendente`,
+                failure: `https://projeto-bierbox.onrender.com/checkout/falha`,
+                },
+            auto_return: "approved",
+            notification_url: "https://projeto-bierbox.onrender.com/api/pagamentos/webhook",
+        };
+
+
+        const result = await preference.create({ body: preferenceBody } );
+        res.status(201).json({ checkoutUrl: result.init_point });
+
+    } catch (error) {
+        console.error("Erro ao criar preferência de pagamento:", error);
+        res.status(500).json({ message: "Erro no servidor ao criar preferência de pagamento." });
     }
+};
 
-    if (!plano_id || !quantidade_unidades || valor_frete === undefined) {
-      return res.status(400).json({ message: "Dados insuficientes para criar a assinatura." });
+// Webhook para receber notificações do Mercado Pago
+const receberWebhook = async (req, res) => {
+    console.log("🚨 Webhook disparado pelo Mercado Pago!");
+    console.log("Body recebido:", req.body);
+
+    const { type, data } = req.body;
+
+    try {
+        if (type === "payment") {
+            const paymentClient = new Payment(client);
+            const paymentDetails = await paymentClient.get({ id: data.id });
+
+            console.log("🔍 Detalhes do Pagamento:", paymentDetails);
+
+            if (paymentDetails.status === "approved" && paymentDetails.external_reference) {
+                
+                const assinaturaId = paymentDetails.external_reference;
+
+                if (!isUuid(assinaturaId)) {
+                    console.error(`❌ Erro no Webhook: external_reference não é um UUID válido: ${assinaturaId}`);
+                    
+                    return res.status(200).send("Webhook processado com erro de referência.");
+                }
+                
+                let formaPagamento = "Desconhecida";
+                if (paymentDetails.payment_type_id) {
+                    switch (paymentDetails.payment_type_id) {
+                        case "credit_card": formaPagamento = "Cartão de Crédito"; break;
+                        case "debit_card": formaPagamento = "Cartão de Débito"; break;
+                        case "ticket": formaPagamento = "Boleto"; break;
+                        case "atm": formaPagamento = "Caixa Eletrônico"; break;
+                        case "bank_transfer": formaPagamento = "Transferência Bancária"; break;
+                        case "account_money": formaPagamento = "Dinheiro em Conta MP"; break;
+                        case "pix": formaPagamento = "Pix"; break;
+                        default: formaPagamento = paymentDetails.payment_type_id;
+                    }
+                } else if (paymentDetails.payment_method_id) {
+                    formaPagamento = paymentDetails.payment_method_id;
+                }
+
+                await pool.query(
+                    "UPDATE assinaturas SET status = 'ATIVA', id_assinatura_mp = $1, atualizado_em = CURRENT_TIMESTAMP, forma_pagamento = $3 WHERE id = $2",
+                    [paymentDetails.id.toString(), assinaturaId, formaPagamento] 
+                );
+
+                console.log(`✅ Assinatura ${assinaturaId} atualizada para ATIVA com forma de pagamento: ${formaPagamento}.`);
+            }
+        }
+
+        res.status(200).send("Webhook recebido com sucesso.");
+    } catch (error) {
+        console.error("❌ Erro ao processar webhook:", error);
+        res.status(500).send("Erro interno no servidor ao processar webhook.");
     }
-
-    const userResult = await pool.query("SELECT email FROM users WHERE id = $1", [utilizadorId]);
-    if (userResult.rows.length === 0) {
-      return res.status(404).json({ message: "Utilizador não encontrado." });
-    }
-    const userEmail = userResult.rows[0].email;
-
-    const boxResult = await pool.query("SELECT * FROM boxes WHERE id = $1", [box_id]);
-    const box = boxResult.rows[0];
-
-    if (!box) {
-      return res.status(404).json({ message: "Box não encontrada." });
-    }
-
-    let preco_plano;
-    let titulo_plano;
-
-    if (plano_id === "PLANO_MENSAL") {
-      if (quantidade_unidades === 4) {
-        preco_plano = box.preco_mensal_4_un;
-        titulo_plano = "BierBox Mensal - 4 Unidades";
-      } else if (quantidade_unidades === 6) {
-        preco_plano = box.preco_mensal_6un;
-        titulo_plano = "BierBox Mensal - 6 Unidades";
-      } else {
-        return res.status(400).json({ message: "Quantidade inválida para plano mensal." });
-      }
-    } else if (plano_id === "PLANO_ANUAL") {
-      if (quantidade_unidades === 4) {
-        preco_plano = box.preco_anual_4_un;
-        titulo_plano = "BierBox Anual - 4 Unidades";
-      } else if (quantidade_unidades === 6) {
-        preco_plano = box.preco_anual_6_un;
-        titulo_plano = "BierBox Anual - 6 Unidades";
-      } else {
-        return res.status(400).json({ message: "Quantidade inválida para plano anual." });
-      }
-    } else {
-      return res.status(400).json({ message: "plano_id inválido." });
-    }
-
-    const valor_total_recorrente = preco_plano + parseFloat(valor_frete);
-
-    const novaAssinatura = await pool.query(
-      "INSERT INTO assinaturas (utilizador_id, plano_id, status, endereco_entrega_id, valor_frete, valor_assinatura, box_id, quantidade_unidades, data_inicio, criado_em, atualizado_em) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW(), NOW()) RETURNING id",
-      [utilizadorId, plano_id, "PENDENTE", endereco_entrega_id, valor_frete, preco_plano, box_id, quantidade_unidades]
-    );
-    const assinaturaId = novaAssinatura.rows[0].id;
-
-    const isTestEnv = mpAccessToken === process.env.MP_ACCESS_TOKEN_TEST;
-    const payerEmail = isTestEnv ? "test_user_2695420795@testuser.com" : userEmail;
-
-    const subscriptionClient = new PreApproval(client);
-    const subscriptionBody = {
-      reason: titulo_plano,
-      payer_email: payerEmail,
-      back_url: "https://projeto-bierbox.onrender.com/checkout/assinatura-status",
-      external_reference: assinaturaId,
-      auto_recurring: {
-        frequency: plano_id === "PLANO_MENSAL" ? 1 : 12,
-        frequency_type: "months",
-        transaction_amount: valor_total_recorrente,
-        currency_id: "BRL"
-      },
-      notification_url: "https://projeto-bierbox.onrender.com/api/pagamentos/webhook"
-    };
-
-    const result = await subscriptionClient.create({ body: subscriptionBody });
-
-    res.status(201).json({
-      checkoutUrl: result.init_point,
-      assinaturaId,
-      mercadoPagoId: result.id
-    });
-
-  } catch (error) {
-    console.error("Erro ao criar assinatura recorrente:", error);
-    res.status(500).json({
-      message: "Erro no servidor ao criar assinatura recorrente.",
-      details: error.message || error
-    });
-  }
 };
 
 module.exports = {
-  criarAssinaturaRecorrente
+    criarPreferencia,
+    receberWebhook
 };
