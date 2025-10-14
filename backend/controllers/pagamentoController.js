@@ -66,13 +66,14 @@ const criarPreferencia = async (req, res) => {
 
             external_reference: assinaturaId.toString(),
             back_urls: {
-                success: `${BASE_URL}/checkout/aprovado`,
-                pending: `${BASE_URL}/checkout/pendente`,
-                failure: `${BASE_URL}/checkout/falha`,
+                success: `${process.env.BASE_URL}/checkout/aprovado`,
+                pending: `${process.env.BASE_URL}/checkout/pendente`,
+                failure: `${process.env.BASE_URL}/checkout/falha`,
                 },
             auto_return: "approved",
             notification_url: "https://projeto-bierbox.onrender.com/api/pagamentos/webhook",
         };
+
 
         const result = await preference.create({ body: preferenceBody } );
         res.status(201).json({ checkoutUrl: result.init_point });
