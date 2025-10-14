@@ -70,11 +70,12 @@ const criarAssinatura = async (req, res) => {
     const isTestEnv = mpAccessToken === process.env.MP_ACCESS_TOKEN_TEST;
 
     // Define email do pagador conforme ambiente
-    const payerEmail = isTestEnv ? "test_user_2695420795@testuser.com" : userEmail;
+    const payerEmail = isTestEnv ? "test_user_2685700926@testuser.com" : userEmail;
 
     const subscriptionBody = {
     reason: titulo_plano,
-    payer_email: payerEmail, // ← campo direto, não dentro de "payer"
+    payer_email: payerEmail,
+    back_url: "https://projeto-bierbox.onrender.com/checkout/assinatura-status",
     external_reference: assinaturaId,
     auto_recurring: {
         frequency: plano_id === "PLANO_MENSAL" ? 1 : 12,
