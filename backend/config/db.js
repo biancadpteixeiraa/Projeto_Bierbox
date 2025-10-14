@@ -5,7 +5,7 @@ let pool;
 
 
 if (process.env.DATABASE_URL) {
-  console.log("✅ Usando DATABASE_URL:", process.env.DATABASE_URL); // <-- ADICIONE ISSO
+  console.log("✅ Usando DATABASE_URL:", process.env.DATABASE_URL); 
   pool = new Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: {
