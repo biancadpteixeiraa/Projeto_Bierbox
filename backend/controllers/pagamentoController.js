@@ -6,13 +6,11 @@ const client = new MercadoPagoConfig({
     accessToken: process.env.MP_ACCESS_TOKEN_TEST,
 });
 
-// ===================== CRIAR PREFERÊNCIA =====================
 const criarPreferencia = async (req, res) => {
     try {
         const { plano_id, endereco_entrega_id, valor_frete, box_id } = req.body;
         const utilizadorId = req.userId;
 
-        // 🔹 Mantido exatamente como no seu código original
         if (!isUuid(endereco_entrega_id) || (box_id && !isUuid(box_id))) {
             return res.status(400).json({ message: "ID de endereço ou box inválido." });
         }
@@ -21,14 +19,12 @@ const criarPreferencia = async (req, res) => {
             return res.status(400).json({ message: "Dados insuficientes para criar o pagamento." });
         }
 
-        const userResult = await pool.query(
-            "SELECT email, nome_completo, mp_card_token FROM users WHERE id = $1",
-            [utilizadorId]
-        );
+        const userResult = await pool.query("SELECT email, nome_completo FROM users WHERE id = $1", [utilizadorId]);
         if (userResult.rows.length === 0) {
             return res.status(404).json({ message: "Utilizador não encontrado." });
         }
-        const { email: userEmail, nome_completo: userName, mp_card_token } = userResult.rows[0];
+        const userEmail = userResult.rows[0].email;
+        const userName = userResult.rows[0].nome_completo;
 
         let preco_plano;
         let titulo_plano;
@@ -45,54 +41,41 @@ const criarPreferencia = async (req, res) => {
 
         const valor_total = preco_plano + parseFloat(valor_frete);
 
-        // 🔹 Inserção no banco exatamente como estava no seu código original
         const novaAssinatura = await pool.query(
-            `INSERT INTO assinaturas 
-            (utilizador_id, plano_id, status, endereco_entrega_id, valor_frete, valor_assinatura, box_id, data_inicio, criado_em, atualizado_em) 
-            VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW(), NOW()) RETURNING id`,
+            "INSERT INTO assinaturas (utilizador_id, plano_id, status, endereco_entrega_id, valor_frete, valor_assinatura, box_id, data_inicio, criado_em, atualizado_em) VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW(), NOW()) RETURNING id",
             [utilizadorId, plano_id, "PENDENTE", endereco_entrega_id, valor_frete, preco_plano, box_id]
         );
-        const assinaturaId = novaAssinatura.rows[0].id;
+        const assinaturaId = novaAssinatura.rows[0].id; 
 
-        // 🔹 Se já tiver token do cartão, podemos marcar para pagamento recorrente futuro
-        let checkoutUrl = null;
-        if (!mp_card_token) {
-            // 🔹 Usuário ainda não cadastrou cartão → criar preferência para pagamento único
-            const preference = new Preference(client);
-            const preferenceBody = {
-                items: [
-                    {
-                        id: plano_id,
-                        title: titulo_plano,
-                        description: "Assinatura do clube de cervejas BierBox",
-                        quantity: 1,
-                        unit_price: valor_total,
-                        currency_id: "BRL",
-                    },
-                ],
-                payer: {
-                    email: userEmail,
-                    name: userName,
+        const preference = new Preference(client);
+        const preferenceBody = {
+            items: [
+                {
+                    id: plano_id,
+                    title: titulo_plano,
+                    description: "Assinatura do clube de cervejas BierBox",
+                    quantity: 1,
+                    unit_price: valor_total,
+                    currency_id: "BRL",
                 },
-                external_reference: assinaturaId.toString(),
-                back_urls: {
-                    success: `${process.env.BASE_URL}/checkout/aprovado`,
-                    pending: `${process.env.BASE_URL}/checkout/pendente`,
-                    failure: `${process.env.BASE_URL}/checkout/falha`,
+            ],
+            payer: {
+                email: userEmail,
+                name: userName,
+            },
+
+            external_reference: assinaturaId.toString(),
+            back_urls: {
+                success: `${BASE_URL}/checkout/aprovado`,
+                pending: `${BASE_URL}/checkout/pendente`,
+                failure: `${BASE_URL}/checkout/falha`,
                 },
-                auto_return: "approved",
-                notification_url: `${process.env.BASE_URL}/api/pagamentos/webhook`,
-            };
+            auto_return: "approved",
+            notification_url: "https://projeto-bierbox.onrender.com/api/pagamentos/webhook",
+        };
 
-            const result = await preference.create({ body: preferenceBody });
-            checkoutUrl = result.init_point;
-        } else {
-            // 🔹 Aqui podemos preparar lógica futura de pagamento automático usando token
-            // Exemplo comentado:
-            // await gerarPagamentoRecorrenteComToken(assinaturaId, mp_card_token);
-        }
-
-        res.status(201).json({ checkoutUrl, assinaturaId });
+        const result = await preference.create({ body: preferenceBody } );
+        res.status(201).json({ checkoutUrl: result.init_point });
 
     } catch (error) {
         console.error("Erro ao criar preferência de pagamento:", error);
@@ -100,7 +83,7 @@ const criarPreferencia = async (req, res) => {
     }
 };
 
-// ===================== WEBHOOK =====================
+// Webhook para receber notificações do Mercado Pago
 const receberWebhook = async (req, res) => {
     console.log("🚨 Webhook disparado pelo Mercado Pago!");
     console.log("Body recebido:", req.body);
@@ -114,14 +97,16 @@ const receberWebhook = async (req, res) => {
 
             console.log("🔍 Detalhes do Pagamento:", paymentDetails);
 
-            if (paymentDetails.external_reference) {
+            if (paymentDetails.status === "approved" && paymentDetails.external_reference) {
+                
                 const assinaturaId = paymentDetails.external_reference;
 
                 if (!isUuid(assinaturaId)) {
                     console.error(`❌ Erro no Webhook: external_reference não é um UUID válido: ${assinaturaId}`);
+                    
                     return res.status(200).send("Webhook processado com erro de referência.");
                 }
-
+                
                 let formaPagamento = "Desconhecida";
                 if (paymentDetails.payment_type_id) {
                     switch (paymentDetails.payment_type_id) {
@@ -138,10 +123,9 @@ const receberWebhook = async (req, res) => {
                     formaPagamento = paymentDetails.payment_method_id;
                 }
 
-                // Atualiza assinatura
                 await pool.query(
                     "UPDATE assinaturas SET status = 'ATIVA', id_assinatura_mp = $1, atualizado_em = CURRENT_TIMESTAMP, forma_pagamento = $3 WHERE id = $2",
-                    [paymentDetails.id.toString(), assinaturaId, formaPagamento]
+                    [paymentDetails.id.toString(), assinaturaId, formaPagamento] 
                 );
 
                 console.log(`✅ Assinatura ${assinaturaId} atualizada para ATIVA com forma de pagamento: ${formaPagamento}.`);
