@@ -1,4 +1,5 @@
 require("dotenv").config();
+require('./cron/recorrencia');
 
 const express = require("express");
 const cors = require("cors");
