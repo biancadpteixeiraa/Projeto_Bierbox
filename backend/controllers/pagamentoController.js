@@ -74,16 +74,18 @@ const criarAssinatura = async (req, res) => {
 
     const subscriptionBody = {
     reason: titulo_plano,
-    payer_email: payerEmail,
-    back_url: `https://projeto-bierbox.onrender.com/checkout/assinatura-status`,
+    payer: {
+        email: payerEmail
+    },
     external_reference: assinaturaId,
+    status: "pending",
     auto_recurring: {
         frequency: plano_id === "PLANO_MENSAL" ? 1 : 12,
         frequency_type: "months",
         transaction_amount: Number(valor_total_recorrente),
         currency_id: "BRL"
     },
-    notification_url: `https://projeto-bierbox.onrender.com/api/pagamentos/webhook`
+    notification_url: `${baseUrl}/api/pagamentos/webhook`
     };
 
 
