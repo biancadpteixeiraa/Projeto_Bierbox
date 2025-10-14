@@ -1,4 +1,4 @@
-const { MercadoPagoConfig, Preference, Payment } = require("mercadopago");
+const { MercadoPagoConfig, Preference, Payment, Subscription } = require("mercadopago");
 const pool = require("../config/db");
 const { validate: isUuid } = require("uuid");
 
@@ -49,7 +49,9 @@ const criarAssinatura = async (req, res) => {
         );
         const assinaturaId = novaAssinatura.rows[0].id; 
 
-        const subscriptionClient = new client.preapproval();
+        // AQUI ESTÁ A MUDANÇA PRINCIPAL: Instanciar Subscription sem passar \'client\'
+        // E passar \'client\' como parte do objeto de configuração ao chamar o método \'create\'
+        const subscription = new Subscription(); 
         const subscriptionBody = {
             reason: titulo_plano,
             payer_email: userEmail,
@@ -66,7 +68,7 @@ const criarAssinatura = async (req, res) => {
             // É importante configurar o webhook de assinaturas no painel do MP para receber eventos de \'preapproval\'
         };
 
-        const result = await subscriptionClient.create({ body: subscriptionBody } );
+        const result = await subscription.create({ body: subscriptionBody, requestOptions: { idempotencyKey: 'some-value', accessToken: client.accessToken } } ); // <-- Passando accessToken aqui
         
         // Atualiza a assinatura no seu banco de dados com o ID da assinatura do Mercado Pago
         await pool.query(
@@ -129,8 +131,8 @@ const receberWebhook = async (req, res) => {
             }
         } else if (type === "preapproval") {
             // Lógica para webhooks de Assinatura (Preapproval)
-            const subscriptionClient = new client.preapproval();
-            const subscriptionDetails = await subscriptionClient.get({ id: data.id });
+            const subscription = new Subscription(); // <-- CORREÇÃO AQUI
+            const subscriptionDetails = await subscription.get({ id: data.id, requestOptions: { accessToken: client.accessToken } }); // <-- Passando accessToken aqui
 
             console.log("🔍 Detalhes da Assinatura (Webhook Preapproval):", subscriptionDetails);
 
