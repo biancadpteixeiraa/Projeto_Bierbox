@@ -4,6 +4,8 @@ const express = require("express");
 const cors = require("cors");
 const path = require("path");
 
+const { protect } = require("./middlewares/auth");
+
 const userRoutes = require("./routes/userRoutes");
 const boxRoutes = require("./routes/boxRoutes");
 const carrinhoRoutes = require("./routes/carrinhoRoutes");
@@ -44,6 +46,8 @@ app.use("/api/pagamentos", pagamentoRoutes);
 app.use("/api/assinaturas", assinaturaRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/stripe", stripeRoutes);
+app.use("/stripe", protect, stripeRoutes);
+
 
 const HOST = "0.0.0.0";
 const PORT = process.env.PORT || 4000;
