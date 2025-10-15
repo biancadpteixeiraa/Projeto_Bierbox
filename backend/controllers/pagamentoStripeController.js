@@ -4,6 +4,7 @@ const { validate: isUuid } = require("uuid");
 
 
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
+const FRONTEND_URL = process.env.FRONTEND_URL;
 
 if (!STRIPE_SECRET_KEY) {
   throw new Error("STRIPE_SECRET_KEY não configurada no ambiente.");
