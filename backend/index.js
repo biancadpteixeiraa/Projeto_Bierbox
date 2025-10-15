@@ -4,7 +4,7 @@ const express = require("express");
 const cors = require("cors");
 const path = require("path");
 
-const { protect } = require("./middlewares/auth");
+const { protect } = require("./middleware/authMiddleware");
 
 const userRoutes = require("./routes/userRoutes");
 const boxRoutes = require("./routes/boxRoutes");
