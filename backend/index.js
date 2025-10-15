@@ -26,7 +26,6 @@ app.post("/stripe/webhook", express.raw({ type: "application/json" }), (req, res
   require("./pagamentoStripeController").webhookStripe(req, res, next);
 });
 
-// Middleware JSON para todas as outras rotas
 app.use(express.json());
 
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
