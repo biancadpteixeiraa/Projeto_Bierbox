@@ -33,9 +33,9 @@ export default function PlansCarouselArea() {
                 >
                     <div className="flex-shrink-0 w-full max-w-sm lg:max-w-none lg:w-auto">
                         <img
-                            src={box.imagens[2]}
+                            src={box.imagens[1]}
                             alt={`Plano ${index + 1}`}
-                            className="w-full h-auto max-w-[300px] lg:max-w-[400px] xl:w-[450px] mx-auto lg:mx-0 object-cover object-center rounded-lg"
+                            className="w-full h-96 max-w-[350px] lg:max-w-96 xl:w-96 mx-auto lg:mx-0 object-cover object-center rounded-lg"
                         />
                     </div>
                     <div className="flex flex-col sm:flex-row gap-4 lg:gap-6 w-full lg:w-auto justify-center lg:justify-start">

@@ -7,7 +7,7 @@ export async function getCarrinho(token: string) {
   return response.data;
 }
 
-export async function addToCarrinho(token: string, box_id: number, quantidade: number, tipo_plano: 'mensal' | 'anual') {
+export async function addToCarrinho(token: string, box_id: string, quantidade: number, tipo_plano: 'mensal' | 'anual') {
   const response = await api.post(
     "/carrinho/adicionar",
     { box_id, quantidade, tipo_plano },
@@ -16,7 +16,7 @@ export async function addToCarrinho(token: string, box_id: number, quantidade: n
   return response.data;
 }
 
-export async function removeFromCarrinho(token: string, box_id: number) {
+export async function removeFromCarrinho(token: string, box_id: string) {
   const response = await api.delete(`/carrinho/remover/${box_id}`, {
     headers: { Authorization: `Bearer ${token}` },
   });

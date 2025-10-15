@@ -6,6 +6,7 @@ import { useAuth } from "@/app/context/authContext";
 import { getUserInfo, updateUserInfo } from "@/app/services/user";
 import { toast } from "react-toastify";
 import { IMaskInput } from 'react-imask';
+import { Icon } from "@iconify/react";
 
 export default function UserForm() {
   const { token, logout } = useAuth();
@@ -14,6 +15,7 @@ export default function UserForm() {
   const [cpf, setCpf] = useState("");
   const [senhaAtual, setSenhaAtual] = useState("");
   const [novaSenha, setNovaSenha] = useState("");
+  const [mostrarSenha, setMostrarSenha] = useState(false);
 
   useEffect(() => {
     if (!token) return;
@@ -45,6 +47,24 @@ export default function UserForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!token) return;
+
+    if (senhaAtual.trim() !== "" && novaSenha.trim() === "") {
+      toast.warning("Preencha a nova senha para alterar sua senha.");
+      return;
+    }
+
+    if (senhaAtual.trim() === "" && novaSenha.trim() !== "") {
+      toast.warning("Informe sua senha atual para alterar a senha.");
+      return;
+    }
+
+    if (novaSenha.trim() !== "") {
+      const senhaValida = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/.test(novaSenha);
+      if (!senhaValida) {
+        toast.warning("A nova senha deve ter ao menos 8 caracteres, incluindo letras e números.");
+        return;
+      }
+    }
 
     const payload: any = {};
     if (nome.trim() !== "") payload.nome_completo = nome;
@@ -137,14 +157,24 @@ export default function UserForm() {
               Insira sua senha atual:
             </label>
           </div>
-          <Input
-            id="senha"
-            type="password"
-            value={senhaAtual}
-            onChange={(e) => setSenhaAtual(e.target.value)}
-            placeholder="Senha aqui"
-            className="px-5"
-          />
+          <div className="relative">
+            <Input
+              id="senha"
+              type={mostrarSenha ? "text" : "password"}
+              placeholder="Senha atual aqui"
+              value={senhaAtual}
+              onChange={(e) => setSenhaAtual(e.target.value)}
+              className="pr-10"
+            />
+            <button
+              type="button"
+              onClick={() => setMostrarSenha(!mostrarSenha)}
+              className="absolute inset-y-0 right-3 flex items-center"
+              aria-label={mostrarSenha ? "Ocultar senha" : "Mostrar senha"}
+            >
+              <Icon icon={mostrarSenha ? "mdi:eye-off" : "mdi:eye"} className="text-gray-tertiary/75 hover:text-gray-tertiary/55 text-base" />
+            </button>
+          </div>
         </div>
 
         <div className="">
@@ -158,9 +188,12 @@ export default function UserForm() {
             type="password"
             value={novaSenha}
             onChange={(e) => setNovaSenha(e.target.value)}
-            placeholder="Confirme sua senha aqui"
+            placeholder="Sua senha nova aqui"
             className="px-5"
           />
+          <p className="font-secondary text-gray-quaternary text-xs pt-2">
+          Crie uma senha com mais de 8 dígitos contendo números e letras.
+        </p>
         </div>
       </div>
 

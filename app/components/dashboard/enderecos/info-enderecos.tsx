@@ -45,6 +45,7 @@ export default function InfoEnderecos() {
   const [novoEndereco, setNovoEndereco] = useState<Endereco>(DEFAULT_ENDERECO);
   const [loading, setLoading] = useState(true);
   const [enderecoEmEdicao, setEnderecoEmEdicao] = useState<Endereco | null>(null);
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
   const [modalOpen, setModalOpen] = useState(false);
   const [enderecoParaExcluirId, setEnderecoParaExcluirId] = useState<string | null>(null);
@@ -120,9 +121,21 @@ const handleSalvarNovo = useCallback(async () => {
   if (!token) return;
 
   const e = novoEndereco; 
+  const newErrors: { [key: string]: string } = {};
 
-  if (!e.rua || !e.cep ) {
-    alert("Preencha pelo menos a Rua e o CEP");
+  if (!e.rua.trim()) newErrors.rua = "Rua é obrigatória.";
+  if (!e.cep.trim()) newErrors.cep = "CEP é obrigatório.";
+  if (!e.numero.trim()) newErrors.numero = "Número é obrigatório.";
+  if (!e.bairro.trim()) newErrors.bairro = "Bairro é obrigatório.";
+  if (!e.complemento.trim()) newErrors.complemento = "Complemento é obrigatório.";
+  if (!e.cidade.trim()) newErrors.cidade = "Cidade é obrigatória.";
+  if (!e.estado.trim()) newErrors.estado = "Estado é obrigatório.";
+
+  setErrors(newErrors);
+
+  if (Object.keys(newErrors).length > 0) {
+    const primeiraMensagem = Object.values(newErrors)[0];
+    toast.error(primeiraMensagem);
     return;
   }
 
@@ -148,7 +161,6 @@ const handleSalvarNovo = useCallback(async () => {
   }
 }, [token, novoEndereco]);
 
-// 5. Salvar edição (Simplificada)
 const handleSalvarEdicao = useCallback(async () => {
  if (!token || !enderecoEmEdicao) return;
 
@@ -180,7 +192,6 @@ const handleSalvarEdicao = useCallback(async () => {
  }
 }, [token, enderecoEmEdicao, setEnderecos, setEditandoId, setEnderecoEmEdicao]);
 
- // 6. Excluir
  const handleExcluir = useCallback(async (id: string | number) => {
   if (!token) return;
 
@@ -197,7 +208,6 @@ const handleSalvarEdicao = useCallback(async () => {
     toast.error("Erro ao excluir endereço. Tente novamente.")
   }
  }, [token, editandoId]);
-
 
 
   if (loading) return <EnderecoListSkeleton />;
@@ -257,6 +267,7 @@ const handleSalvarEdicao = useCallback(async () => {
                   onChange={handleNovoEnderecoChange}
                   onSalvar={handleSalvarNovo}
                   onCancelar={() => setIsCreating(false)}
+                  errors={errors} 
                 />
             )}
 

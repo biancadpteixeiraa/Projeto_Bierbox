@@ -8,6 +8,7 @@ import { useAuth } from "@/app/context/authContext";
 import { useEffect, useState } from "react";
 import { addEndereco, getEnderecos, updateEndereco } from "@/app/services/enderecos";
 import { toast } from "react-toastify";
+import { CheckoutCardPlaceholder } from "../../ui/skeletons";
 
 type FormDataEndereco = {
   id?: string;
@@ -58,72 +59,69 @@ export default function EnderecoForm({
     fetchEnderecos();
   }, [token]);
 
-const handleNext = async () => {
-  if (!token) return;
+  const handleNext = async () => {
+    if (!token) return;
 
-  // 1️⃣ Apenas selecionou um endereço existente
-  if (!isCreating && !isEditing && data.id) {
-    onNext();
-    return;
-  }
-
-  // 2️⃣ Validação dos campos obrigatórios
-  if (!data.rua || !data.numero || !data.cep || !data.cidade || !data.estado) {
-    toast.warning("Preencha todos os campos obrigatórios do endereço.");
-    return;
-  }
-
-  try {
-    if (isEditing && data.id) {
-      // 🔸 Atualiza endereço existente
-      await updateEndereco(
-        token,
-        data.id,
-        data.cep,
-        data.rua,
-        data.numero,
-        data.bairro,
-        data.complemento,
-        data.cidade,
-        data.estado,
-        data.is_padrao
-      );
-      toast.success("Endereço atualizado com sucesso!");
-    } else if (isCreating) {
-      // 🔸 Cria novo endereço
-      const novoEndereco = await addEndereco(
-        token,
-        data.cep,
-        data.rua,
-        data.numero,
-        data.bairro,
-        data.complemento,
-        data.cidade,
-        data.estado,
-        data.is_padrao
-      );
-
-      // ✅ Atualiza o formData com o ID retornado pelo backend
-      if (novoEndereco?.id) {
-        onChange({ ...data, id: novoEndereco.id });
-      }
-
-      toast.success("Endereço adicionado com sucesso!");
+    // 1️⃣ Apenas selecionou um endereço existente
+    if (!isCreating && !isEditing && data.id) {
+      onNext();
+      return;
     }
 
-    // 🔹 Atualiza lista e volta ao estado normal
-    const atualizados = await getEnderecos(token);
-    setEnderecos(atualizados);
-    setIsCreating(false);
-    setIsEditing(false);
-    onNext();
-  } catch (err) {
-    console.error("Erro ao salvar endereço:", err);
-    toast.error("Erro ao salvar endereço. Tente novamente.");
-  }
-};
+    if (!data.rua || !data.numero || !data.cep || !data.cidade || !data.estado || !data.bairro) {
+      toast.warning("Preencha todos os campos obrigatórios do endereço.");
+      return;
+    }
 
+    try {
+      if (isEditing && data.id) {
+        // 🔸 Atualiza endereço existente
+        await updateEndereco(
+          token,
+          data.id,
+          data.cep,
+          data.rua,
+          data.numero,
+          data.bairro,
+          data.complemento,
+          data.cidade,
+          data.estado,
+          data.is_padrao
+        );
+        toast.success("Endereço atualizado com sucesso!");
+      } else if (isCreating) {
+        // 🔸 Cria novo endereço
+        const novoEndereco = await addEndereco(
+          token,
+          data.cep,
+          data.rua,
+          data.numero,
+          data.bairro,
+          data.complemento,
+          data.cidade,
+          data.estado,
+          data.is_padrao
+        );
 
+        // ✅ Atualiza o formData com o ID retornado pelo backend
+        if (novoEndereco?.id) {
+          onChange({ ...data, id: novoEndereco.id });
+        }
+
+        toast.success("Endereço adicionado com sucesso!");
+      }
+
+      // 🔹 Atualiza lista e volta ao estado normal
+      const atualizados = await getEnderecos(token);
+      setEnderecos(atualizados);
+      setIsCreating(false);
+      setIsEditing(false);
+      onNext();
+    } catch (err) {
+      console.error("Erro ao salvar endereço:", err);
+      toast.error("Erro ao salvar endereço. Tente novamente.");
+    }
+  };
 
   // 🔹 Ações auxiliares
   const handleEdit = (endereco: any) => {
@@ -152,9 +150,7 @@ const handleNext = async () => {
   
   if (loading)
     return (
-      <p className="text-center text-sm text-brown-tertiary py-10">
-        Carregando endereços...
-      </p>
+      <CheckoutCardPlaceholder/>
     );
   
   return (

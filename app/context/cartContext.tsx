@@ -5,11 +5,12 @@ import { useAuth } from "./authContext";
 import { toast } from "react-toastify";
 
 interface CartItem {
-  id: number;
-  box_id: number;
+  id: string;
+  box_id: string;
   nome: string;
+  tipo_plano: string;
   preco_unitario: string;
-  imageSrc: string;
+  imagem_principal_url: string;
   quantidade: number;
 }
 
@@ -21,8 +22,9 @@ interface Carrinho {
 interface CarrinhoContextProps {
   carrinho: Carrinho | null;
   loadCarrinho: () => Promise<void>;
-  addItem: (box_id: number, quantidade: number, tipo_plano: 'mensal'|'anual') => Promise<void>;
-  removeItem: (box_id: number) => Promise<void>;
+  addItem: (box_id: string, quantidade: number, tipo_plano: 'mensal'|'anual') => Promise<void>;
+  removeItem: (box_id: string) => Promise<void>;
+  loading: boolean;
 }
 
 const CarrinhoContext = createContext<CarrinhoContextProps | undefined>(undefined);
@@ -30,31 +32,36 @@ const CarrinhoContext = createContext<CarrinhoContextProps | undefined>(undefine
 export function CarrinhoProvider({ children }: { children: React.ReactNode }) {
   const { token } = useAuth();
   const [carrinho, setCarrinho] = useState<Carrinho | null>(null);
+  const [loading, setLoading] = useState(true); 
 
   const loadCarrinho = async () => {
-  if (!token) return;
-  try {
-    const data = await getCarrinho(token);
-    if (data.success) {
-      setCarrinho(data.carrinho);
-    } else {
-      toast.error(data.message || "Erro ao carregar carrinho!");
-    }
-  } catch (err) {
-    console.error(err);
-    toast.error("Erro inesperado ao carregar carrinho!");
-  }
-};
-
-  useEffect(() => {
     if (!token) {
       setCarrinho(null);
+      setLoading(false);
       return;
     }
+
+    setLoading(true);
+    try {
+      const data = await getCarrinho(token);
+      if (data.success) {
+        setCarrinho(data.carrinho);
+      } else {
+        toast.error(data.message || "Erro ao carregar carrinho!");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Erro inesperado ao carregar carrinho!");
+    } finally{
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     loadCarrinho();
   }, [token]);
 
-  const addItem = async (box_id: number, quantidade: number, tipo_plano: 'mensal'|'anual') => {
+  const addItem = async (box_id: string, quantidade: number, tipo_plano: 'mensal'|'anual') => {
   if (!token) return;
 
   const itemExistente = carrinho?.itens.find(
@@ -82,7 +89,7 @@ export function CarrinhoProvider({ children }: { children: React.ReactNode }) {
 };
 
 
-  const removeItem = async (box_id: number) => {
+  const removeItem = async (box_id: string) => {
     if (!token) return;
     const data = await removeFromCarrinho(token, box_id);
     if (data.success){
@@ -95,7 +102,7 @@ export function CarrinhoProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <CarrinhoContext.Provider value={{ carrinho, loadCarrinho, addItem, removeItem }}>
+    <CarrinhoContext.Provider value={{ carrinho, loadCarrinho, addItem, removeItem, loading }}>
       {children}
     </CarrinhoContext.Provider>
   );

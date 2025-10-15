@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams, usePathname, useRouter } from "next/navigation";
-import { ChevronDownIcon } from "lucide-react";
+import { ChevronDownIcon, Link } from "lucide-react";
 import { BoxGallery } from "../ui/box-gallery";
 import Button from "../ui/button";
 import { getBoxById } from "@/app/services/boxes";
@@ -26,23 +26,10 @@ export default function BoxArea() {
   const [cep, setCep] = useState("");
   const [frete, setFrete] = useState<any[]>([]);
   const [loadingFrete, setLoadingFrete] = useState(false);
+  
 
   useEffect(() => {
     if (!id) return;
-
-    try {
-      const savedCheckout = localStorage.getItem("checkoutData");
-      if (savedCheckout) {
-        const parsed = JSON.parse(savedCheckout);
-        if (parsed.boxId === id) {
-          setPlano(parsed.plano);
-          setQuantidade(parsed.quantidade);
-        }
-      }
-    } catch (error) {
-      console.error("Erro ao ler checkoutData:", error);
-      localStorage.removeItem("checkoutData");
-    }
 
     getBoxById(id as string)
       .then((data) => {
@@ -58,6 +45,22 @@ export default function BoxArea() {
         console.error("Erro ao chamar getBoxById:", error);
       });
   }, [id]);
+
+  const getPreco = (tipoPlano: "mensal" | "anual" | null, qtd: 4 | 6 | null) => {
+    if (!box || !tipoPlano ) return null;
+
+    const qtdParaCalculo = qtd ?? 4; 
+
+    if (tipoPlano === "anual") {
+      return qtdParaCalculo === 4 ? box.preco_anual_4_un : box.preco_anual_6_un;
+    } else if (tipoPlano === "mensal") {
+      return qtdParaCalculo === 4 ? box.preco_mensal_4_un : box.preco_mensal_6_un;
+    }
+    return null;
+  };
+
+  const precoAnualExibicao = useMemo(() => getPreco('anual', quantidade), [box, quantidade]);
+  const precoMensalExibicao = useMemo(() => getPreco('mensal', quantidade), [box, quantidade]);
 
   const handleAddToCart = async () => {
     if (!isAuthenticated) {
@@ -102,21 +105,29 @@ export default function BoxArea() {
   };
 
   const handleComprarAgora = () => {
-    if (!isAuthenticated) {
-      toast.warning("Faça login para continuar.");
-      localStorage.setItem("redirectAfterAuth", pathname);
-      router.push("/login");
-      return;
-    }
+  if (!isAuthenticated) {
+    toast.warning("Por favor, faça login para continuar a compra.");
+    localStorage.setItem("redirectAfterAuth", pathname);
+    router.push("/login");
+    return;
+  }
 
-    if (!box || !plano || !quantidade) {
-      toast.warning("Selecione o plano e a quantidade antes de continuar.");
-      return;
-    }
+  if (!box) {
+    toast.warning("Box não carregada ainda.");
+    return;
+  }
+  if (!plano || !quantidade) {
+    toast.warning("Selecione o plano e a quantidade antes de continuar.");
+    return;
+  }
 
-    localStorage.setItem("checkoutData", JSON.stringify({ boxId: box.id, plano, quantidade }));
-    router.push("/checkout");
-  };
+  sessionStorage.setItem(
+    "checkoutData",
+    JSON.stringify({ boxId: box.id, plano, quantidade })
+  );
+
+  router.push("/checkout");
+};
 
 
   if (!box) return <BoxAreaSkeleton />;
@@ -150,7 +161,7 @@ export default function BoxArea() {
                 <label className="font-primary text-brown-tertiary">Box Anual</label>
               </div>
               <h1 className="text-yellow-primary font-primary pt-2 text-nowrap">
-                R$ {box.preco_anual_4_un} / ANO
+                R$ {precoAnualExibicao ? precoAnualExibicao : '00,00'} / ANO
               </h1>
             </div>
 
@@ -171,7 +182,7 @@ export default function BoxArea() {
                 <label className="font-primary text-brown-tertiary">Box Mensal</label>
               </div>
               <h1 className="text-yellow-primary font-primary pt-2 text-nowrap">
-                R$ {box.preco_mensal_4_un} / MÊS
+                R$ {precoMensalExibicao ? precoAnualExibicao : '00,00'} / MÊS
               </h1>
             </div>
           </div>
@@ -182,7 +193,7 @@ export default function BoxArea() {
               id="quantidade"
               name="quantidade"
               value={quantidade ?? ""}
-              onChange={(e) => setQuantidade(Number(e.target.value) as 4 | 6)}
+              onChange={(e) => setQuantidade(e.target.value === "" ? null : Number(e.target.value) as 4 | 6)}
               className="uppercase border-2 border-yellow-primary col-start-1 row-start-1 w-full appearance-none rounded-md bg-white py-3 pr-8 pl-3 font-primary text-yellow-primary focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-500 text-sm/6"
             >
               <option value="">Selecione a quantidade da Box</option>
@@ -230,10 +241,10 @@ export default function BoxArea() {
               />
 
             <Button variant="septenary" 
-            className="border-2 uppercase font-primary px-2 py-1"
+            className="border-2 uppercase font-primary px-2 py-1 flex items-center justify-center w-10 h-8"
             onClick={handleCalcularFrete}
             disabled={loadingFrete}>
-              {loadingFrete ? "..." : "Ok"}
+              {loadingFrete ? <span className="animate-spin rounded-full border-4 border-brown-primary border-t-transparent size-4"></span> : "Ok"}
             </Button>
           </div>
           {frete.length > 0 && (

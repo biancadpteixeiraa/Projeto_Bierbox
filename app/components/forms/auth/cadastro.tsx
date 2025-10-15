@@ -5,6 +5,7 @@ import Input from "../../ui/input";
 import { useState } from "react";
 import { useAuth } from "@/app/context/authContext";
 import { IMaskInput } from 'react-imask';
+import { toast } from "react-toastify";
 
 export default function CadastroForm() {
   const { register, loading } = useAuth();
@@ -34,11 +35,22 @@ export default function CadastroForm() {
     if (!cpf) newErrors.cpf = "CPF é obrigatório.";
     if (!dataNascimento) newErrors.dataNascimento = "Data de Nascimento é obrigatória.";
     if (!senha) newErrors.senha = "Senha é obrigatória.";
-    else if (senha.length < 8) newErrors.senha = "Senha deve ter pelo menos 8 caracteres.";
+    else {
+      const senhaValida = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/.test(senha);
+      if (!senhaValida) {
+        newErrors.senha = "A senha deve ter pelo menos 8 caracteres e conter letras e números.";
+      }
+    }
     if (senha !== confirmSenha) newErrors.confirmSenha = "Senhas não coincidem.";
 
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+      if (Object.keys(newErrors).length > 0) {
+      const primeiraMensagem = Object.values(newErrors)[0];
+      toast.error(primeiraMensagem);
+      return false;
+    }
+
+    return true;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -108,26 +120,29 @@ export default function CadastroForm() {
         {errors.dataNascimento && <p className="text-red-600 text-xs sm:text-sm mt-1">{errors.dataNascimento}</p>}
       </div>
       <div className="flex flex-col">
-        <div className="flex justify-between pb-2">
+        <div className="flex pb-2">
           <label htmlFor="senha" className="font-secondary text-gray-tertiary text-xs sm:text-sm w-full">
             Crie uma senha:
           </label>
+        </div>
+          <div className="relative">
+          <Input
+            id="senha"
+            type={mostrarSenha ? "text" : "password"}
+            placeholder="Senha aqui"
+            value={senha}
+            onChange={(e) => setSenha(e.target.value)}
+            className="pr-10"
+          />
           <button
             type="button"
-            className="flex items-center"
             onClick={() => setMostrarSenha(!mostrarSenha)}
+            className="absolute inset-y-0 right-3 flex items-center"
+            aria-label={mostrarSenha ? "Ocultar senha" : "Mostrar senha"}
           >
-            <Icon icon={mostrarSenha ? "mdi:eye-off" : "mdi:eye"} className="text-gray-tertiary text-base" />
-            <p className="pl-2 text-gray-tertiary text-xs sm:text-sm">{mostrarSenha ? "Hide" : "Show"}</p>
+            <Icon icon={mostrarSenha ? "mdi:eye-off" : "mdi:eye"} className="text-gray-tertiary/75 hover:text-gray-tertiary/55 text-base" />
           </button>
         </div>
-        <Input
-          type={mostrarSenha ? "text" : "password"}
-          placeholder="Senha aqui"
-          id="senha"
-          value={senha}
-          onChange={e => setSenha(e.target.value)}
-        />
         <p className="font-secondary text-gray-quaternary text-xs pt-2">
           Crie uma senha com mais de 8 dígitos contendo números e letras.
         </p>
@@ -153,10 +168,7 @@ export default function CadastroForm() {
         className="mt-4 w-full py-4 font-medium text-lg flex items-center justify-center"
       >
         {loading ? (
-          <svg className="animate-spin h-5 w-5 mr-3 text-white" viewBox="0 0 24 24">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
-          </svg>
+          <span className="animate-spin rounded-full border-4 border-beige-primary border-t-transparent w-6 h-6"></span>
         ) : (
           "Realizar cadastro"
         )}

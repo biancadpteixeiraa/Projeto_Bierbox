@@ -24,46 +24,7 @@ export default function InstagramArea() {
         const data = await getInstagramPhotos();
 
         if (data.photos) {
-          // adiciona mocks extras junto com os posts reais
-          const mocks: InstagramPhoto[] = [
-            {
-              id: "mock1",
-              media_url: "/post.png",
-              permalink: "#",
-              thumbnail_url: "/post.png",
-              media_type: "IMAGE",
-            },
-            {
-              id: "mock2",
-              media_url: "/post.png",
-              permalink: "#",
-              thumbnail_url: "/post.png",
-              media_type: "VIDEO",
-            },
-            {
-              id: "mock3",
-              media_url: "/post.png",
-              permalink: "#",
-              thumbnail_url: "/post.png",
-              media_type: "VIDEO",
-            },
-            {
-              id: "mock4",
-              media_url: "/post.png",
-              permalink: "#",
-              thumbnail_url: "/post.png",
-              media_type: "VIDEO",
-            },
-            {
-              id: "mock5",
-              media_url: "/post.png",
-              permalink: "#",
-              thumbnail_url: "/post.png",
-              media_type: "VIDEO",
-            },
-          ];
-
-          setPhotos([...data.photos, ...mocks]);
+          setPhotos([...data.photos]);
         }
         setError(false);
       } catch (err) {
