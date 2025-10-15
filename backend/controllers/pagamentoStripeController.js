@@ -2,10 +2,11 @@
 // Controller Stripe – assinaturas recorrentes (box + frete real via Melhor Envio)
 
 const Stripe = require('stripe');
-const pool = require('../config/db'); // usa sua conexão centralizada
-const { calcularFretePorCep } = require('./freteService'); // novo service que criamos
+const pool = require('../config/db'); 
+const { calcularFretePorCep } = require('./freteService'); 
 
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
+const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
 
 if (!STRIPE_SECRET_KEY) {
   throw new Error('STRIPE_SECRET_KEY não configurada no ambiente.');
@@ -16,7 +17,7 @@ const stripe = Stripe(STRIPE_SECRET_KEY);
 // ----------------- UTILS -----------------
 
 // Busca preço da box conforme plano e quantidade
-async function obterPrecoBox(boxId, tipoPlano, quantidadeCervejas) {
+async function obterPrecoBox(boxId, planoId, quantidade) {
   const { rows } = await pool.query(
     'SELECT * FROM boxes WHERE id = $1 AND ativo = true',
     [boxId]
@@ -24,12 +25,12 @@ async function obterPrecoBox(boxId, tipoPlano, quantidadeCervejas) {
   const box = rows[0];
   if (!box) throw new Error('Box não encontrada ou inativa.');
 
-  if (tipoPlano === 'mensal') {
-    if (quantidadeCervejas === 4) return Number(box.preco_mensal_4_un);
-    if (quantidadeCervejas === 6) return Number(box.preco_mensal_6_un);
-  } else if (tipoPlano === 'anual') {
-    if (quantidadeCervejas === 4) return Number(box.preco_anual_4_un);
-    if (quantidadeCervejas === 6) return Number(box.preco_anual_6_un);
+  if (planoId === 'PLANO_MENSAL') {
+    if (quantidade === 4) return Number(box.preco_mensal_4_un);
+    if (quantidade === 6) return Number(box.preco_mensal_6_un);
+  } else if (planoId === 'PLANO_ANUAL') {
+    if (quantidade === 4) return Number(box.preco_anual_4_un);
+    if (quantidade === 6) return Number(box.preco_anual_6_un);
   }
   throw new Error('Combinação de plano e quantidade inválida.');
 }
@@ -70,9 +71,10 @@ async function getOrCreateStripeCustomer(user) {
 // Iniciar checkout de assinatura
 async function iniciarCheckoutAssinatura(req, res) {
   try {
-    const { usuarioId, boxId, tipoPlano, quantidadeCervejas, enderecoEntregaId } = req.body;
+    const { plano_id, quantidade, endereco_entrega_id, box_id } = req.body;
+    const usuarioId = req.userId; // vem do JWT
 
-    if (!usuarioId || !boxId || !tipoPlano || !quantidadeCervejas || !enderecoEntregaId) {
+    if (!usuarioId || !box_id || !plano_id || !quantidade || !endereco_entrega_id) {
       return res.status(400).json({ error: 'Parâmetros obrigatórios ausentes.' });
     }
 
@@ -80,13 +82,12 @@ async function iniciarCheckoutAssinatura(req, res) {
     const user = await obterUsuario(usuarioId);
     if (!user) return res.status(404).json({ error: 'Usuário não encontrado.' });
 
-    const endereco = await obterEndereco(enderecoEntregaId, usuarioId);
+    const endereco = await obterEndereco(endereco_entrega_id, usuarioId);
     if (!endereco) return res.status(404).json({ error: 'Endereço de entrega não encontrado.' });
 
     // Calcula valores
-    const valorAssinatura = await obterPrecoBox(boxId, tipoPlano, Number(quantidadeCervejas));
+    const valorAssinatura = await obterPrecoBox(box_id, plano_id, Number(quantidade));
 
-    // usa o frete real via Melhor Envio
     const frete = await calcularFretePorCep(endereco.cep);
     const valorFrete = frete.preco;
 
@@ -98,11 +99,11 @@ async function iniciarCheckoutAssinatura(req, res) {
 
     // Cria produto e price dinâmico
     const product = await stripe.products.create({
-      name: `BierBox – ${quantidadeCervejas} un (${tipoPlano})`,
-      metadata: { box_id: boxId, user_id: usuarioId, plano: tipoPlano }
+      name: `BierBox – ${quantidade} un (${plano_id})`,
+      metadata: { box_id, user_id: usuarioId, plano: plano_id }
     });
 
-    const interval = tipoPlano === 'mensal' ? 'month' : 'year';
+    const interval = plano_id === 'PLANO_MENSAL' ? 'month' : 'year';
 
     const price = await stripe.prices.create({
       unit_amount: unitAmount,
@@ -121,17 +122,16 @@ async function iniciarCheckoutAssinatura(req, res) {
       payment_method_types: ['card'],
       metadata: {
         usuarioId,
-        boxId,
-        tipoPlano,
-        quantidadeCervejas,
-        enderecoEntregaId,
+        box_id,
+        plano_id,
+        quantidade,
+        endereco_entrega_id,
         valorAssinatura: valorAssinatura.toFixed(2),
         valorFrete: valorFrete.toFixed(2),
       }
     });
 
     // Persiste assinatura PENDENTE
-    const planoId = `${tipoPlano}_${quantidadeCervejas}un`;
     const formaPagamento = 'stripe';
 
     const insertAssinatura = `
@@ -152,13 +152,13 @@ async function iniciarCheckoutAssinatura(req, res) {
 
     const { rows: assinaturaRows } = await pool.query(insertAssinatura, [
       usuarioId,
-      planoId,
-      session.id, // guardamos session.id até confirmar
-      enderecoEntregaId,
+      plano_id,
+      session.id,
+      endereco_entrega_id,
       valorFrete,
       valorAssinatura,
       formaPagamento,
-      boxId
+      box_id
     ]);
 
     return res.status(200).json({
@@ -239,12 +239,11 @@ async function webhookStripe(req, res) {
   }
 }
 
-// Cancelar assinatura (cliente ou admin)
+// Cancelar assinatura
 async function cancelarAssinatura(req, res) {
   try {
     const { assinaturaId } = req.params;
 
-    // Busca assinatura no banco
     const { rows } = await pool.query(
       'SELECT id_assinatura_mp, status FROM assinaturas WHERE id = $1',
       [assinaturaId]
@@ -255,15 +254,14 @@ async function cancelarAssinatura(req, res) {
       return res.status(404).json({ error: 'Assinatura não encontrada.' });
     }
 
-    if (assinatura.status !== 'ATIVA') {
+        if (assinatura.status !== 'ATIVA') {
       return res.status(400).json({ error: 'Assinatura não está ativa.' });
     }
 
     // Cancela no Stripe
     await stripe.subscriptions.cancel(assinatura.id_assinatura_mp);
 
-    // O webhook "customer.subscription.deleted" vai atualizar o banco para CANCELADA
-    // Mas se quiser já marcar imediatamente:
+    // Atualiza no banco imediatamente
     await pool.query(
       `UPDATE assinaturas
        SET status = 'CANCELADA',
@@ -285,4 +283,3 @@ module.exports = {
   webhookStripe,
   cancelarAssinatura,
 };
-

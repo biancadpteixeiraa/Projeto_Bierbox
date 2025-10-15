@@ -14,9 +14,7 @@ const enderecoRoutes = require("./routes/enderecoRoutes");
 const pagamentoRoutes = require("./routes/pagamentoRoutes");
 const assinaturaRoutes = require("./routes/assinaturaRoutes");
 const adminRoutes = require("./routes/adminRoutes");
-
-// 🚀 NOVO: rotas do Stripe
-const stripeRoutes = require("./stripeRoutes");
+const stripeRoutes = require("./routes/stripeRoutes");
 
 const app = express();
 

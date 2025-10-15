@@ -1,21 +1,21 @@
 const express = require('express');
 const router = express.Router();
+
 const {
   iniciarCheckoutAssinatura,
   webhookStripe,
   cancelarAssinatura,
 } = require('./pagamentoStripeController');
 
-// Iniciar checkout (POST)
+// 🚀 Criar sessão de checkout (assinatura)
 router.post('/checkout', iniciarCheckoutAssinatura);
 
-// Webhook Stripe (POST)
-// IMPORTANTE: para validar a assinatura do webhook corretamente,
-// você precisa acessar o raw body. Configure seu app para isso.
-// Durante testes simples, podemos aceitar JSON normal.
-router.post('/webhook', express.json({ type: '*/*' }), webhookStripe);
+// 🚀 Webhook do Stripe
+// ⚠️ Importante: no index.js você já configurou o express.raw() para /stripe/webhook
+// então aqui podemos usar direto o controller
+router.post('/webhook', webhookStripe);
 
-// Cancelar assinatura (DELETE)
+// 🚀 Cancelar assinatura
 router.delete('/assinaturas/:assinaturaId/cancelar', cancelarAssinatura);
 
 module.exports = router;
