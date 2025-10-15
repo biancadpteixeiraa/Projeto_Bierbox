@@ -4,6 +4,7 @@ const { validate: isUuid } = require("uuid");
 
 
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
+const FRONTEND_URL = process.env.FRONTEND_URL;
 
 if (!STRIPE_SECRET_KEY) {
   throw new Error("STRIPE_SECRET_KEY não configurada no ambiente.");
@@ -83,8 +84,8 @@ const iniciarCheckoutAssinatura = async (req, res) => {
       mode: "subscription",
       customer_email: userEmail,
       line_items: [{ price: price.id, quantity: 1 }],
-      success_url: `${FRONTEND_URL}/checkout/aprovado`,
-      cancel_url: `${FRONTEND_URL}/checkout/falha`,
+      success_url: `https://projeto-bierbox.onrender.com/checkout/aprovado`,
+      cancel_url: `https://projeto-bierbox.onrender.com/checkout/falha`,
       metadata: {
         assinaturaId: assinaturaId.toString(),
         utilizadorId,
