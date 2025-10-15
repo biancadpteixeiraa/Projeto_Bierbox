@@ -2,6 +2,8 @@ const Stripe = require("stripe");
 const pool = require("../config/db");
 const { validate: isUuid } = require("uuid");
 
+console.log("🔍 req.userId:", req.userId);
+
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
 
 if (!STRIPE_SECRET_KEY) {
