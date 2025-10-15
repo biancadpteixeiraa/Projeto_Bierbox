@@ -52,7 +52,6 @@ const getEnderecoById = async (req, res) => {
     const { id } = req.params;
     const utilizadorId = req.userId;
 
-    // Validação de segurança para o ID
     if (!isUuid(id)) {
         return res.status(400).json({ message: 'ID de endereço inválido.' });
     }
@@ -91,13 +90,19 @@ const updateEndereco = async (req, res) => {
     }
 
     try {
-        const { rows: enderecoExistente } = await pool.query('SELECT * FROM enderecos WHERE id = $1 AND utilizador_id = $2', [id, utilizadorId]);
+        const { rows: enderecoExistente } = await pool.query(
+            'SELECT * FROM enderecos WHERE id = $1 AND utilizador_id = $2',
+            [id, utilizadorId]
+        );
         if (enderecoExistente.length === 0) {
             return res.status(404).json({ message: 'Endereço não encontrado ou não pertence a este utilizador.' });
         }
 
         if (is_padrao === true) {
-            await pool.query('UPDATE enderecos SET is_padrao = FALSE WHERE utilizador_id = $1 AND id != $2', [utilizadorId, id]);
+            await pool.query(
+                'UPDATE enderecos SET is_padrao = FALSE WHERE utilizador_id = $1 AND id != $2',
+                [utilizadorId, id]
+            );
         }
 
         const { rows } = await pool.query(
@@ -123,7 +128,22 @@ const deleteEndereco = async (req, res) => {
     }
 
     try {
-        const { rowCount } = await pool.query('DELETE FROM enderecos WHERE id = $1 AND utilizador_id = $2', [id, utilizadorId]);
+        // Verifica se o endereço está vinculado a alguma assinatura ativa
+        const { rows: assinaturasVinculadas } = await pool.query(
+            'SELECT id FROM assinaturas WHERE endereco_entrega_id = $1 AND utilizador_id = $2 AND status != $3',
+            [id, utilizadorId, 'CANCELADA']
+        );
+
+        if (assinaturasVinculadas.length > 0) {
+            return res.status(400).json({
+                message: 'Este endereço está vinculado a uma assinatura ativa e não pode ser excluído.'
+            });
+        }
+
+        const { rowCount } = await pool.query(
+            'DELETE FROM enderecos WHERE id = $1 AND utilizador_id = $2',
+            [id, utilizadorId]
+        );
 
         if (rowCount === 0) {
             return res.status(404).json({ message: 'Endereço não encontrado ou não pertence a este utilizador.' });
