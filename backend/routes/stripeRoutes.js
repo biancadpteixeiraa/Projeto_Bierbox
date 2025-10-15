@@ -1,22 +1,20 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
 
 const {
   iniciarCheckoutAssinatura,
   webhookStripe,
   cancelarAssinatura,
-} = require('../controllers/pagamentoStripeController');
-
+} = require("../controllers/pagamentoStripeController");
 
 // 🚀 Criar sessão de checkout (assinatura)
-router.post('/checkout', iniciarCheckoutAssinatura);
+router.post("/checkout", iniciarCheckoutAssinatura);
 
 // 🚀 Webhook do Stripe
-// ⚠️ Importante: no index.js você já configurou o express.raw() para /stripe/webhook
-// então aqui podemos usar direto o controller
-router.post('/webhook', webhookStripe);
+// ⚠️ Importante: no index.js você já configurou express.raw() para /stripe/webhook
+router.post("/webhook", webhookStripe);
 
 // 🚀 Cancelar assinatura
-router.delete('/assinaturas/:assinaturaId/cancelar', cancelarAssinatura);
+router.delete("/assinaturas/:assinaturaId/cancelar", cancelarAssinatura);
 
 module.exports = router;
