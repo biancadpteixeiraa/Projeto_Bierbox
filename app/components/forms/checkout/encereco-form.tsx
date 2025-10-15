@@ -41,6 +41,7 @@ export default function EnderecoForm({
   const [isCreating, setIsCreating] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [loadingEndereco, setLoadingEndereco] = useState(false);
 
   useEffect(() => {
     if (!token) return;
@@ -62,20 +63,22 @@ export default function EnderecoForm({
   const handleNext = async () => {
     if (!token) return;
 
-    // 1️⃣ Apenas selecionou um endereço existente
+    setLoadingEndereco(true);
+
     if (!isCreating && !isEditing && data.id) {
+      setLoadingEndereco(false);
       onNext();
       return;
     }
 
     if (!data.rua || !data.numero || !data.cep || !data.cidade || !data.estado || !data.bairro) {
       toast.warning("Preencha todos os campos obrigatórios do endereço.");
+      setLoadingEndereco(false);
       return;
     }
 
     try {
       if (isEditing && data.id) {
-        // 🔸 Atualiza endereço existente
         await updateEndereco(
           token,
           data.id,
@@ -90,7 +93,6 @@ export default function EnderecoForm({
         );
         toast.success("Endereço atualizado com sucesso!");
       } else if (isCreating) {
-        // 🔸 Cria novo endereço
         const novoEndereco = await addEndereco(
           token,
           data.cep,
@@ -109,9 +111,9 @@ export default function EnderecoForm({
         }
 
         toast.success("Endereço adicionado com sucesso!");
+        setLoadingEndereco(false);
       }
 
-      // 🔹 Atualiza lista e volta ao estado normal
       const atualizados = await getEnderecos(token);
       setEnderecos(atualizados);
       setIsCreating(false);
@@ -120,6 +122,8 @@ export default function EnderecoForm({
     } catch (err) {
       console.error("Erro ao salvar endereço:", err);
       toast.error("Erro ao salvar endereço. Tente novamente.");
+    } finally{
+      setLoadingEndereco(false);
     }
   };
 
@@ -155,7 +159,7 @@ export default function EnderecoForm({
   
   return (
     <div>
-      <div className="w-full flex items-center justify-between pb-5">
+      <div className="w-full hidden lg:flex items-center justify-between pb-5">
         <h1 className="hidden lg:block font-secondary text-brown-tertiary font-bold text-lg">
           Endereço de entrega
         </h1>
@@ -341,9 +345,13 @@ export default function EnderecoForm({
               variant="quaternary"
               onClick={handleNext}
               disabled={disabled || data.rua.trim() === ""}
-              className="py-2 font-medium"
+              className="py-2 font-medium flex items-center justify-center"
             >
-              {isEditing ? "Salvar alterações" : "Avançar"}
+              {loadingEndereco ? (
+                <span className="animate-spin rounded-full border-4 border-beige-primary border-t-transparent size-6"></span>
+              ) : (
+                isEditing ? "Salvar alterações" : "Avançar"
+              )}
             </Button>
           </CheckoutCard>
         ) 

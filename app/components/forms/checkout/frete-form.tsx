@@ -77,7 +77,7 @@ const handleCalcularFrete = async () => {
 
   return (
     <div>
-      <div className="w-full flex items-center justify-between pb-5">
+      <div className="w-full hidden lg:flex items-center justify-between pb-5 ">
         <h1 className="hidden lg:block font-secondary text-brown-tertiary font-bold text-lg">
           Frete
         </h1>
@@ -114,37 +114,53 @@ const handleCalcularFrete = async () => {
               </div>
             )}
             {!isLoading && frete.length > 0 && (
-            <div className="flex flex-col gap-3">
-                {frete.map((opcao) => (
-                <div
-                key={opcao.nome}
-                className="flex items-center  p-3 text-brown-tertiary rounded-lg shadow-[0px_2px_14px_0px_rgb(00,00,00,0.1)]"
-                onClick={() => handleSelectFrete(opcao)}>
-                    <div className="w-full flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                        <input
-                        type="radio"
-                        name="frete"
-                        value={opcao.nome}
-                        checked={data.tipo === opcao.nome}
-                        onChange={() => handleSelectFrete(opcao)}
-                        disabled={disabled || isLoading}
-                        className="size-4 cursor-pointer appearance-none rounded-full border border-brown-tertiary checked:bg-brown-tertiary transition-all checked:ring-2 checked:ring-inset checked:ring-white"
-                        />
-                        <div className="flex flex-col items-start">
-                        <h2 className="font-primary text-[10px]">{opcao.nome} ({opcao.empresa})</h2>
-                        <p className="text-[10px] font-medium">Até {opcao.prazo || "-"} dias úteis</p>
+              <div className="flex flex-col gap-3">
+                {frete.map((opcao) => {
+                  const isUnavailable =
+                    !opcao.preco || opcao.preco.toLowerCase() === "indisponível";
+
+                  return (
+                    <div
+                      key={opcao.nome}
+                      className={`flex items-center p-3 text-brown-tertiary rounded-lg shadow-[0px_2px_14px_0px_rgb(0,0,0,0.1)]
+                        ${isUnavailable ? "opacity-60 cursor-not-allowed" : "cursor-pointer hover:bg-beige-primary/30 transition-colors"}
+                      `}
+                      onClick={() => !isUnavailable && handleSelectFrete(opcao)}
+                    >
+                      <div className="w-full flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          <input
+                            type="radio"
+                            name="frete"
+                            value={opcao.nome}
+                            checked={data.tipo === opcao.nome}
+                            onChange={() => handleSelectFrete(opcao)}
+                            disabled={disabled || isLoading || isUnavailable}
+                            className="size-4 cursor-pointer appearance-none rounded-full border border-brown-tertiary checked:bg-brown-tertiary transition-all checked:ring-2 checked:ring-inset checked:ring-white"
+                          />
+                          <div className="flex flex-col items-start">
+                            <h2 className="font-primary text-[10px]">
+                              {opcao.nome} ({opcao.empresa})
+                            </h2>
+                            <p className="text-[10px] font-medium">
+                              Até {opcao.prazo || "-"} dias úteis
+                            </p>
+                          </div>
                         </div>
+                        <div>
+                          {isUnavailable ? (
+                            <p className="text-[10px] font-bold text-gray-500">Indisponível</p>
+                          ) : (
+                            <p className="text-[10px] font-bold">
+                              R$ {opcao.preco}
+                            </p>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                        <p className="text-[10px] font-bold">
-                          R$ {opcao.preco || 'Indisponível'}
-                        </p>
-                    </div>
-                    </div>
-                </div>
-                ))}
-            </div>
+                  );
+                })}
+              </div>
             )}
         </div>
         <Button
