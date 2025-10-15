@@ -1,9 +1,12 @@
 "use client";
-import { useState } from "react";
+
 import Button from "../../ui/button";
+import Link from "next/link";
+import { useAuth } from "@/app/context/authContext";
 
 
 export default function AprovadoArea() {
+    const { user} = useAuth(); 
     
 
     return (
@@ -23,23 +26,17 @@ export default function AprovadoArea() {
                     </div>
                     <p className="text-lg md:text-xl w-full lg:w-3/4 !leading-tight tracking-wide">Sua assinatura foi finalizada com sucesso! Nossa equipe está preparando tudo para a box chegar em breve. </p>
                     
-                    <div className="text-lg md:text-xl mt-8">
-                        <p>Detalhes do Pedido:</p>
-                        <ul className="list-disc list-inside mt-4 leading-tight">
-                            <li>Produto: Box Mensal</li>
-                            <li>Valor: R$ 79,90</li>
-                            <li>Data de Entrega: 15/09/2024</li>
-                            <li>Endereço: Rua Exemplo, 123, Cidade, Estado</li>
-                            <li>Tipo de Cobrança: Cartão de Crédito</li>
-                        </ul>
-                    </div>
                     <div className="flex flex-col lg:flex-row gap-4 mt-12">
-                        <Button variant="primary" className="px-5 lg:py-1 py-2 text-base lg:text-lg w-full lg:w-2/4 font-medium">
-                            Ver Detalhes do Pedido
-                        </Button>
-                        <Button variant="tertiary" className="px-4 lg:py-1 py-2 text-base lg:text-lg w-full lg:w-[35%] border-2 font-medium">
-                            Voltar ao início
-                        </Button>
+                        <Link href={`/dashboard/${user?.id}`}>
+                            <Button variant="primary" className="px-5 lg:py-1 py-2 text-base lg:text-lg w-full lg:w-2/4 font-medium">
+                                Ver Detalhes do Pedido
+                            </Button>
+                        </Link>
+                        <Link href="/">
+                            <Button variant="tertiary" className="px-4 lg:py-1 py-2 text-base lg:text-lg w-full lg:w-[35%] border-2 font-medium">
+                                Voltar ao início
+                            </Button>
+                        </Link>
                     </div>
                 </div>
             </div>
