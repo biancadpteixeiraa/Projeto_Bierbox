@@ -5,7 +5,7 @@ const {
   iniciarCheckoutAssinatura,
   webhookStripe,
   cancelarAssinatura,
-} = require('./pagamentoStripeController');
+} = require('./controllers/pagamentoStripeController');
 
 // 🚀 Criar sessão de checkout (assinatura)
 router.post('/checkout', iniciarCheckoutAssinatura);
