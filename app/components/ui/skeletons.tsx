@@ -104,7 +104,7 @@ export function InstagramPhotoSkeleton() {
 export function InstagramPhotosSkeleton() {
   return (
     <>
-      <div className="flex max-w-5xl justify-between w-full flex-row gap-6 pr-14 lg:px-5">
+      <div className="flex max-w-5xl justify-between w-full flex-row gap-6 pr-14">
         <InstagramPhotoSkeleton />
         <span className="hidden sm:block">
           <InstagramPhotoSkeleton />
@@ -127,6 +127,49 @@ function InputLineSkeleton() {
       <div className="h-[46px] w-full bg-[#faf6e6] rounded-xl border border-gray-200" /> {/* Input: altura base do input py-3 */}
     </div>
   );
+}
+
+function InputGroupSkeleton() {
+    return (
+        <div className="flex flex-col gap-5">
+            <div className="flex pb-1 items-center justify-between">
+                <div className="h-3 w-28 bg-[#f7ebc1] rounded-md" />
+                <div className="h-3 w-36 bg-[#faf6e6] rounded-md" />
+            </div>
+            <div className="h-[46px] w-full bg-[#faf6e6] rounded-xl border border-gray-200" />
+            <div className="flex flex-row items-center gap-2 w-full">
+                <div className="flex flex-col items-start justify-center w-1/2 gap-1">
+                    <div className="h-3 w-10 bg-[#f7ebc1] rounded-md" />
+                    <div className="h-[46px] w-full bg-[#faf6e6] rounded-xl border border-gray-200" />
+                </div>
+                <div className="flex flex-col items-start justify-center w-1/2 gap-1">
+                    <div className="h-3 w-14 bg-[#f7ebc1] rounded-md" />
+                    <div className="h-[46px] w-full bg-[#faf6e6] rounded-xl border border-gray-200" />
+                </div>
+            </div>
+            <div className="flex flex-row items-center gap-2 w-full">
+                <div className="flex flex-col items-start justify-center w-1/2 gap-1">
+                    <div className="h-3 w-10 bg-[#f7ebc1] rounded-md" />
+                    <div className="h-[46px] w-full bg-[#faf6e6] rounded-xl border border-gray-200" />
+                </div>
+                <div className="flex flex-col items-start justify-center w-1/2 gap-1">
+                    <div className="h-3 w-24 bg-[#f7ebc1] rounded-md" />
+                    <div className="h-[46px] w-full bg-[#faf6e6] rounded-xl border border-gray-200" />
+                </div>
+            </div>
+            <div className="flex flex-row items-center gap-2 w-full">
+                <div className="flex flex-col items-start justify-center w-1/2 gap-1">
+                    <div className="h-3 w-12 bg-[#f7ebc1] rounded-md" />
+                    <div className="h-[46px] w-full bg-[#faf6e6] rounded-xl border border-gray-200" />
+                </div>
+                <div className="flex flex-col items-start justify-center w-1/2 gap-1">
+                    <div className="h-3 w-12 bg-[#f7ebc1] rounded-md" />
+                    <div className="h-[46px] w-full bg-[#faf6e6] rounded-xl border border-gray-200" />
+                </div>
+            </div>
+            <InputLineSkeleton />
+        </div>
+    );
 }
 
 function FormSkeleton() {
@@ -183,7 +226,6 @@ export function UserInfoSkeleton() {
   );
 }
 
-// Adicione esta função na sua área de skeletons.
 function EnderecoCardSkeleton() {
     return (
         <div className="lg:w-[74%] w-full bg-[#faf6e6] rounded-xl p-6 shadow-md">
@@ -232,7 +274,6 @@ function EnderecoCardSkeleton() {
     );
 }
 
-// Adicione esta função na sua área de skeletons.
 export function EnderecoListSkeleton() {
     return (
         <div className={`${shimmer} relative overflow-hidden pl-8 lg:pl-12 pr-8 lg:pr-36 h-full flex flex-col max-w-screen-2xl`}>
@@ -256,7 +297,6 @@ export function EnderecoListSkeleton() {
     );
 }
 
-// Adicione esta função à sua área de skeletons.
 function BoxGallerySkeleton() {
   return (
     <div className="gap-0 md:gap-3 flex md:p-0 px-5 md:h-[530px] h-80 w-full md:max-w-[500px]">
@@ -277,7 +317,6 @@ function BoxGallerySkeleton() {
   );
 }
 
-// Adicione esta função à sua área de skeletons.
 function BoxInfoSkeleton() {
   return (
     <div className="lg:p-0 px-5 w-full lg:w-5/6">
@@ -333,7 +372,6 @@ export function BoxDetailsSkeleton() {
   );
 }
 
-// Adicione esta função à sua área de skeletons.
 export function BoxAreaSkeleton() {
     // Reutiliza a animação shimmer
     const shimmer =
@@ -345,6 +383,131 @@ export function BoxAreaSkeleton() {
             <BoxGallerySkeleton />
             
             <BoxInfoSkeleton />
+        </div>
+    );
+}
+
+export function CheckoutCardPlaceholder() {
+  return (
+    <div
+      className={`${shimmer} relative overflow-hidden rounded-xl bg-[#faf6e6] p-6 shadow-md h-[440px]`}
+    >
+      {/* Header Placeholder */}
+      <div className="h-6 w-3/5 bg-[#f7ebc1] rounded-md mb-8" /> 
+
+      {/* Content Lines Placeholder */}
+      <div className="flex flex-col gap-4">
+        <div className="h-8 w-full bg-white rounded-lg" />
+        <div className="h-8 w-11/12 bg-white rounded-lg" />
+        <div className="h-8 w-10/12 bg-white rounded-lg" />
+        <div className="h-8 w-full bg-white rounded-lg" />
+        <div className="h-8 w-9/12 bg-white rounded-lg" />
+      </div>
+
+      {/* Footer Button Placeholder */}
+      <div className="absolute bottom-6 left-6 right-6">
+        <div className="h-10 w-full bg-[#f7ebc1] rounded-xl" />
+      </div>
+    </div>
+  );
+}
+
+export function CheckoutSkeleton() {
+  return (
+    <>
+      {/* Skeleton para Desktop (3 colunas) */}
+      <div className="hidden lg:block">
+        <CheckoutCardPlaceholder />
+      </div>
+      <div className="hidden lg:block">
+        <CheckoutCardPlaceholder />
+      </div>
+      <div className="hidden lg:block">
+        <CheckoutCardPlaceholder />
+      </div>
+
+      {/* Skeleton para Mobile (3 colapsáveis) */}
+      <div className="flex flex-col lg:hidden gap-6 w-full">
+        <CheckoutCardPlaceholder />
+        <CheckoutCardPlaceholder />
+        <CheckoutCardPlaceholder />
+      </div>
+    </>
+  );
+}
+
+function AssinaturaCardSkeleton() {
+    return (
+        <div
+            className={`py-6 border-t border-gray-300 flex items-center justify-between pb-8`}
+        >
+            <div className="flex flex-col items-center relative">
+                <div className="md:size-36 size-28 object-cover rounded-md border border-gray-300 bg-[#faf6e6]" />
+                <div className={`w-24 h-4 rounded-full absolute -bottom-3 bg-[#f7ebc1]`} />
+            </div>
+            <div className="flex flex-col items-end">
+                <div className="h-5 w-40 bg-[#f7ebc1] rounded-md mb-3" />
+                <div className="h-4 w-28 bg-[#faf6e6] rounded-md mb-3" />
+                <div className="w-28 h-7 bg-[#f7ebc1] rounded" />
+            </div>
+        </div>
+    );
+}
+
+export function AssinaturasListSkeleton() {
+    const shimmer =
+        'before:absolute before:inset-0 before:-translate-x-full before:animate-[shimmer_2s_infinite] before:bg-gradient-to-r before:from-transparent before:via-white/60 before:to-transparent';
+
+    return (
+      <div className="px-8 lg:px-12 h-screen max-w-screen-2xl">
+        <h1 className="text-brown-tertiary text-lg font-secondary font-bold">Minha(s) Assinatura(s):</h1>
+        <div className={`${shimmer} relative overflow-hidden lg:w-8/12 w-full pt-8`}>
+            <AssinaturaCardSkeleton />
+            <AssinaturaCardSkeleton />
+            <AssinaturaCardSkeleton />
+        </div>
+      </div>
+    );
+}
+
+export function AssinaturaDetalhesSkeleton() {
+    return (
+        <div className={`${shimmer} relative overflow-hidden pl-8 lg:pl-12 h-full flex flex-col max-w-screen-2xl`}>
+            <div className="h-6 w-56 bg-[#f7ebc1] rounded-md" /> 
+            <div className="flex flex-col lg:flex-row pt-8 h-full pb-8">
+                <div className="lg:border-t border-gray-primary lg:w-8/12 xl:pr-32 pr-8 pt-6 pb-12">
+                    <div className="flex items-center gap-8 pb-10">
+                        <div className="size-36 rounded-lg border border-gray-300 bg-[#faf6e6]" />
+                        <div className="flex flex-col">
+                            <div className="h-6 md:w-48 w-28 bg-[#f7ebc1] rounded-md" />
+                            <div className="h-7 md:w-24 w-18 bg-[#faf6e6] rounded-md my-4" />
+                            <div className="h-5 md:w-32 w-24 bg-[#f7ebc1] rounded-full" />
+                        </div>
+                    </div>
+
+                    <div className="flex flex-col gap-5">
+                        <InputLineSkeleton />
+                        <InputLineSkeleton />
+                        <InputGroupSkeleton />
+                    </div>
+                    <div className="w-full">
+                        <div className="h-12 w-full bg-[#f7ebc1] rounded-md mt-10" />
+                    </div>
+                </div>
+                <div className="hidden lg:block h-[880px] w-1 border-gray-primary border-l" />
+                <div className="flex flex-col items-center justify-between lg:w-5/12 w-full pb-20 lg:px-8 pr-8">
+                    <div className="flex flex-col items-center">
+                        <div className="size-36 rounded-full bg-[#faf6e6] flex items-center justify-center" />
+                        
+                        <div className="mt-6 h-12 w-48 bg-[#f7ebc1] rounded-none uppercase" />
+                        
+                        <div className="pt-10 flex flex-col items-center gap-2">
+                            <div className="h-4 w-40 bg-[#faf6e6] rounded-md" />
+                            <div className="h-4 w-32 bg-[#faf6e6] rounded-md" />
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     );
 }

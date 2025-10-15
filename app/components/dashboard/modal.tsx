@@ -32,7 +32,7 @@ interface ModalProps {
               <div className="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:justify-center sm:px-6 sm:pb-6 gap-3">
                 <button
                   onClick={onConfirm}
-                  className="cursor-pointer inline-flex w-full justify-center rounded-md px-6 py-2 text-base font-semibold text-brown-tertiary shadow-sm hover:bg-yellow-primary/20 sm:w-auto sm:ml-18"
+                  className="cursor-pointer inline-flex w-full justify-center rounded-md px-6 py-2 text-base font-semibold text-beige-primary bg-brown-primary shadow-sm hover:bg-brown-primary/85 sm:w-auto sm:ml-18"
                 >
                   Confirmar
                 </button>

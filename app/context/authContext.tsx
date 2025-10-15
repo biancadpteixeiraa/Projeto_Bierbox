@@ -65,7 +65,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           localStorage.removeItem("redirectAfterAuth");
           router.push(redirect);
         } else {
-          router.push(`/dashboard/${user.id}`);
+          router.push(`/`);
         }
       } else {
         toast.error(response.data.message || "Falha ao realizar login, tente novamente!");

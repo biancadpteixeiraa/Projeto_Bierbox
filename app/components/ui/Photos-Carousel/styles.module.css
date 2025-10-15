@@ -1,0 +1,44 @@
+.embla {
+    overflow: hidden;
+    max-width: 100%;
+    margin: auto;
+    --slide-spacing: 1rem;
+    --slide-size: 85%;
+}
+
+.embla__viewport {
+    overflow: hidden;
+    margin-left: calc(var(--slide-spacing) * -1);
+}
+
+.embla__container {
+    display: flex;
+}
+
+.embla__slide {
+    min-width: 0;
+    flex: 0 0 var(--slide-size);
+    padding-left: 1.5rem;
+}
+
+@media (min-width: 540px) {
+    .embla {
+        --slide-size: 30%;
+    }
+}
+
+@media (min-width: 768px) {
+    .embla {
+        --slide-size: calc(100% / 3);
+    }
+}
+
+@media (min-width: 1200px) {
+    .embla {
+        --slide-spacing: 1.5rem;
+        --slide-size: 25%;
+    }
+    .embla__slide{
+            margin-left: 3px;
+    }
+}

@@ -5,8 +5,8 @@ import { XMarkIcon } from '@heroicons/react/24/outline'
 import { Refrigerator, X } from 'lucide-react';
 import Button from '../ui/button';
 import { useCarrinho } from '@/app/context/cartContext';
-import { useEffect } from 'react';
-import Link from 'next/link';
+import { useEffect, useState } from 'react';
+import { toast } from 'react-toastify';
 
 interface ShoppingCartProps {
   isOpen: boolean;
@@ -15,6 +15,7 @@ interface ShoppingCartProps {
 
 export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
   const { carrinho, loadCarrinho, removeItem } = useCarrinho();
+  const [selectedBoxId, setSelectedBoxId] = useState<string | null>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -22,14 +23,39 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
     }
   }, [isOpen]);
 
-  console.log(carrinho);
 
   const total = carrinho?.itens?.reduce((acc, item) => {
     const price = parseFloat(item.preco_unitario.replace(',', '.'));
     return acc + price;
   }, 0).toFixed(2).replace('.', ',') || "0,00";
+
+  const handleFinalizarPedido = () => {
+  if (!selectedBoxId) {
+    toast.error("Selecione uma box antes de finalizar o pedido!");
+    return;
+  }
+
+  const selectedItem = carrinho?.itens.find((i) => i.box_id === selectedBoxId);
+
+  if (!selectedItem) {
+    toast.error("Ocorreu um erro ao identificar a box selecionada.");
+    return;
+  }
+
+  sessionStorage.setItem(
+    "checkoutData",
+    JSON.stringify({
+      boxId: selectedItem.box_id,
+      plano: selectedItem.tipo_plano,
+      quantidade: selectedItem.quantidade,
+    })
+  );
+  window.location.href = "/checkout";
+};
+
+
   return (
-    <Dialog open={isOpen} onClose={onClose} className="relative z-30 font-secondary">
+    <Dialog open={isOpen} onClose={onClose} className="relative z-40 font-secondary">
       <DialogBackdrop
         transition
         className="fixed inset-0 bg-gray-500/75 transition-opacity duration-500 ease-in-out data-closed:opacity-0"
@@ -72,12 +98,21 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
                         {carrinho?.itens && carrinho.itens.length > 0 ? (
                           carrinho.itens.map((item) => (
                             <li key={item.id} className="flex py-6">
-                              <div className="size-24 shrink-0 overflow-hidden rounded-md border border-yellow-tertiary">
-                                <img
-                                  alt={item.nome}
-                                  src="https://rezenha.ze.delivery/wp-content/uploads/2025/02/temperatura-da-cerveja-1024x768.webp"
-                                  className="size-full object-cover"
+                              <div className='flex items-center gap-2'>
+                                <input
+                                  id="itemCarrinho"
+                                  type="checkbox"
+                                  checked={selectedBoxId === item.box_id} 
+                                  onChange={() => setSelectedBoxId(selectedBoxId === item.box_id ? null : item.box_id)}
+                                  className="w-4 h-4 bg-gray-100 rounded accent-brown-primary"
                                 />
+                                <div className="size-24 shrink-0 overflow-hidden rounded-md border border-yellow-tertiary">
+                                  <img
+                                    alt={item.nome}
+                                    src={item.imagem_principal_url}
+                                    className="size-full object-cover"
+                                  />
+                                </div>
                               </div>
 
                               <div className="ml-4 flex flex-1 justify-between flex-col">
@@ -113,18 +148,19 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
                   </div>
                 </div>
 
-                {/* FOOTER */}
                 <div className="border-t border-brown-tertiary px-4 py-6 sm:px-6">
                   <div className="flex justify-between text-lg font-bold text-brown-tertiary">
                     <p className='uppercase'>Total</p>
                     <p>R$ {total || "0,00"}</p>
                   </div>
                   <div className="mt-6">
-                    <Link href="/checkout">
-                      <Button variant='quinary' className='w-full font-bold'>
-                        Finalizar Pedido
-                      </Button>
-                    </Link>
+                    <Button
+                      variant="quinary"
+                      className="w-full font-bold"
+                      onClick={handleFinalizarPedido}
+                    >
+                      Finalizar Pedido
+                    </Button>
                   </div>
                 </div>
               </div>

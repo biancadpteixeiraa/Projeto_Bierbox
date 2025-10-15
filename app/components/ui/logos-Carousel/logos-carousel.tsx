@@ -1,5 +1,5 @@
 'use client'
-import './logos-carousel.css'
+import styles from './styles.module.css'
 import React, { useEffect, useState, useCallback } from 'react' // Importamos estados e callbacks
 import { EmblaOptionsType } from 'embla-carousel'
 import useEmblaCarousel from 'embla-carousel-react'
@@ -10,6 +10,7 @@ import { Play, Pause } from 'lucide-react' // Ícones para o botão escondido
 type LogoSlide = {
   logo: string
   src: string
+  insta: string
 }
 
 type PropType = {
@@ -58,22 +59,18 @@ export default function LogosCarousel({ slides, options }: PropType) {
        }
     }
 
-    // Associa a função ao evento 'settle'
     emblaApi.on('settle', restartAutoscroll)
 
     return () => {
        emblaApi.off('settle', restartAutoscroll)
     }
-  }, [emblaApi, isPlaying]) // Adicionamos isPlaying como dependência
+  }, [emblaApi, isPlaying])
 
   return (
-   <div className="embla w-full relative" role="presentation">
-    
-    {/* NOVO: Botão de Pause/Play Escondido (sr-only) */}
+   <div className={`${styles.embla} w-full relative`}  role="presentation">
+
     <button
         onClick={toggleAutoscroll}
-        // As classes 'sr-only' tornam o botão invisível, mas focável
-        // O tabindex e o foco por teclado o tornam o primeiro elemento a ser focado na área.
         className="sr-only focus:not-sr-only focus:p-2 focus:bg-gray-100 focus:text-brown-tertiary focus:border border-brown-tertiary"
         aria-label={isPlaying ? "Pausar rolagem automática das cervejarias" : "Continuar rolagem automática das cervejarias"}
     >
@@ -90,18 +87,20 @@ export default function LogosCarousel({ slides, options }: PropType) {
         )}
     </button>
 
-    <div className="embla__viewport w-full" ref={emblaRef}>
-     <div className="embla__container">
+    <div className={`${styles.embla__viewport} w-full`} ref={emblaRef}>
+     <div className={styles.embla__container}>
        {slides.map((item, index) => (
-        <div className="embla__slide" key={index} role="listitem">
-         <div className="embla__slide__number flex items-center justify-center">
-          <Image
-            src={item.src}
-            alt={item.logo}
-            width={200}
-            height={200}
-            className="object-contain max-h-48 rounded-3xl"
-          />
+        <div className={styles.embla__slide} key={index} role="listitem">
+         <div className={`${styles.embla__slide__number} flex items-center justify-center`}>
+          <a href={item.insta} className="apparence-none" target="_blank" rel="noopener noreferrer">
+            <Image
+              src={item.src}
+              alt={item.logo}
+              width={200}
+              height={200}
+              className="object-contain max-h-48 rounded-3xl"
+              />
+          </a>
          </div>
         </div>
        ))}

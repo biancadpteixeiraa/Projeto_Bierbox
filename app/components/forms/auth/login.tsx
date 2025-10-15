@@ -1,6 +1,7 @@
 'use client'
 import Button from "../../ui/button";
 import Input from "../../ui/input";
+import { Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@/app/context/authContext";
 import Link from "next/link";
@@ -11,6 +12,7 @@ export default function LoginForm() {
   const [senha, setSenha] = useState('');
   const [loadingLogin, setLoadingLogin] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; senha?: string }>({});
+  const [showPassword, setShowPassword] = useState(false);
 
   const validate = () => {
     const newErrors: { email?: string; senha?: string } = {};
@@ -71,13 +73,29 @@ export default function LoginForm() {
         >
           Digite sua senha:
         </label>
-        <Input
-          id="senha"
-          type="password"
-          placeholder="Senha aqui"
-          value={senha}
-          onChange={(e) => setSenha(e.target.value)}
-        />
+          <div className="relative">
+            <Input
+              id="senha"
+              type={showPassword ? "text" : "password"}
+              placeholder="Senha aqui"
+              value={senha}
+              onChange={(e) => setSenha(e.target.value)}
+              className="pr-10"
+            />
+
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute inset-y-0 right-3 flex items-center text-gray-tertiary/75 hover:text-gray-tertiary/55"
+              aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+            >
+              {showPassword ? (
+                <EyeOff size={18} />
+              ) : (
+                <Eye size={18} />
+              )}
+            </button>
+        </div>
         {errors.senha && (
           <p className="text-red-500 text-xs sm:text-sm mt-1">{errors.senha}</p>
         )}
@@ -98,24 +116,7 @@ export default function LoginForm() {
         variant="quaternary"
       >
         {loadingLogin ? (
-          <svg
-            className="animate-spin h-5 w-5 mr-3 text-white"
-            viewBox="0 0 24 24"
-          >
-            <circle
-              className="opacity-25"
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="currentColor"
-              strokeWidth="4"
-            ></circle>
-            <path
-              className="opacity-75"
-              fill="currentColor"
-              d="M4 12a8 8 0 018-8v8H4z"
-            ></path>
-          </svg>
+          <span className="animate-spin rounded-full border-4 border-beige-primary border-t-transparent size-6"></span>
         ) : (
           "Entrar"
         )}

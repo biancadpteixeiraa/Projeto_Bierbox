@@ -66,13 +66,6 @@ export default function ResumoFinanceiro({
     try {
     const planoIdApi = plano === "mensal" ? "PLANO_MENSAL" : "PLANO_ANUAL";
 
-    const payload = {
-      plano_id: planoIdApi,
-      box_id: checkoutData.boxId,
-      endereco_entrega_id: data.endereco.id,
-      valor_frete: valorFrete,
-    };
-
     const res = await criarPreferenciaPagamento(
       token,
       planoIdApi,
@@ -92,10 +85,6 @@ export default function ResumoFinanceiro({
     }
   }
 
-  if (!box) {
-    return <p className="text-center text-sm text-brown-tertiary py-10">Carregando resumo...</p>;
-  }
-
   return (
     <div>
       <h1 className="hidden lg:block font-secondary text-brown-tertiary font-bold text-lg pb-5">
@@ -105,7 +94,7 @@ export default function ResumoFinanceiro({
         <div className="flex flex-col gap-6">
           <div className="flex items-start gap-3">
             <img src={box?.imagens[2]} alt="imagem da box" 
-            className="size-24 rounded-lg"/>
+            className="size-24 rounded-lg object-cover"/>
             <div className="flex flex-col items-start gap-2 pt-2">
               <h2 className="text-brown-tertiary font-bold text-xl text-nowrap">{box?.nome}</h2>
               <span className="bg-yellow-secondary text-white px-4 rounded-md text-nowrap">Plano {plano}</span>
@@ -120,7 +109,7 @@ export default function ResumoFinanceiro({
               </div>
               <div className="flex items-center justify-between">
                 <p>Valor do Frete:</p>
-                <p>{data.frete.tipo} - R$ {valorFrete.toFixed(2)}</p>
+                <p>R$ {valorFrete.toFixed(2)}</p>
               </div>
               <div className="flex items-center justify-between">
                 <p>Valor Total:</p>

@@ -1,5 +1,6 @@
 'use client'
-import './plans-carousel.css';
+
+import styles from './styles.module.css'
 import useEmblaCarousel from 'embla-carousel-react'
 import { ReactNode, useCallback, useEffect, useState } from 'react'
 import { cn } from "@/app/lib/utils";
@@ -49,28 +50,27 @@ export function PlansCarousel({ children, className, ...props }: PlansCarouselPr
   return (
     <div
       {...props}
-      className={cn("embla relative w-full", className)}
+      className={cn(styles.embla, 'relative w-full', className)}
     >
-      <div className="embla__viewport w-full" ref={emblaRef}>
-        <div className="embla__container">
+      <div className={`${styles.embla__viewport} w-full`} ref={emblaRef}>
+        <div className={styles.embla__container}>
           {Array.isArray(children)
             ? children.map((child, index) => (
                 <div
                   key={index}
-                  className="embla__slide"
+                  className={styles.embla__slide}
                 >
                   {child}
                 </div>
               ))
             : (
-              <div className="embla__slide">
+              <div className={styles.embla__slide}>
                 {children}
               </div>
             )}
         </div>
       </div>
 
-      {/* Botões de navegação - visíveis apenas em desktop */}
       <button
         onClick={scrollPrev}
         disabled={!prevBtnEnabled}
@@ -89,7 +89,6 @@ export function PlansCarousel({ children, className, ...props }: PlansCarouselPr
         <ArrowRight className='text-yellow-primary size-5'/>
       </button>
 
-      {/* Indicadores de slide - visíveis apenas em mobile */}
       <div className="flex lg:hidden justify-center mt-6 gap-2">
         {Array.isArray(children) && children.map((_, index) => (
           <button

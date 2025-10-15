@@ -6,27 +6,38 @@ export default function LogosCervejarias(){
         const logos = [
             {
                 logo: "Heimdall",
-                src: "/Heimdall.jpg"
+                src: "/logos/Heimdall.jpg",
+                insta: "https://www.instagram.com/heimdallcervejaria/"
             },
             {
                 logo: "Hank Bier",
-                src: "/Hank.png"
+                src: "/logos/Hank.png",
+                insta: "https://www.instagram.com/hankbier/"
             },
             {
                 logo: "Donau Bier",
-                src: "/DonauBier.jpeg"
+                src: "/logos/DonauBier.jpeg",
+                insta: "https://www.instagram.com/donaubier/"
             },
             {
                 logo: "Irmandade",
-                src: "/Irmandade.png"
+                src: "/logos/Irmandade.png",
+                insta: "https://www.instagram.com/irmandadecervejaria/"
             },
             {
                 logo: "Jordana",
-                src: "/Jordana.jpg"
+                src: "/logos/Jordana.jpg",
+                insta: "https://www.instagram.com/cervejariajordana/"
             },
             {
                 logo: "Água do Monge",
-                src: "/AguaDoMonge.png"
+                src: "/logos/AguaDoMonge.png",
+                insta: "https://www.instagram.com/aguadomonge/"
+            },
+                        {
+                logo: "Metzger",
+                src: "/logos/Metzger.jpg",
+                insta: "https://www.instagram.com/cervejariametzger/"
             }
         ]
 

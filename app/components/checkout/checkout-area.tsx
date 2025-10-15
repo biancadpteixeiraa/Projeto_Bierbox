@@ -1,26 +1,114 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Disclosure, DisclosureButton, DisclosurePanel } from "@headlessui/react";
 import EnderecoForm from "../forms/checkout/encereco-form";
 import FreteForm from "../forms/checkout/frete-form";
 import ResumoFinanceiro from "../forms/checkout/resumo-financeiro";
 import { getBoxById } from "@/app/services/boxes";
-import { useCheckout } from "@/app/context/checkoutContext";
+import { CheckoutSkeleton } from "../ui/skeletons";
+import Link from "next/link";
+import Button from "../ui/button";
 
+type FormData = {
+  endereco: {
+    id?: string;
+    rua: string;
+    cep: string;
+    numero: string;
+    bairro: string;
+    complemento: string;
+    cidade: string;
+    estado: string;
+    is_padrao: boolean;
+  };
+  frete: {
+    tipo: string;
+    preco: string;
+  };
+};
+
+type CheckoutData = {
+  boxId: string;
+  plano: "mensal" | "anual";
+  quantidade: 4 | 6;
+};
 
 export default function CheckoutArea() {
-  const { step, setStep, endereco, setEndereco, frete, setFrete, box, checkoutData } = useCheckout();
+  const [step, setStep] = useState<"endereco" | "frete" | "resumo">("endereco");
+  const [formData, setFormData] = useState<FormData>({
+    endereco: { id: "", rua: "", cep: "", numero: "", bairro: "", complemento: "", cidade: "", estado: "", is_padrao: false },
+    frete: { tipo: "", preco: "" },
+  });
 
-  const handleEdit = useCallback((targetStep: "endereco" | "frete" | "resumo") => setStep(targetStep), [setStep]);
+    const [checkoutData, setCheckoutData] = useState<CheckoutData | null>(null);
+    const [box, setBox] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
+
+    const handleEdit = (targetStep: "endereco" | "frete" | "resumo") => {
+      setStep(targetStep);
+    };
+
+  useEffect(() => {
+    const saved = sessionStorage.getItem("checkoutData");
+
+    if  (!saved) {
+      setLoading(false);
+      return;
+    }
+    if (saved) {
+      const parsed: CheckoutData = JSON.parse(saved);
+      setCheckoutData(parsed);
+
+      getBoxById(parsed.boxId).then((res) => {
+        if (res.success) {
+          setBox(res.box);
+        }
+        setLoading(false);
+      });
+    }
+  }, []);
+
+
+  if (loading) {
+    return (
+      <div className="lg:grid lg:grid-cols-3 lg:gap-6 py-10 lg:py-20 max-w-7xl mx-auto px-6">
+        <CheckoutSkeleton />
+      </div>
+    );
+  }
+
+  if (!loading && (!checkoutData || !box)) {
+      return (
+            <div className="flex flex-col justify-center items-center py-20 text-center px-6">
+              <h1 className="text-brown-tertiary md:text-2xl text-xl font-secondary font-bold pb-10">
+                Nenhum dados de checkout ou box encontrada!
+              </h1>
+              <img
+              src="/NoAddress.png"
+              alt="Sem Assinaturas"
+              className="md:w-[550px] w-auto mx-auto md:mb-2 pb-10"
+              />
+              <Link href="\planos">
+                  <Button
+                  className="w-64 md:w-96 md:text-lg text-sm"
+                  variant="quaternary"
+                  >
+                  Comprar Agora!
+                  </Button>
+              </Link>
+            </div>
+      );
+  }
+  
 
   return (
     <div className="lg:grid lg:grid-cols-3 lg:gap-6 py-10 lg:py-20 max-w-7xl mx-auto px-6">
       {/* Desktop */}
       <div className="hidden lg:block">
         <EnderecoForm
-          data={endereco}
-          onChange={setEndereco}
+          data={formData.endereco}
+          onChange={(endereco) => setFormData({ ...formData, endereco })}
           onNext={() => setStep("frete")}
           disabled={step !== "endereco"}
           onEdit={() => handleEdit("endereco")}
@@ -28,9 +116,9 @@ export default function CheckoutArea() {
       </div>
       <div className="hidden lg:block">
         <FreteForm
-          cep={endereco.cep}
-          data={frete}
-          onChange={setFrete}
+          cep={formData.endereco.cep}
+          data={formData.frete}
+          onChange={(frete) => setFormData({ ...formData, frete })}
           onNext={() => setStep("resumo")}
           disabled={step !== "frete"}
           onEdit={() => handleEdit("frete")}
@@ -38,10 +126,10 @@ export default function CheckoutArea() {
       </div>
       <div className="hidden lg:block">
         <ResumoFinanceiro 
-          data={{ endereco, frete }}
-          disabled={step !== "resumo"}
-          box={box}
-          checkoutData={checkoutData}
+        data={formData} 
+        disabled={step !== "resumo"}
+        box={box}
+        checkoutData={checkoutData} 
         />
       </div>
 
@@ -55,10 +143,9 @@ export default function CheckoutArea() {
               </DisclosureButton>
               <DisclosurePanel>
                 <EnderecoForm
-                  data={endereco}
-                  onChange={setEndereco}
+                  data={formData.endereco}
+                  onChange={(endereco) => setFormData({ ...formData, endereco })}
                   onNext={() => setStep("frete")}
-                  disabled={step !== "endereco"}
                   onEdit={() => handleEdit("endereco")}
                 />
               </DisclosurePanel>
@@ -77,11 +164,10 @@ export default function CheckoutArea() {
               {(step === "frete" || step === "resumo") && (
                 <DisclosurePanel>
                   <FreteForm
-                    cep={endereco.cep}
-                    data={frete}
-                    onChange={setFrete}
+                    cep={formData.endereco.cep}
+                    data={formData.frete}
+                    onChange={(frete) => setFormData({ ...formData, frete })}
                     onNext={() => setStep("resumo")}
-                    disabled={step !== "frete"}
                     onEdit={() => handleEdit("frete")}
                   />
                 </DisclosurePanel>
@@ -101,11 +187,9 @@ export default function CheckoutArea() {
               {step === "resumo" && (
                 <DisclosurePanel>
                   <ResumoFinanceiro 
-                    data={{ endereco, frete }}
-                    disabled={step !== "resumo"}
-                    box={box}
-                    checkoutData={checkoutData} 
-                  />
+                  data={formData} 
+                  box={box}
+                  checkoutData={checkoutData} />
                 </DisclosurePanel>
               )}
             </div>

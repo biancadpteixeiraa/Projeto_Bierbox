@@ -1,5 +1,3 @@
-import { Play } from "lucide-react";
-
 
 export default function BierwegArea(){
     
@@ -15,14 +13,17 @@ export default function BierwegArea(){
             </div>
             <div className="flex items-end w-full lg:w-1/2">
                 <div className="w-full aspect-video rounded-2xl overflow-hidden">
-                <iframe
-                    className="w-full h-full"
-                    src="/BierWeg, a Rota da Cerveja.mp4"
+                    <video
+                    className="w-full h-full object-cover"
+                    loop
+                    autoPlay
+                    muted
+                    playsInline
                     title="Vídeo de apresentação da Rota da Cerveja de Guarapuava"
-                    allow="autoplay; encrypted-media"
-                    allowFullScreen
-                    
-                />
+                    >
+                    <source src="/BierWeg, a Rota da Cerveja.mp4" type="video/mp4" /> 
+                    Your browser does not support the video tag.
+                </video>
                 </div>
             </div>
         </div>

@@ -17,8 +17,8 @@ import { useCarrinho } from '@/app/context/cartContext';
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [shoppingCartOpen, setShoppingCartOpen] = useState(false)
-  const isAuthenticated = useAuth();   
-  const { carrinho} = useCarrinho();
+  const { user, loading } = useAuth();  
+  const { carrinho, loading: cartLoading } = useCarrinho(); 
 
   const pathname = usePathname();
 
@@ -54,7 +54,11 @@ const cartOpen = () => {
                     </a>
                 </div>
                 <div className="flex flex-1 justify-end gap-10">
-                    {!isAuthenticated?.user && (
+                    {loading ? (
+
+                        <div></div>
+                    ) : (
+                        !user && ( 
                         <div className='hidden md:flex md:items-center gap-2'>
                             <UserRound className="size-6 text-brown-secondary" />
                             <p className='text-brown-secondary text-xs font-medium'>
@@ -65,19 +69,29 @@ const cartOpen = () => {
                                 <span> <Link href={'/cadastro'} className='underline font-bold'>Cadastre-se</Link></span>
                             </p>
                         </div>
+                        )
                     )}
-                    <div className='flex items-center pr-4 md:pr-0'>
-                        <button onClick={cartOpen} aria-label="Abrir carrinho de compras">
+                    
+                    {loading && cartLoading ? (
+                        <div className='flex md:hidden items-center w-8 h-10 animate-pulse bg-[#f7ebc1] rounded-md mr-5'></div>
+                    ) : (
+                        <div className='flex items-center pr-4 md:pr-0'>
+                            <button onClick={cartOpen} aria-label="Abrir carrinho de compras">
                             <Icon icon="mdi:refrigerator" className="size-8 text-brown-secondary"/>
-                        </button>
-                        <span className='flex items-center justify-center text-[10px] bg-brown-tertiary text-beige-primary rounded-full min-w-[15px] h-4 px-1 font-medium -ml-1'>
+                            </button>
+                            <span className='flex items-center justify-center text-[10px] bg-brown-tertiary text-beige-primary rounded-full min-w-[15px] h-4 px-1 font-medium -ml-1'>
                             {carrinho?.itens?.length || 0}
-                        </span>
-                    </div>
-                    {isAuthenticated?.user && (
-                        <Link href={`/dashboard/${isAuthenticated.user.id}`} className='hidden md:flex items-center'>
-                            <Icon icon="uil:user" className="text-4xl text-brown-secondary"/>
-                        </Link>
+                            </span>
+                        </div>
+                    )}
+                    {loading && cartLoading ? (
+                        <div className='hidden md:flex items-center w-52 h-10 animate-pulse bg-[#f7ebc1] rounded-md'></div>
+                    ) : (
+                        user && (
+                            <Link href={`/dashboard/${user.id}`} className='hidden md:flex items-center'>
+                                <Icon icon="uil:user" className="text-4xl text-brown-secondary"/>
+                            </Link>
+                        )
                     )}
                 </div>
                 <div className="flex md:hidden justify-end">
@@ -123,8 +137,8 @@ const cartOpen = () => {
                 <div className="mt-6 flow-root px-6 py-4">
                     <div>
                         <div className='flex items-center gap-2 -mx-1'>
-                            {isAuthenticated?.user ? (
-                        <Link href={`/dashboard/${isAuthenticated.user.id}`} className='flex items-center gap-2'>
+                            {user ? (
+                        <Link href={`/dashboard/${user.id}`} className='flex items-center gap-2'>
                             <Icon icon="uil:user" className="text-4xl text-brown-secondary"/> 
                             <p>MINHA CONTA</p>
                         </Link>
@@ -162,7 +176,7 @@ const cartOpen = () => {
         </div>
         <div className='bg-yellow-primary hidden md:block py-1'>
             <nav aria-label="Global" className="mx-auto flex max-w-7xl items-center justify-center px-5 py-4 md:px-8">
-                <PopoverGroup className="hidden md:flex lg:gap-x-16 text-nowrap">
+                <PopoverGroup className="hidden md:flex lg:gap-x-16 gap-x-8 text-nowrap">
                  {linksMenu.map((link) => (
                         <Link
                         key={link.href}

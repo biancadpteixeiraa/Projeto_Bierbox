@@ -27,6 +27,7 @@ interface EnderecoFormProps {
   onCancelar: () => void;
   onEditar?: () => void;
   onExcluir?: () => void;
+  errors?: { [key: string]: string };
 }
 
 export default function EnderecoForm({
@@ -39,7 +40,11 @@ export default function EnderecoForm({
   onCancelar,
   onEditar,
   onExcluir,
+  errors,
 }: EnderecoFormProps) {
+  
+  const estiloBloqueado = "border border-gray-tertiary/35 bg-gray-50/50 cursor-not-allowed text-gray-tertiary/45";
+
 
   return (
     <EnderecoCard className="mb-6 lg:mb-0 w-full lg:w-[74%]">
@@ -78,13 +83,14 @@ export default function EnderecoForm({
             <Input
               id={`rua-${endereco.id || "novo"}`}
               variant="secondary"
-              className="py-2"
+              className={`py-2 ${!isEditando ? estiloBloqueado : ""}`}
               type="text"
               placeholder="Rua"
               value={endereco.rua}
               readOnly={!isEditando}
               onChange={(e) => onChange("rua", e.target.value)}
             />
+            {errors?.rua && <p className="text-red-600 text-xs mt-1">{errors.rua}</p>}
           </div>
 
           {/* CEP e Número */}
@@ -103,12 +109,13 @@ export default function EnderecoForm({
                 <Input
                   id={`cep-${endereco.id || "novo"}`}
                   variant="secondary"
-                  className="py-2"
+                  className={`py-2 ${!isEditando ? estiloBloqueado : ""}`}
                   type="text"
                   value={endereco.cep}
                   readOnly
                 />
               )}
+              {errors?.cep && <p className="text-red-600 text-xs mt-1">{errors.cep}</p>}
             </div>
             <div className="flex flex-col items-start justify-center w-1/2">
               {isEditando ? (
@@ -124,12 +131,13 @@ export default function EnderecoForm({
                 <Input
                   id={`numero-${endereco.id || "novo"}`}
                   variant="secondary"
-                  className="py-2"
+                  className={`py-2 ${!isEditando ? estiloBloqueado : ""}`}
                   type="text"
                   value={endereco.numero}
                   readOnly
                 />
               )}
+              {errors?.numero && <p className="text-red-600 text-xs mt-1">{errors.numero}</p>}
             </div>
           </div>
 
@@ -139,25 +147,27 @@ export default function EnderecoForm({
               <Input
                 id={`bairro-${endereco.id || "novo"}`}
                 variant="secondary"
-                className="py-2"
+                className={`py-2 ${!isEditando ? estiloBloqueado : ""}`}
                 type="text"
                 placeholder="Bairro"
                 value={endereco.bairro}
                 readOnly={!isEditando}
                 onChange={(e) => onChange("bairro", e.target.value)}
               />
+              {errors?.bairro && <p className="text-red-600 text-xs mt-1">{errors.bairro}</p>}
             </div>
             <div className="flex flex-col items-start justify-center w-1/2">
               <Input
                 id={`complemento-${endereco.id || "novo"}`}
                 variant="secondary"
-                className="py-2"
+                className={`py-2 ${!isEditando ? estiloBloqueado : ""}`}
                 type="text"
                 placeholder="Complemento"
                 value={endereco.complemento}
                 readOnly={!isEditando}
                 onChange={(e) => onChange("complemento", e.target.value)}
               />
+              {errors?.complemento && <p className="text-red-600 text-xs mt-1">{errors.complemento}</p>}
             </div>
           </div>
 
@@ -167,25 +177,27 @@ export default function EnderecoForm({
               <Input
                 id={`cidade-${endereco.id || "novo"}`}
                 variant="secondary"
-                className="py-2"
+                className={`py-2 ${!isEditando ? estiloBloqueado : ""}`}
                 type="text"
                 placeholder="Cidade"
                 value={endereco.cidade}
                 readOnly={!isEditando}
                 onChange={(e) => onChange("cidade", e.target.value)}
               />
+              {errors?.cidade && <p className="text-red-600 text-xs mt-1">{errors.cidade}</p>}
             </div>
             <div className="flex flex-col items-start justify-center w-1/3">
               <Input
                 id={`estado-${endereco.id || "novo"}`}
                 variant="secondary"
-                className="py-2"
+                className={`py-2 ${!isEditando ? estiloBloqueado : ""}`}
                 type="text"
                 placeholder="Estado"
                 value={endereco.estado}
                 readOnly={!isEditando}
                 onChange={(e) => onChange("estado", e.target.value)}
               />
+              {errors?.estado && <p className="text-red-600 text-xs mt-1">{errors.estado}</p>}
             </div>
           </div>
 

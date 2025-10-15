@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import Button from "../ui/button";
+import Link from "next/link";
 
 const questions = [
   {
@@ -147,22 +148,22 @@ export default function Quiz() {
     switch (result) {
       case "suaves":
         return {
-          title: "Mais Suaves 🍋",
+          title: "Frescor do Malte 🍋",
           desc: "Você prefere leveza, frescor e equilíbrio. As cervejas ideais pra curtir momentos relaxantes.",
         };
       case "fortes":
         return {
-          title: "Mais Fortes 🍺",
+          title: "Mestre Cervejeiro 🍺",
           desc: "Você gosta de intensidade, corpo e sabor marcante. O plano perfeito para paladares exigentes.",
         };
       case "sazonal":
         return {
-          title: "Sazonal 🌦️",
+          title: "Estação do Malte 🌦️",
           desc: "Você aprecia a mudança e gosta de acompanhar o clima. A cada estação, uma nova experiência.",
         };
       case "misterio":
         return {
-          title: "Mistério 🎁",
+          title: "Mistério na Caneca 🎁",
           desc: "Você adora surpresas e novas descobertas. Deixe que a BierBox te surpreenda a cada mês!",
         };
       default:
@@ -184,14 +185,14 @@ export default function Quiz() {
           </div>
           {/* Cabeçalho da questão */}
           <div className="flex justify-between items-center mb-6">
-            <span className="flex gap-3 uppercase text-brown-primary font-semibold text-sm">
+            <span className="flex gap-3 uppercase text-brown-primary font-semibold text-base">
               <span className="flex items-center justify-center text-[10px] bg-brown-tertiary text-beige-primary rounded-full size-5 px-1 font-medium -ml-1">
                 {q.id}
               </span>
               {q.text}
             </span>
-            <span className="text-yellow-primary font-bold text-xs">
-              {current + 1}/{questions.length} QUESTÕES
+            <span className="text-yellow-primary font-bold text-[12px]">
+              {current + 1}/{questions.length}
             </span>
           </div>
 
@@ -231,16 +232,25 @@ export default function Quiz() {
           <h2 className="text-3xl font-bold mb-4 text-yellow-700">{result?.title}</h2>
           <p className="text-lg text-gray-700 mb-8">{result?.desc}</p>
 
-          <button
-            onClick={() => {
-              setShowResult(false);
-              setAnswers(Array(questions.length).fill(""));
-              setCurrent(0);
-            }}
-            className="bg-yellow-400 text-white px-6 py-3 rounded-xl hover:bg-yellow-500 transition"
-          >
-            Refazer quiz
-          </button>
+          <div className="flex items-center justify-between">
+            <Button
+              onClick={() => {
+                setShowResult(false);
+                setAnswers(Array(questions.length).fill(""));
+                setCurrent(0);
+              }}
+              className="bg-yellow-primary hover:bg-yellow-secondary text-white px-8 py-3 rounded-md font-medium disabled:opacity-50 transition"
+            >
+              Refazer quiz
+            </Button>
+            <Link href="/planos">
+              <Button
+                className="bg-yellow-primary hover:bg-yellow-secondary text-white px-8 py-3 rounded-md font-medium disabled:opacity-50 transition"
+              >
+                Conhecer planos
+              </Button> 
+            </Link>
+          </div>
         </div>
       )}
     </div>

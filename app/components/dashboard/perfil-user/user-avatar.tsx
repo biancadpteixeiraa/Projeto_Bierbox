@@ -30,7 +30,6 @@ export default function UserAvatar({
   const [cacheBuster, setCacheBuster] = useState(0);
   const prevSrcRef = useRef<string | undefined>(undefined);
 
-  // Só gera um novo ?t= se a URL mudar
   useEffect(() => {
     if (src && src !== prevSrcRef.current) {
       setCacheBuster(Date.now());
@@ -80,7 +79,9 @@ export default function UserAvatar({
       ) : (
         <Button
           variant="senary"
-          className="mt-3 px-6 py-3 font-medium text-xs rounded-none uppercase"
+          className={`mt-3 px-6 py-3 font-medium text-xs rounded-none uppercase ${
+          imgLoading ? 'hidden' : 'block'
+          }`}
           onClick={onSelectImage}
           type="button"
         >
