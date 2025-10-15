@@ -2,6 +2,7 @@ const Stripe = require("stripe");
 const pool = require("../config/db");
 const { validate: isUuid } = require("uuid");
 
+
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
 
 if (!STRIPE_SECRET_KEY) {
@@ -13,6 +14,8 @@ const stripe = Stripe(STRIPE_SECRET_KEY);
 // Criar sessão de checkout no Stripe
 const iniciarCheckoutAssinatura = async (req, res) => {
   try {
+    console.log("🔍 req.userId:", req.userId);
+    
     const { plano_id, endereco_entrega_id, valor_frete, box_id } = req.body;
     const utilizadorId = req.userId;
 
