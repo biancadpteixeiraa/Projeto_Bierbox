@@ -46,7 +46,6 @@ app.use("/api/pagamentos", pagamentoRoutes);
 app.use("/api/assinaturas", assinaturaRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/stripe", stripeRoutes);
-app.use("/stripe", protect, stripeRoutes);
 
 
 const HOST = "0.0.0.0";

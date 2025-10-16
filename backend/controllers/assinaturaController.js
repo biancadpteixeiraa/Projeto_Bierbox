@@ -1,5 +1,12 @@
 const pool = require("../config/db");
 const { validate: isUuid } = require("uuid");
+const Stripe = require("stripe");
+
+const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
+if (!STRIPE_SECRET_KEY) {
+    throw new Error("STRIPE_SECRET_KEY não configurada no ambiente.");
+}
+const stripe = Stripe(STRIPE_SECRET_KEY);
 
 const assinaturaController = {
     listarAssinaturas: async (req, res) => {
@@ -42,7 +49,8 @@ const assinaturaController = {
             if (!isUuid(id)) {
                 return res.status(400).json({ success: false, message: "ID de assinatura inválido." });
             }
-                        const result = await pool.query(
+
+            const result = await pool.query(
                 `SELECT 
                     a.id, a.plano_id, a.status, a.data_inicio, a.data_cancelamento, a.id_assinatura_mp,
                     a.valor_assinatura, a.valor_frete, a.box_id, b.nome AS box_nome, b.imagem_principal_url AS box_imagem_url,
@@ -64,9 +72,11 @@ const assinaturaController = {
                 WHERE a.id = $1 AND a.utilizador_id = $2`,
                 [id, userId]
             );
+
             if (result.rows.length === 0) {
                 return res.status(404).json({ success: false, message: "Assinatura não encontrada ou não pertence ao usuário." });
             }
+
             res.status(200).json({ success: true, data: result.rows[0] });
         } catch (error) {
             console.error("Erro ao obter detalhes da assinatura:", error);
@@ -81,24 +91,34 @@ const assinaturaController = {
             if (!isUuid(id)) {
                 return res.status(400).json({ success: false, message: "ID de assinatura inválido." });
             }
+
             const assinaturaResult = await pool.query(
                 "SELECT id, status, id_assinatura_mp FROM assinaturas WHERE id = $1 AND utilizador_id = $2",
                 [id, userId]
             );
+
             if (assinaturaResult.rows.length === 0) {
                 return res.status(404).json({ success: false, message: "Assinatura não encontrada ou não pertence ao usuário." });
             }
+
             const assinatura = assinaturaResult.rows[0];
+
             if (assinatura.status === "CANCELADA") {
                 return res.status(400).json({ success: false, message: "Assinatura já está cancelada." });
             }
-            if (assinatura.id_assinatura_mp) {
-                console.log(`Simulando cancelamento no Mercado Pago para ID: ${assinatura.id_assinatura_mp}`);
+
+            if (!assinatura.id_assinatura_mp) {
+                return res.status(400).json({ success: false, message: "Assinatura não possui ID Stripe válido." });
             }
+
+            // Cancela assinatura no Stripe antes de atualizar no banco
+            await stripe.subscriptions.del(assinatura.id_assinatura_mp);
+
             const result = await pool.query(
                 "UPDATE assinaturas SET status = 'CANCELADA', data_cancelamento = NOW(), atualizado_em = NOW() WHERE id = $1 RETURNING *",
                 [id]
             );
+
             res.status(200).json({ success: true, message: "Assinatura cancelada com sucesso.", data: result.rows[0] });
         } catch (error) {
             console.error("Erro ao cancelar assinatura:", error);
@@ -106,11 +126,6 @@ const assinaturaController = {
         }
     },
 
-    /**
-     * @desc Altera o endereço de entrega de uma assinatura existente.
-     * @route PUT /api/assinaturas/:id/alterar-endereco
-     * @access Privado
-     */
     alterarEnderecoAssinatura: async (req, res) => {
         const { id: assinaturaId } = req.params;
         const { novo_endereco_id } = req.body;
@@ -121,7 +136,7 @@ const assinaturaController = {
         }
 
         try {
-            // 1. Verificar se a assinatura pertence ao usuário
+            // Verifica se a assinatura pertence ao usuário
             const assinaturaResult = await pool.query(
                 "SELECT id FROM assinaturas WHERE id = $1 AND utilizador_id = $2",
                 [assinaturaId, utilizadorId]
@@ -131,7 +146,7 @@ const assinaturaController = {
                 return res.status(404).json({ success: false, message: "Assinatura não encontrada ou não pertence ao usuário." });
             }
 
-            // 2. Verificar se o novo endereço pertence ao usuário
+            // Verifica se o novo endereço pertence ao usuário
             const enderecoResult = await pool.query(
                 "SELECT id FROM enderecos WHERE id = $1 AND utilizador_id = $2",
                 [novo_endereco_id, utilizadorId]
@@ -141,7 +156,7 @@ const assinaturaController = {
                 return res.status(404).json({ success: false, message: "Endereço de destino não encontrado ou não pertence ao usuário." });
             }
 
-            // 3. Atualizar a assinatura com o novo ID de endereço
+            // Atualiza o endereço da assinatura
             const updateResult = await pool.query(
                 "UPDATE assinaturas SET endereco_entrega_id = $1, atualizado_em = NOW() WHERE id = $2 RETURNING *",
                 [novo_endereco_id, assinaturaId]
@@ -152,7 +167,6 @@ const assinaturaController = {
                 message: "Endereço da assinatura atualizado com sucesso!",
                 data: updateResult.rows[0],
             });
-
         } catch (error) {
             console.error("Erro ao alterar endereço da assinatura:", error);
             res.status(500).json({ success: false, message: "Erro interno do servidor." });
