@@ -3,7 +3,7 @@ const pool = require("../config/db");
 const { validate: isUuid } = require("uuid");
 
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
-const FRONTEND_URL = process.env.FRONTEND_URL;
+const FRONTEND_URL = process.env.FRONTEND_URL || "https://projeto-bierbox.onrender.com";
 
 if (!STRIPE_SECRET_KEY) {
   throw new Error("STRIPE_SECRET_KEY não configurada no ambiente.");
@@ -83,6 +83,7 @@ const iniciarCheckoutAssinatura = async (req, res) => {
       line_items: [{ price: price.id, quantity: 1 }],
       success_url: `${FRONTEND_URL}/checkout/aprovado`,
       cancel_url: `${FRONTEND_URL}/checkout/falha`,
+
       metadata: {
         assinaturaId: assinaturaId.toString(),
         utilizadorId,
