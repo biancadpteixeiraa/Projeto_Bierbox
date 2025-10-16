@@ -36,7 +36,7 @@ export default function CadastroForm() {
     if (!dataNascimento) newErrors.dataNascimento = "Data de Nascimento é obrigatória.";
     if (!senha) newErrors.senha = "Senha é obrigatória.";
     else {
-      const senhaValida = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/.test(senha);
+      const senhaValida = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d!@#$%^&*()_+={}\[\]|\\:;"'<,>.?/~`-]{8,}$/.test(senha);
       if (!senhaValida) {
         newErrors.senha = "A senha deve ter pelo menos 8 caracteres e conter letras e números.";
       }

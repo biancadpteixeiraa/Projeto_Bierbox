@@ -59,7 +59,7 @@ export default function UserForm() {
     }
 
     if (novaSenha.trim() !== "") {
-      const senhaValida = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/.test(novaSenha);
+      const senhaValida = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d!@#$%^&*()_+={}\[\]|\\:;"'<,>.?/~`-]{8,}$/.test(novaSenha);
       if (!senhaValida) {
         toast.warning("A nova senha deve ter ao menos 8 caracteres, incluindo letras e números.");
         return;
