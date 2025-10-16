@@ -25,9 +25,9 @@ console.log("📌 Valor da DATABASE_URL:", process.env.DATABASE_URL);
 app.use(cors({ origin: "*" }));
 
 app.post("/stripe/webhook", express.raw({ type: "application/json" }), (req, res, next) => {
-  require("./pagamentoStripeController").webhookStripe(req, res, next);
+  require("./controllers/pagamentoStripeController").webhookStripe(req, res, next);
 });
-
+""
 app.use(express.json());
 
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
