@@ -102,7 +102,8 @@ const iniciarCheckoutAssinatura = async (req, res) => {
 // Webhook Stripe
 const webhookStripe = async (req, res) => {
   try {
-    const event = req.body;
+    // req.body vem como Buffer do express.raw()
+    const event = JSON.parse(req.body.toString());
 
     if (event.type === "checkout.session.completed") {
       const session = event.data.object;
