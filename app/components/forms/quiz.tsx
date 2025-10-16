@@ -174,7 +174,7 @@ export default function Quiz() {
   const result = showResult ? calculateResult() : null;
 
   return (
-    <div className="w-4/6 font-secondary">
+    <div className="w-full md:w-4/6 font-secondary">
       {!showResult ? (
         <>
           <div className="w-full bg-gray-200 h-2 rounded-full mb-6">
@@ -185,7 +185,7 @@ export default function Quiz() {
           </div>
           {/* Cabeçalho da questão */}
           <div className="flex justify-between items-center mb-6">
-            <span className="flex gap-3 uppercase text-brown-primary font-semibold text-base">
+            <span className="flex gap-3 uppercase text-brown-primary font-semibold text-sm sm:text-base">
               <span className="flex items-center justify-center text-[10px] bg-brown-tertiary text-beige-primary rounded-full size-5 px-1 font-medium -ml-1">
                 {q.id}
               </span>
@@ -201,7 +201,7 @@ export default function Quiz() {
             {q.options.map((option, index) => (
               <label
                 key={index}
-                className={`flex items-center gap-2 p-3 rounded-lg cursor-pointer transition border ${
+                className={`text-xs sm:text-sm flex items-center gap-2 p-3 rounded-lg cursor-pointer transition border ${
                   answers[current] === option.value
                     ? "border-yellow-primary"
                     : "border-gray-100"
@@ -212,7 +212,7 @@ export default function Quiz() {
                     name={`question-${q.id}`}
                     checked={answers[current] === option.value}
                     onChange={() => handleSelect(option.value)}
-                    className="size-4 cursor-pointer appearance-none rounded-full border border-brown-tertiary checked:bg-brown-tertiary transition-all checked:ring-2 checked:ring-inset checked:ring-white"
+                    className="size-3 sm:size-4 cursor-pointer appearance-none rounded-full border border-brown-tertiary checked:bg-brown-tertiary transition-all checked:ring-2 checked:ring-inset checked:ring-white"
                   />
                   <span>{option.label}</span>
               </label>
@@ -232,7 +232,7 @@ export default function Quiz() {
           <h2 className="text-3xl font-bold mb-4 text-yellow-700">{result?.title}</h2>
           <p className="text-lg text-gray-700 mb-8">{result?.desc}</p>
 
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col md:flex-row items-start gap-2 md:items-center justify-between">
             <Button
               onClick={() => {
                 setShowResult(false);

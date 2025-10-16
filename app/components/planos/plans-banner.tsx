@@ -1,19 +1,10 @@
 "use client";
 
-import Link from "next/link";
-import Button from "../ui/button";
-
 export default function PlansBanner(){
 
-    function scrollToPlans(){
-        const plansSection = document.getElementById("planos");
-        if(plansSection){
-            plansSection.scrollIntoView({behavior: "smooth"});
-        }
-    }
 
     return(
-        <div className="w-full h-[520px] z-20 lg:overflow-hidden">
+        <div className="w-full h-64 md:h-[520px] z-20 lg:overflow-hidden">
             <video
             className="w-full h-full top-0 left-0 object-cover z-0"
             loop

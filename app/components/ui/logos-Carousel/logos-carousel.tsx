@@ -24,12 +24,11 @@ export default function LogosCarousel({ slides, options }: PropType) {
    ...options,
   }
 
-  const [isPlaying, setIsPlaying] = useState(true) // NOVO: Estado para rastrear o play/pause
+  const [isPlaying, setIsPlaying] = useState(true) 
   const [emblaRef, emblaApi] = useEmblaCarousel(carouselOptions, [
    AutoScroll({ playOnInit: true }),
   ])
 
-  // NOVO: Função para pausar/reiniciar o Autoscroll
   const toggleAutoscroll = useCallback(() => {
     if (!emblaApi) return
 
@@ -38,10 +37,10 @@ export default function LogosCarousel({ slides, options }: PropType) {
 
     if (autoScroll.isPlaying()) {
        autoScroll.stop()
-       setIsPlaying(false) // Atualiza o estado
+       setIsPlaying(false)
     } else {
        autoScroll.play()
-       setIsPlaying(true) // Atualiza o estado
+       setIsPlaying(true)
     }
   }, [emblaApi])
 
