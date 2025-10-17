@@ -2,16 +2,18 @@ const Stripe = require("stripe");
 const pool = require("../config/db");
 const { validate: isUuid } = require("uuid");
 
+// Carrega as chaves do ambiente
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
+const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET; // Chave secreta do endpoint do webhook
 const FRONTEND_URL = process.env.FRONTEND_URL || "https://projeto-bierbox.onrender.com";
 
-if (!STRIPE_SECRET_KEY) {
-  throw new Error("STRIPE_SECRET_KEY não configurada no ambiente.");
+if (!STRIPE_SECRET_KEY || !STRIPE_WEBHOOK_SECRET) {
+  throw new Error("As chaves STRIPE_SECRET_KEY e STRIPE_WEBHOOK_SECRET devem ser configuradas no ambiente.");
 }
 
 const stripe = Stripe(STRIPE_SECRET_KEY);
 
-// Criar sessão de checkout no Stripe
+// Criar sessão de checkout no Stripe (Sua função original - sem alterações)
 const iniciarCheckoutAssinatura = async (req, res) => {
   try {
     const { plano_id, endereco_entrega_id, valor_frete, box_id } = req.body;
@@ -34,7 +36,6 @@ const iniciarCheckoutAssinatura = async (req, res) => {
       return res.status(404).json({ message: "Utilizador não encontrado." });
     }
     const userEmail = userResult.rows[0].email;
-    const userName = userResult.rows[0].nome_completo;
 
     // Define preço do plano
     let preco_plano;
@@ -83,7 +84,6 @@ const iniciarCheckoutAssinatura = async (req, res) => {
       line_items: [{ price: price.id, quantity: 1 }],
       success_url: `${FRONTEND_URL}/checkout/aprovado`,
       cancel_url: `${FRONTEND_URL}/checkout/falha`,
-
       metadata: {
         assinaturaId: assinaturaId.toString(),
         utilizadorId,
@@ -99,34 +99,62 @@ const iniciarCheckoutAssinatura = async (req, res) => {
   }
 };
 
-// Webhook Stripe
+// Webhook Stripe - VERSÃO CORRIGIDA E SEGURA
 const webhookStripe = async (req, res) => {
-  try {
-    const event = req.body;
+  const sig = req.headers['stripe-signature'];
+  let event;
 
+  try {
+    // 1. VERIFICAÇÃO DE SEGURANÇA
+    event = stripe.webhooks.constructEvent(req.body, sig, STRIPE_WEBHOOK_SECRET);
+  } catch (err) {
+    console.error(`❌ Erro na verificação da assinatura do webhook: ${err.message}`);
+    return res.status(400).send(`Webhook Error: ${err.message}`);
+  }
+
+  // 2. PROCESSAMENTO DO EVENTO
+  try {
     if (event.type === "checkout.session.completed") {
       const session = event.data.object;
-      const assinaturaId = session.metadata.assinaturaId;
 
-      await pool.query(
-        `UPDATE assinaturas
+      const assinaturaId = session.metadata.assinaturaId;
+      const stripeSubscriptionId = session.subscription;
+
+      if (!assinaturaId || !stripeSubscriptionId) {
+        console.error("Webhook 'checkout.session.completed' recebido sem metadata.assinaturaId ou sem session.subscription.");
+        return res.status(400).send("Dados insuficientes no evento do webhook.");
+      }
+
+      console.log(`Webhook recebido: Atualizando assinatura interna ${assinaturaId} para ATIVA.`);
+
+      const updateResult = await pool.query(
+        `UPDATE assinaturas 
          SET status = 'ATIVA',
              id_assinatura_mp = $1,
-             atualizado_em = CURRENT_TIMESTAMP,
-             forma_pagamento = 'cartao'
+             data_inicio = CURRENT_DATE,
+             atualizado_em = CURRENT_TIMESTAMP
          WHERE id = $2`,
-        [session.subscription, assinaturaId]
+        [stripeSubscriptionId, assinaturaId]
       );
+
+      if (updateResult.rowCount > 0) {
+        console.log(`✅ Assinatura ${assinaturaId} ativada com sucesso no banco de dados.`);
+      } else {
+        console.warn(`⚠️ A assinatura com ID ${assinaturaId} não foi encontrada no banco para ser atualizada.`);
+      }
     }
 
-    res.status(200).send("Webhook recebido com sucesso.");
+    // 3. Responde ao Stripe que o evento foi recebido com sucesso
+    res.status(200).json({ received: true });
+
   } catch (error) {
-    console.error("Erro no webhook Stripe:", error);
-    res.status(500).send("Erro interno no servidor ao processar webhook.");
+    console.error("Erro ao processar o evento do webhook no banco de dados:", error);
+    res.status(500).send("Erro interno no servidor ao processar o evento.");
   }
 };
 
-// Cancelar assinatura
+
+// Cancelar assinatura (Sua função original - sem alterações)
 const cancelarAssinatura = async (req, res) => {
   try {
     const { assinaturaId } = req.params;
@@ -151,7 +179,7 @@ const cancelarAssinatura = async (req, res) => {
 
     // Atualiza no banco
     await pool.query(
-      `UPDATE assinaturas
+      `UPDATE assinaturas 
        SET status = 'CANCELADA',
            data_cancelamento = CURRENT_DATE,
            atualizado_em = CURRENT_TIMESTAMP
