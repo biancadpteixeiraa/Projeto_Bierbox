@@ -175,7 +175,7 @@ const cancelarAssinatura = async (req, res) => {
     }
 
     // Cancela no Stripe
-    await stripe.subscriptions.del(assinatura.id_assinatura_mp);
+    await stripe.subscriptions.cancel(assinatura.id_assinatura_mp);
 
     // Atualiza no banco
     await pool.query(
