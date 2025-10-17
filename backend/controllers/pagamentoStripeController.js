@@ -34,6 +34,7 @@ const iniciarCheckoutAssinatura = async (req, res) => {
       return res.status(404).json({ message: "Utilizador não encontrado." });
     }
     const userEmail = userResult.rows[0].email;
+    const userName = userResult.rows[0].nome_completo;
 
     // Define preço do plano
     let preco_plano;
@@ -82,6 +83,7 @@ const iniciarCheckoutAssinatura = async (req, res) => {
       line_items: [{ price: price.id, quantity: 1 }],
       success_url: `${FRONTEND_URL}/checkout/aprovado`,
       cancel_url: `${FRONTEND_URL}/checkout/falha`,
+
       metadata: {
         assinaturaId: assinaturaId.toString(),
         utilizadorId,
@@ -100,13 +102,12 @@ const iniciarCheckoutAssinatura = async (req, res) => {
 // Webhook Stripe
 const webhookStripe = async (req, res) => {
   try {
-    const event = JSON.parse(req.body.toString());
+    const event = req.body;
 
     if (event.type === "checkout.session.completed") {
       const session = event.data.object;
       const assinaturaId = session.metadata.assinaturaId;
 
-      // Atualiza status da assinatura e salva o ID correto do Stripe
       await pool.query(
         `UPDATE assinaturas
          SET status = 'ATIVA',
@@ -116,8 +117,6 @@ const webhookStripe = async (req, res) => {
          WHERE id = $2`,
         [session.subscription, assinaturaId]
       );
-
-      console.log(`Assinatura ${assinaturaId} ativada com ID Stripe: ${session.subscription}`);
     }
 
     res.status(200).send("Webhook recebido com sucesso.");
@@ -147,14 +146,10 @@ const cancelarAssinatura = async (req, res) => {
       return res.status(400).json({ error: "Assinatura não está ativa." });
     }
 
-    if (!assinatura.id_assinatura_mp) {
-      return res.status(400).json({ error: "Assinatura não possui ID Stripe válido." });
-    }
+    // Cancela no Stripe
+    await stripe.subscriptions.del(assinatura.id_assinatura_mp);
 
-    // Cancela assinatura no Stripe usando o método atual
-    await stripe.subscriptions.cancel(assinatura.id_assinatura_mp);
-
-    // Atualiza status no banco
+    // Atualiza no banco
     await pool.query(
       `UPDATE assinaturas
        SET status = 'CANCELADA',
@@ -167,7 +162,7 @@ const cancelarAssinatura = async (req, res) => {
     return res.status(200).json({ message: "Assinatura cancelada com sucesso." });
   } catch (error) {
     console.error("Erro ao cancelar assinatura:", error);
-    return res.status(500).json({ error: "Erro interno do servidor" });
+    return res.status(500).json({ error: "Erro ao cancelar assinatura." });
   }
 };
 

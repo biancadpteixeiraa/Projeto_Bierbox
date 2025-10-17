@@ -13,6 +13,7 @@ router.post("/checkout", protect, iniciarCheckoutAssinatura);
 
 router.post("/webhook", webhookStripe);
 
+// 🚀 Cancelar assinatura
 router.delete("/assinaturas/:assinaturaId/cancelar", protect, cancelarAssinatura);
 
 module.exports = router;
