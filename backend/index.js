@@ -17,7 +17,8 @@ const assinaturaRoutes = require("./routes/assinaturaRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const stripeRoutes = require("./routes/stripeRoutes");
 
-const pagamentoStripeController = require("./controllers/pagamentoStripeController");
+// Importe o controlador do Stripe
+const { webhookStripe } = require("./controllers/pagamentoStripeController");
 
 const app = express();
 
@@ -27,11 +28,12 @@ console.log("📌 Valor da DATABASE_URL:", process.env.DATABASE_URL);
 // CORS
 app.use(cors({ origin: "*" }));
 
-// Webhook Stripe: deve vir antes do express.json()
+// Webhook Stripe: deve vir ANTES do express.json()
+// Use uma rota consistente com o resto da sua API
 app.post(
-  "/stripe/webhook",
+  "/api/stripe/webhook", // Rota corrigida e consistente
   express.raw({ type: "application/json" }),
-  (req, res) => pagamentoStripeController.webhookStripe(req, res)
+  webhookStripe // Chama a função do controlador diretamente
 );
 
 // Parser padrão para todas as outras rotas
@@ -55,11 +57,13 @@ app.use("/api/enderecos", enderecoRoutes);
 app.use("/api/pagamentos", pagamentoRoutes);
 app.use("/api/assinaturas", assinaturaRoutes);
 app.use("/api/admin", adminRoutes);
-app.use("/stripe", stripeRoutes);
+
+// A rota base para o Stripe será /api/stripe
+app.use("/api/stripe", stripeRoutes); // Prefixo consistente com outras rotas
 
 const HOST = "0.0.0.0";
 const PORT = process.env.PORT || 4000;
 
 app.listen(PORT, HOST, () => {
-  console.log(`Servidor rodando em http://${HOST}:${PORT}`);
+  console.log(`Servidor rodando em http://${HOST}:${PORT}` );
 });
