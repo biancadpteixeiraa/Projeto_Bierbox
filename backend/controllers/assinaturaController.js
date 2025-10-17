@@ -112,7 +112,7 @@ const assinaturaController = {
             }
 
             // Cancela assinatura no Stripe antes de atualizar no banco
-            await stripe.subscriptions.del(assinatura.id_assinatura_mp);
+            await stripe.subscriptions.cancel(assinatura.id_assinatura_mp);
 
             const result = await pool.query(
                 "UPDATE assinaturas SET status = 'CANCELADA', data_cancelamento = NOW(), atualizado_em = NOW() WHERE id = $1 RETURNING *",
