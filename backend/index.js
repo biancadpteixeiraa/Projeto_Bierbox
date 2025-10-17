@@ -27,11 +27,11 @@ console.log("📌 Valor da DATABASE_URL:", process.env.DATABASE_URL);
 // CORS
 app.use(cors({ origin: "*" }));
 
-// Rota do webhook Stripe deve vir antes do express.json()
+// Webhook Stripe: deve vir antes do express.json()
 app.post(
   "/stripe/webhook",
   express.raw({ type: "application/json" }),
-  (req, res, next) => pagamentoStripeController.webhookStripe(req, res, next)
+  (req, res) => pagamentoStripeController.webhookStripe(req, res)
 );
 
 // Parser padrão para todas as outras rotas
