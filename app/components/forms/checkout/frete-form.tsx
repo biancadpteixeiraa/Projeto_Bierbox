@@ -118,10 +118,9 @@ export default function FreteForm() {
                       className={`flex items-center p-3 text-brown-tertiary rounded-lg shadow-[0px_2px_14px_0px_rgb(0,0,0,0.1)]
                         ${isUnavailable ? "opacity-60 cursor-not-allowed" : "cursor-pointer hover:bg-beige-primary/30 transition-colors"}
                       `}
-                      onClick={() => !isUnavailable && handleSelectFrete(opcao)}
                     >
                       <div className="w-full flex items-center justify-between">
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-4 cursor-default">
                           <input
                             type="radio"
                             name="frete"

@@ -19,6 +19,7 @@ export default function BierwegArea(){
                     autoPlay
                     muted
                     playsInline
+                    controls
                     title="Vídeo de apresentação da Rota da Cerveja de Guarapuava"
                     >
                     <source src="/BierWeg, a Rota da Cerveja.mp4" type="video/mp4" /> 

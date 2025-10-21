@@ -42,7 +42,7 @@ export default function FAQ() {
           {perguntas.map((pergunta) => (
             <div
               key={pergunta.id}
-              className="border-2 border-brown-tertiary rounded-xl my-4"
+              className="border-2 border-brown-tertiary rounded-xl my-3"
             >
               <Disclosure as="div">
                 {({ open }) => (

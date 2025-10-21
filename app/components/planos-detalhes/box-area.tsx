@@ -29,6 +29,7 @@ export default function BoxArea() {
   const [frete, setFrete] = useState<any[]>([]);
   const [loadingFrete, setLoadingFrete] = useState(false);
   const [loadingComprar, setLoadingComprar] = useState(false);
+  const [loadingCarrinho, setLoadingCarrinho] = useState(false);
   
 
   useEffect(() => {
@@ -81,7 +82,15 @@ export default function BoxArea() {
       return;
     }
 
-    await addItem(box.id, quantidade, plano);
+  try {
+      setLoadingCarrinho(true);
+      await addItem(box.id, quantidade, plano);
+    } catch (error) {
+      console.error(error);
+      toast.error("Erro ao adicionar Box ao carrinho.");
+    } finally {
+      setLoadingCarrinho(false);
+    }
   };
 
   const handleCalcularFrete = async () => {
@@ -214,10 +223,14 @@ export default function BoxArea() {
           <div className="pb-6">
             <Button
               variant="tertiary"
-              className="w-full border-2 uppercase font-primary"
+              className="w-full border-2 uppercase font-primary flex items-center justify-center"
               onClick={handleAddToCart}
             >
-              Adicionar a Geladeira
+                {loadingCarrinho ? (
+                  <span className="animate-spin rounded-full border-4 border-yellow-primary border-t-transparent w-5 h-5"></span>
+                ) : (
+                  "Adicionar à Geladeira"
+                )}
             </Button>
           </div>
           <div className="pb-8">
@@ -229,7 +242,7 @@ export default function BoxArea() {
                 disabled={loadingComprar}
               >
                 {loadingComprar ? (
-                  <span className="animate-spin rounded-full border-4 border-brown-primary border-t-transparent w-5 h-5"></span>
+                  <span className="animate-spin rounded-full border-4 border-beige-primary border-t-transparent w-5 h-5"></span>
                 ) : (
                   "Comprar Agora!"
                 )}

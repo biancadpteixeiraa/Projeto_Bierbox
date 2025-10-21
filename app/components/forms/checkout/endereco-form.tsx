@@ -45,9 +45,10 @@ export default function EnderecoForm() {
         setIsCreating(res.length === 0);
 
       const padrao = res.find((e: FormDataEndereco) => e.is_padrao) || res[0];
-      if (padrao) {
-        setFormData(prev => ({ ...prev, endereco: padrao }));
-      }
+        if (padrao) {
+          setFormData(prev => ({ ...prev, endereco: padrao }));
+        }
+        console.log("Endereços padrão carregado:", padrao);
       } catch {
         toast.error("Erro ao carregar endereços.");
       } finally {
@@ -155,7 +156,7 @@ export default function EnderecoForm() {
                           name="endereco"
                           disabled={disabled}
                           value={endereco.id}
-                          defaultChecked={formData.endereco?.id === endereco.id} 
+                          defaultChecked={data.id === endereco.id || endereco.is_padrao === true} 
                           onChange={() => {
                             setFormData((prev) => ({ ...prev, endereco }));
                           }}
@@ -356,7 +357,9 @@ export default function EnderecoForm() {
               variant="quaternary"
               onClick={handleNext}
               disabled={disabled || data.rua.trim() === ""}
-              className="py-2 font-medium flex items-center justify-center"
+              className={`py-2 font-medium flex items-center justify-center ${
+                loadingEndereco ? "opacity-70 cursor-not-allowed" : ""
+              }`}
             >
               {loadingEndereco ? (
                 <span className="animate-spin rounded-full border-4 border-beige-primary border-t-transparent size-6"></span>

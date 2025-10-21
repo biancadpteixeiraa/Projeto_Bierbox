@@ -5,7 +5,7 @@ import { XMarkIcon } from '@heroicons/react/24/outline'
 import { Refrigerator, X } from 'lucide-react';
 import Button from '../ui/button';
 import { useCarrinho } from '@/app/context/cartContext';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'react-toastify';
 import { useCheckout } from '@/app/context/checkoutContext';
 import { useRouter } from 'next/navigation';
@@ -20,7 +20,9 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
   const { setCheckoutData } = useCheckout();
   const router = useRouter();
 
+  const [loadingComprar, setLoadingComprar] = useState(false);
   const [selectedBoxId, setSelectedBoxId] = useState<string | null>(null);
+  const [removingItemId, setRemovingItemId] = useState<string | null>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -29,10 +31,26 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
   }, [isOpen]);
 
 
-  const total = carrinho?.itens?.reduce((acc, item) => {
-    const price = parseFloat(item.preco_unitario.replace(',', '.'));
-    return acc + price;
-  }, 0).toFixed(2).replace('.', ',') || "0,00";
+  const total = useMemo(() => {
+    if (!carrinho?.itens?.length || !selectedBoxId) return "0,00";
+
+    const selectedItem = carrinho.itens.find((i) => i.box_id === selectedBoxId);
+    if (!selectedItem) return "0,00";
+
+    const price = parseFloat(selectedItem.preco_unitario.replace(',', '.')) || 0;
+    return price.toFixed(2).replace('.', ',');
+  }, [carrinho, selectedBoxId]);
+
+  const handleRemoveItem = async (boxId: string) => {
+    try {
+      setRemovingItemId(boxId);
+      await removeItem(boxId);
+    } catch (error) {
+      toast.error("Erro ao remover item.");
+    } finally {
+      setRemovingItemId(null);
+    }
+  };
 
   const handleFinalizarPedido = () => {
     if (!selectedBoxId) {
@@ -47,13 +65,17 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
     return;
   }
 
-  setCheckoutData({
-    boxId: selectedItem.box_id,
-    plano: selectedItem.tipo_plano === "anual" ? "anual" : "mensal",
-    quantidade: selectedItem.quantidade === 6 ? 6 : 4,
-  });
-
-  router.push("/checkout");
+  try {
+      setLoadingComprar(true);
+      setCheckoutData({
+        boxId: selectedItem.box_id,
+        plano: selectedItem.tipo_plano === "anual" ? "anual" : "mensal",
+        quantidade: selectedItem.quantidade === 6 ? 6 : 4,
+      });
+      router.push("/checkout");
+  } finally {
+      setLoadingComprar(false);
+  }
 };
 
 
@@ -109,17 +131,20 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
                                   onChange={() => setSelectedBoxId(selectedBoxId === item.box_id ? null : item.box_id)}
                                   className="w-4 h-4 bg-gray-100 rounded accent-brown-primary"
                                 />
-                                <div className="size-24 shrink-0 overflow-hidden rounded-md border border-yellow-tertiary">
-                                  <img
-                                    alt={item.nome}
-                                    src={item.imagem_principal_url}
-                                    className="size-full object-cover"
-                                  />
+                                <div className="size-24 shrink-0 relative flex flex-col items-center justify-center">
+                                    <img
+                                      alt={item.nome}
+                                      src={item.imagem_principal_url}
+                                      className="size-full object-cover rounded-md border-yellow-tertiary border"
+                                    />
+                                    <p className='w-20 text-[8px] font-secondary font-bold px-1 py-1 rounded-lg text-center uppercase absolute -bottom-2 bg-yellow-primary text-beige-primary'>
+                                      {item.tipo_plano === "anual" ? "Plano Anual" : "Plano Mensal"}
+                                    </p>
                                 </div>
                               </div>
 
                               <div className="ml-4 flex flex-1 justify-between flex-col">
-                                <div>
+                                <div className='flex flex-col gap-2'>
                                   <div className="flex justify-between text-lg font-medium text-yellow-primary">
                                     <h3>{item.nome}</h3>
                                   </div>
@@ -128,17 +153,24 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
                                   </p>
                                 </div>
                                 <div className="flex flex-col text-sm">
-                                  <span className="text-gray-500">Qtd: {item.quantidade}</span>
+                                  <span className="text-gray-500">Qtd: {item.quantidade} cervejas</span>
                                 </div>
                               </div>
 
                               <div className='flex items-start'>
                                 <button
                                   type="button"
-                                  onClick={() => removeItem(item.box_id)}
-                                  className='text-brown-tertiary'
+                                  onClick={() => handleRemoveItem(item.box_id)}
+                                  disabled={removingItemId === item.box_id}
+                                  className={`text-brown-tertiary transition-opacity ${
+                                    removingItemId === item.box_id ? "opacity-40 cursor-not-allowed" : "hover:opacity-70"
+                                  }`}
                                 >
-                                  <X aria-hidden="true" className="size-6" />
+                                  {removingItemId === item.box_id ? (
+                                    <div className="animate-spin size-5 border-2 border-brown-tertiary border-t-transparent rounded-full"></div>
+                                  ) : (
+                                    <X aria-hidden="true" className="size-6" />
+                                  )}
                                 </button>
                               </div>
                             </li>
@@ -161,8 +193,13 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
                       variant="quinary"
                       className="w-full font-bold"
                       onClick={handleFinalizarPedido}
+                      disabled={loadingComprar}
                     >
-                      Finalizar Pedido
+                      {loadingComprar ? (
+                        <span className="animate-spin rounded-full border-4 border-beige-primary border-t-transparent w-5 h-5"></span>
+                      ) : (
+                        "Finalizar Pedido"
+                      )}
                     </Button>
                   </div>
                 </div>

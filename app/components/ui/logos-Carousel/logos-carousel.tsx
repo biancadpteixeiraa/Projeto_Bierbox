@@ -26,7 +26,13 @@ export default function LogosCarousel({ slides, options }: PropType) {
 
   const [isPlaying, setIsPlaying] = useState(true) 
   const [emblaRef, emblaApi] = useEmblaCarousel(carouselOptions, [
-   AutoScroll({ playOnInit: true }),
+   AutoScroll(
+    { 
+      playOnInit: true,
+      speed: 0.5,
+      stopOnMouseEnter: true,
+    }
+  ),
   ])
 
   const toggleAutoscroll = useCallback(() => {
@@ -51,17 +57,20 @@ export default function LogosCarousel({ slides, options }: PropType) {
     const autoScroll = emblaApi.plugins()?.autoScroll
     if (!autoScroll) return
 
-    // Garante que o Autoscroll reinicie APENAS se o estado isPlaying for true
-    const restartAutoscroll = () => {
-       if (!autoScroll.isPlaying() && isPlaying) {
-         autoScroll.play()
-       }
+    const viewport = emblaApi.containerNode().parentElement
+
+    const handleMouseLeave = () => {
+      // Só reinicia se estava tocando antes
+      if (isPlaying && !autoScroll.isPlaying()) {
+        autoScroll.play()
+      }
     }
 
-    emblaApi.on('settle', restartAutoscroll)
+    // Retoma quando o mouse sai
+    viewport?.addEventListener('mouseleave', handleMouseLeave)
 
     return () => {
-       emblaApi.off('settle', restartAutoscroll)
+      viewport?.removeEventListener('mouseleave', handleMouseLeave)
     }
   }, [emblaApi, isPlaying])
 

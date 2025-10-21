@@ -201,7 +201,6 @@ export default function EnderecoForm({
             </div>
           </div>
 
-          {/* Checkbox e botões */}
           <div className="flex items-start justify-between pt-2">
             <div className="flex items-center gap-2">
               <input
@@ -222,6 +221,12 @@ export default function EnderecoForm({
 
             {isEditando && (
               <div className="flex gap-4">
+                <button
+                  onClick={onCancelar}
+                  className="text-brown-primary font-medium text-sm hover:underline"
+                >
+                  Cancelar
+                </button>
                 <Button
                   variant="quaternary"
                   onClick={onSalvar}
@@ -229,12 +234,6 @@ export default function EnderecoForm({
                 >
                   Salvar
                 </Button>
-                <button
-                  onClick={onCancelar}
-                  className="text-brown-primary font-medium text-sm hover:underline"
-                >
-                  Cancelar
-                </button>
               </div>
             )}
           </div>

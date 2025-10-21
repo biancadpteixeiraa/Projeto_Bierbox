@@ -3,7 +3,7 @@
 export default function ExplanationBierweg(){
     
     return(
-        <div className="max-w-6xl mx-auto flex flex-col text-brown-primary px-6 lg:px-14 py-14">
+        <div className="max-w-6xl mx-auto flex flex-col text-brown-primary px-6 lg:px-14 pt-14">
             <h1 className="text-start text-lg font-primary pb-14 uppercase">
                 O que é a rota da cerveja de guarapuava?
             </h1>
