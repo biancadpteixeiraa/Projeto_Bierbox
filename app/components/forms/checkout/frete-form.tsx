@@ -6,72 +6,65 @@ import { IMaskInput } from 'react-imask';
 import { toast } from "react-toastify";
 import { calculoFrete } from "@/app/services/frete";
 import { useEffect, useState } from "react";
+import { useCheckout } from "@/app/context/checkoutContext";
 
-type FormDataFrete = {
-  tipo: string;
+type FreteOpcao = {
+  nome: string;
+  empresa: string;
+  prazo: string;
   preco: string;
 };
 
-type FreteOpcao = {
- nome: string;
- empresa: string;
- prazo: string;
- preco: string;
-}
+export default function FreteForm() {
+  const { step, setStep, formData, setFormData, handleEdit } = useCheckout();
 
-export default function FreteForm({
-  data,
-  onChange,
-  onNext,
-  disabled,
-  cep,
-  onEdit,
-}: {
-  data: FormDataFrete;
-  onChange: (data: FormDataFrete) => void;
-  onNext: () => void;
-  disabled?: boolean;
-  cep: string;
-  onEdit: () => void;
-}) {
+  const data = formData.frete;
+  const cep = formData.endereco?.cep || "";
+  const disabled = step !== "frete";
+
   const [isLoading, setIsLoading] = useState(false);
   const [frete, setFrete] = useState<FreteOpcao[]>([]);
 
   useEffect(() => {
-    if (cep && cep.length === 9) {
-      handleCalcularFrete();
-    }
+    if (cep && cep.length === 9) handleCalcularFrete();
   }, [cep]);
 
-const handleCalcularFrete = async () => {
-  if (!cep) {
-    toast.warning("Digite um CEP válido.");
-    return;
-  }
-  setIsLoading(true); // <- antes da chamada
-  try {
-    const data = await calculoFrete(cep);
-    if (data.success) {
-      setFrete(data.opcoes);
-    } else {
-      toast.error(data.message || "Erro ao calcular frete.");
-      setFrete([]);
+  const handleCalcularFrete = async () => {
+    if (!cep) {
+      toast.warning("Digite um CEP válido.");
+      return;
     }
-  } catch (error) {
-    toast.error("Erro ao calcular frete.");
-    console.error(error);
-    setFrete([]);
-  } finally {
-    setIsLoading(false);
-  }
-};
-
-  const handleNext = () => {
-    if (data.tipo) onNext();
+    setIsLoading(true);
+    try {
+      const result = await calculoFrete(cep);
+      if (result.success) {
+        setFrete(result.opcoes);
+      } else {
+        toast.error(result.message || "Erro ao calcular frete.");
+        setFrete([]);
+      }
+    } catch (error) {
+      toast.error("Erro ao calcular frete.");
+      console.error(error);
+      setFrete([]);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleSelectFrete = (opcao: FreteOpcao) => {
-    onChange({tipo:opcao.nome, preco: opcao.preco });
+    setFormData((prev) => ({
+      ...prev,
+      frete: { tipo: opcao.nome, preco: opcao.preco },
+    }));
+  };
+
+  const handleNext = () => {
+    if (!data.tipo) {
+      toast.warning("Selecione uma opção de frete.");
+      return;
+    }
+    setStep("resumo");
   };
 
 
@@ -82,7 +75,7 @@ const handleCalcularFrete = async () => {
           Frete
         </h1>
         <button
-          onClick={onEdit}
+          onClick={() => handleEdit("frete")}
           className={`
           ${disabled ? "block" : 'hidden'} 
           text-xs text-brown-tertiary underline underline-offset-2`}
@@ -93,17 +86,17 @@ const handleCalcularFrete = async () => {
       <CheckoutCard disabled={disabled} className="h-[440px] justify-between">
         <div className="flex flex-col gap-8 pb-14">
             <div className="flex flex-col items-start justify-center">
-            <label htmlFor="cepFrete" className="text-brown-tertiary font-semibold">Informe seu CEP:</label>
-            <IMaskInput
-                mask="00000-000"
-                type="text"
-                disabled
-                readOnly
-                className="text-xs sm:text-sm w-full py-2 px-3 bg-transparent text-brown-tertiary/75 placeholder:text-brown-tertiary/75 rounded-lg border border-brown-tertiary"
-                placeholder="CEP"
-                value={cep}
-                id="cepFrete"
-              />
+              <label htmlFor="cepFrete" className="text-brown-tertiary font-semibold">Informe seu CEP:</label>
+              <IMaskInput
+                  mask="00000-000"
+                  type="text"
+                  disabled
+                  readOnly
+                  className="text-xs sm:text-sm w-full py-2 px-3 bg-transparent text-brown-tertiary/75 placeholder:text-brown-tertiary/75 rounded-lg border border-brown-tertiary"
+                  placeholder="CEP"
+                  value={cep}
+                  id="cepFrete"
+                />
             </div>
             {isLoading && (
               <p className="text-sm text-brown-tertiary">Calculando opções de frete...</p>
@@ -133,7 +126,7 @@ const handleCalcularFrete = async () => {
                             type="radio"
                             name="frete"
                             value={opcao.nome}
-                            checked={data.tipo === opcao.nome}
+                            defaultChecked={data.tipo === opcao.nome}
                             onChange={() => handleSelectFrete(opcao)}
                             disabled={disabled || isLoading || isUnavailable}
                             className="size-4 cursor-pointer appearance-none rounded-full border border-brown-tertiary checked:bg-brown-tertiary transition-all checked:ring-2 checked:ring-inset checked:ring-white"

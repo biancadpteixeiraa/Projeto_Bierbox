@@ -9,12 +9,12 @@ export async function criarPreferenciaPagamento(
   valor_frete: number,
 ) {
   const response = await api.post(
-    "/api/pagamentos/criar-preferencia",
+    "/api/stripe/checkout",
     {
       plano_id, 
-      box_id,
       endereco_entrega_id,
       valor_frete,
+      box_id,
     },
     { headers: { Authorization: `Bearer ${token}` } }
   );

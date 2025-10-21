@@ -5,85 +5,78 @@ import Button from "../../ui/button";
 import { useAuth } from "@/app/context/authContext";
 import { toast } from "react-toastify";
 import { criarPreferenciaPagamento } from "@/app/services/checkout";
+import { useCheckout } from "@/app/context/checkoutContext";
+import { useState } from "react";
 
-type FormData = {
-  endereco: {
-    id?: string;
-    rua: string;
-    cep: string;
-    numero: string;
-    bairro: string;
-    complemento: string;
-    cidade: string;
-    estado: string;
-    is_padrao: boolean;
-  };
-  frete: {
-    tipo: string;
-    preco: string;
-  };
-};
 
-type CheckoutData = {
-  boxId: string;
-  plano: "mensal" | "anual";
-  quantidade: 4 | 6;
-};
-
-export default function ResumoFinanceiro({
-  data,
-  disabled,
-  box,
-  checkoutData,
-}: {
-  data: FormData;
-  disabled?: boolean;
-  box: any;
-  checkoutData: CheckoutData | null;
-}) {
+export default function ResumoFinanceiro() {
   const { token } = useAuth();
+  const { formData, checkoutData, box, loading, step } = useCheckout();
+  const disabled = step !== "resumo";
+
   const plano = checkoutData?.plano;
   const quantidade = checkoutData?.quantidade;
+  const [loadingPagamento, setLoadingPagamento] = useState(false);
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <p>Carregando resumo...</p>
+      </div>
+    );
+  }
+
+  if (!box || !checkoutData) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <p>Dados do checkout não encontrados.</p>
+      </div>
+    );
+  }
+
+  // Determina o preço da box conforme o plano e quantidade
   let valorBox = 0;
   if (plano === "mensal" && quantidade === 4) valorBox = parseFloat(box?.preco_mensal_4_un);
   if (plano === "mensal" && quantidade === 6) valorBox = parseFloat(box?.preco_mensal_6_un);
   if (plano === "anual" && quantidade === 4) valorBox = parseFloat(box?.preco_anual_4_un);
   if (plano === "anual" && quantidade === 6) valorBox = parseFloat(box?.preco_anual_6_un);
 
-  const valorFrete = parseFloat(data.frete.preco) || 0;
-
-  const total = valorBox + (parseFloat(data.frete.preco) || 0);
+  const valorFrete = parseFloat(formData.frete.preco) || 0;
+  const total = valorBox + valorFrete;
 
   const handleFinalizarPagamento = async () => {
-    if (disabled || !token || !checkoutData) return;
+    if (!token || !checkoutData) return;
 
-    if(!data.endereco.id){
+    if (!formData.endereco.id) {
       toast.error("Por favor, salve o endereço antes de finalizar o pagamento.");
       return;
     }
 
     try {
-    const planoIdApi = plano === "mensal" ? "PLANO_MENSAL" : "PLANO_ANUAL";
+      setLoadingPagamento(true);
 
-    const res = await criarPreferenciaPagamento(
-      token,
-      planoIdApi,
-      checkoutData.boxId,
-      data.endereco.id,
-      valorFrete
-    );
+      const planoIdApi = plano === "mensal" ? "PLANO_MENSAL" : "PLANO_ANUAL";
 
-    if (res.checkoutUrl) {
-      window.location.href = res.checkoutUrl;
-    } else {
-      toast.error("URL de checkout não recebida.");
-    }
+      const res = await criarPreferenciaPagamento(
+        token,
+        planoIdApi,
+        checkoutData.boxId,
+        formData.endereco.id,
+        valorFrete
+      );
+
+      if (res.checkoutUrl) {
+        window.location.href = res.checkoutUrl;
+      } else {
+        toast.error("URL de checkout não recebida.");
+      }
     } catch (error) {
       console.error("Erro ao criar preferência de pagamento:", error);
       toast.error("Não foi possível finalizar a compra. Tente novamente.");
+    } finally {
+      setLoadingPagamento(false);
     }
-  }
+  };
 
   return (
     <div>
@@ -120,11 +113,15 @@ export default function ResumoFinanceiro({
         </div>
         <Button
           variant="quaternary"
-          disabled={disabled}
-          className="py-2 justify-end font-medium"
+          disabled={disabled || loadingPagamento}
+          className="py-2 flex items-center justify-center font-medium"
           onClick={handleFinalizarPagamento}
         >
-          Finalizar Pagamento
+          {loadingPagamento ? (
+            <span className="animate-spin rounded-full border-4 border-beige-primary border-t-transparent w-5 h-5"></span>
+          ) : (
+            "Finalizar Pagamento"
+          )}
         </Button>
       </CheckoutCard>
     </div>

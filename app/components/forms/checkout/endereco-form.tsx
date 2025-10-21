@@ -9,6 +9,7 @@ import { useEffect, useState } from "react";
 import { addEndereco, getEnderecos, updateEndereco } from "@/app/services/enderecos";
 import { toast } from "react-toastify";
 import { CheckoutCardPlaceholder } from "../../ui/skeletons";
+import { useCheckout } from "@/app/context/checkoutContext";
 
 type FormDataEndereco = {
   id?: string;
@@ -22,22 +23,14 @@ type FormDataEndereco = {
   is_padrao: boolean;
 };
 
-export default function EnderecoForm({
-  data, 
-  onChange, 
-  onNext, 
-  disabled,
-  onEdit,
-}: {
-  data: FormDataEndereco;
-  onChange: (data: FormDataEndereco) => void;
-  onNext: () => void;
-  disabled?: boolean;
-  onEdit: () => void;
-}) {
-
+export default function EnderecoForm() {
   const { token } = useAuth();
-  const [enderecos, setEnderecos] = useState<any[]>([]);
+  const { step, setStep, formData, setFormData, handleEdit } = useCheckout();
+
+  const data = formData.endereco;
+  const disabled = step !== "endereco";
+
+  const [enderecos, setEnderecos] = useState<FormDataEndereco[]>([]);
   const [isCreating, setIsCreating] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -50,8 +43,12 @@ export default function EnderecoForm({
         const res = await getEnderecos(token);
         setEnderecos(res);
         setIsCreating(res.length === 0);
-      } catch (err) {
-        console.error("Erro ao buscar endereços:", err);
+
+      const padrao = res.find((e: FormDataEndereco) => e.is_padrao) || res[0];
+      if (padrao) {
+        setFormData(prev => ({ ...prev, endereco: padrao }));
+      }
+      } catch {
         toast.error("Erro ao carregar endereços.");
       } finally {
         setLoading(false);
@@ -62,12 +59,11 @@ export default function EnderecoForm({
 
   const handleNext = async () => {
     if (!token) return;
-
     setLoadingEndereco(true);
 
     if (!isCreating && !isEditing && data.id) {
       setLoadingEndereco(false);
-      onNext();
+      setStep("frete");
       return;
     }
 
@@ -79,83 +75,56 @@ export default function EnderecoForm({
 
     try {
       if (isEditing && data.id) {
-        await updateEndereco(
-          token,
-          data.id,
-          data.cep,
-          data.rua,
-          data.numero,
-          data.bairro,
-          data.complemento,
-          data.cidade,
-          data.estado,
-          data.is_padrao
-        );
+        await updateEndereco(token, data.id, data.cep, data.rua, data.numero, data.bairro, data.complemento, data.cidade, data.estado, data.is_padrao);
         toast.success("Endereço atualizado com sucesso!");
       } else if (isCreating) {
-        const novoEndereco = await addEndereco(
-          token,
-          data.cep,
-          data.rua,
-          data.numero,
-          data.bairro,
-          data.complemento,
-          data.cidade,
-          data.estado,
-          data.is_padrao
-        );
-
-        // ✅ Atualiza o formData com o ID retornado pelo backend
+        const novoEndereco = await addEndereco(token, data.cep, data.rua, data.numero, data.bairro, data.complemento, data.cidade, data.estado, data.is_padrao);
         if (novoEndereco?.id) {
-          onChange({ ...data, id: novoEndereco.id });
+          setFormData((prev) => ({ ...prev, endereco: { ...data, id: novoEndereco.id } }));
         }
-
         toast.success("Endereço adicionado com sucesso!");
-        setLoadingEndereco(false);
       }
 
       const atualizados = await getEnderecos(token);
       setEnderecos(atualizados);
       setIsCreating(false);
       setIsEditing(false);
-      onNext();
-    } catch (err) {
-      console.error("Erro ao salvar endereço:", err);
+      setStep("frete");
+    } catch {
       toast.error("Erro ao salvar endereço. Tente novamente.");
-    } finally{
+    } finally {
       setLoadingEndereco(false);
     }
   };
 
-  // 🔹 Ações auxiliares
-  const handleEdit = (endereco: any) => {
-    onChange(endereco);
+  const handleEditEndereco = (endereco: any) => {
+    setFormData((prev) => ({ ...prev, endereco }));
     setIsEditing(true);
-    setIsCreating(true); // abre o form
+    setIsCreating(true);
   };
 
   const handleAddNew = () => {
-    onChange({
-      rua: "",
-      cep: "",
-      numero: "",
-      bairro: "",
-      complemento: "",
-      cidade: "",
-      estado: "",
-      is_padrao: false,
-    });
+    setFormData((prev) => ({
+      ...prev,
+      endereco: {
+        rua: "",
+        cep: "",
+        numero: "",
+        bairro: "",
+        complemento: "",
+        cidade: "",
+        estado: "",
+        is_padrao: false,
+      },
+    }));
     setIsCreating(true);
     setIsEditing(false);
   };
-  
+
+  if (loading) return <CheckoutCardPlaceholder />;
+
   const shouldRenderForm = isCreating;
   const shouldRenderList = !isCreating && enderecos.length > 0;
-  
-  if (loading)
-    return (
-      <CheckoutCardPlaceholder/>
-    );
   
   return (
     <div>
@@ -165,7 +134,7 @@ export default function EnderecoForm({
         </h1>
         {disabled && (
           <button
-            onClick={onEdit}
+            onClick={() => handleEdit("endereco")}
             aria-label="Editar endereço"
             className="text-xs text-brown-tertiary underline underline-offset-2"
           >
@@ -186,7 +155,10 @@ export default function EnderecoForm({
                           name="endereco"
                           disabled={disabled}
                           value={endereco.id}
-                          onChange={() => onChange({ ...endereco })}
+                          defaultChecked={formData.endereco?.id === endereco.id} 
+                          onChange={() => {
+                            setFormData((prev) => ({ ...prev, endereco }));
+                          }}
                           className="bg-gray-100 mt-1 size-4 cursor-pointer appearance-none rounded-full border border-brown-tertiary checked:bg-brown-tertiary transition-all checked:ring-2 checked:ring-inset checked:ring-white"
                           />
                           <div className="flex flex-col items-start gap-1">
@@ -203,10 +175,9 @@ export default function EnderecoForm({
                       </div>
                       <div className="flex flex-col items-end">
                         <button
-                          onClick={() => handleEdit(endereco)}
+                          onClick={() => handleEditEndereco(endereco)}
                           aria-label="Editar endereço"
                           className={`
-                          ${disabled ? "hidden" : 'block'} 
                           text-xs text-brown-tertiary underline underline-offset-2`}
                           >
                           Editar
@@ -246,56 +217,81 @@ export default function EnderecoForm({
                     type="text"
                     placeholder="Rua"
                     value={data.rua}
-                    onChange={(e) => onChange({ ...data, rua: e.target.value })}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        endereco: { ...prev.endereco, rua: e.target.value },
+                      }))
+                    }
                     disabled={disabled}
                 />
                 </div>
                 <div className="flex flex-row items-center gap-2 w-full">
-                <div className="flex flex-col items-start justify-center w-1/2">
-                    <IMaskInput
-                      mask="00000-000"
-                      value={data.cep}
-                      onAccept={(value: string) => onChange({ ...data, cep: value })}
-                      disabled={disabled}
-                      className="text-xs sm:text-sm w-full py-2 px-3 bg-transparent text-brown-tertiary/75 placeholder:text-brown-tertiary/75 rounded-lg border border-brown-tertiary"
-                      placeholder="CEP"
-                    />
-                </div>
-                <div className="flex flex-col items-start justify-center w-1/2">
-                    <IMaskInput
-                      mask="00000"
-                      type="text"
-                      value={data.numero}
-                      onAccept={(value: string) => onChange({ ...data, numero: value })}
-                      disabled={disabled}
-                      className="text-xs sm:text-sm w-full py-2 px-3 bg-transparent text-brown-tertiary/75 placeholder:text-brown-tertiary/75 rounded-lg border border-brown-tertiary"
-                      placeholder="Número"
-                    />
-                </div>
+                  <div className="flex flex-col items-start justify-center w-1/2">
+                      <IMaskInput
+                        mask="00000-000"
+                        value={data.cep}
+                        onAccept={(value: string) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            endereco: { ...prev.endereco, cep: value },
+                          }))
+                        }
+                        disabled={disabled}
+                        className="text-xs sm:text-sm w-full py-2 px-3 bg-transparent text-brown-tertiary/75 placeholder:text-brown-tertiary/75 rounded-lg border border-brown-tertiary"
+                        placeholder="CEP"
+                      />
+                  </div>
+                  <div className="flex flex-col items-start justify-center w-1/2">
+                      <IMaskInput
+                        mask="00000"
+                        type="text"
+                        value={data.numero}
+                        onAccept={(value: string) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            endereco: { ...prev.endereco, numero: value },
+                          }))
+                        }
+                        disabled={disabled}
+                        className="text-xs sm:text-sm w-full py-2 px-3 bg-transparent text-brown-tertiary/75 placeholder:text-brown-tertiary/75 rounded-lg border border-brown-tertiary"
+                        placeholder="Número"
+                      />
+                  </div>
                 </div>
                 <div className="flex flex-row items-center gap-2 w-full">
-                <div className="flex flex-col items-start justify-center w-1/2">
-                    <Input
-                    variant="secondary"
-                    className="py-2"
-                    type="text"
-                    placeholder="Bairro"
-                    value={data.bairro}
-                    onChange={(e) => onChange({ ...data, bairro: e.target.value })}
-                    disabled={disabled}
-                    />
-                </div>
-                <div className="flex flex-col items-start justify-center w-1/2">
-                    <Input
-                    variant="secondary"
-                    className="py-2"
-                    type="text"
-                    placeholder="Complemento"
-                    value={data.complemento}
-                    onChange={(e) => onChange({ ...data, complemento: e.target.value })}
-                    disabled={disabled}
-                    />
-                </div>
+                  <div className="flex flex-col items-start justify-center w-1/2">
+                      <Input
+                      variant="secondary"
+                      className="py-2"
+                      type="text"
+                      placeholder="Bairro"
+                      value={data.bairro}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          endereco: { ...prev.endereco, bairro: e.target.value },
+                        }))
+                      }
+                      disabled={disabled}
+                      />
+                  </div>
+                  <div className="flex flex-col items-start justify-center w-1/2">
+                      <Input
+                      variant="secondary"
+                      className="py-2"
+                      type="text"
+                      placeholder="Complemento"
+                      value={data.complemento}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          endereco: { ...prev.endereco, complemento: e.target.value },
+                        }))
+                      }
+                      disabled={disabled}
+                      />
+                  </div>
                 </div>
                 <div className="flex flex-row items-center gap-2 w-full">
                   <div className="flex flex-col items-start justify-center w-2/3">
@@ -305,7 +301,12 @@ export default function EnderecoForm({
                       type="text"
                       placeholder="Cidade"
                       value={data.cidade}
-                      onChange={(e) => onChange({ ...data, cidade: e.target.value })}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          endereco: { ...prev.endereco, cidade: e.target.value },
+                        }))
+                      }
                       disabled={disabled}
                       />
                   </div>
@@ -316,7 +317,12 @@ export default function EnderecoForm({
                       type="text"
                       placeholder="Estado"
                       value={data.estado}
-                      onChange={(e) => onChange({ ...data, estado: e.target.value })}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          endereco: { ...prev.endereco, estado: e.target.value },
+                        }))
+                      }
                       disabled={disabled}
                       />
                   </div>
@@ -328,7 +334,12 @@ export default function EnderecoForm({
                       type="checkbox"
                       checked={data.is_padrao}
                       disabled={disabled}
-                      onChange={(e) => onChange({ ...data, is_padrao: e.target.checked })}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          endereco: { ...prev.endereco, is_padrao: e.target.checked },
+                        }))
+                      }
                       className="w-4 h-4 bg-gray-100 rounded accent-brown-primary"
                     />
                     <label

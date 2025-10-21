@@ -116,7 +116,6 @@ export default function InfoEnderecos() {
   []
  );
 
-// 4. Salvar novo endereço (Simplificada)
 const handleSalvarNovo = useCallback(async () => {
   if (!token) return;
 

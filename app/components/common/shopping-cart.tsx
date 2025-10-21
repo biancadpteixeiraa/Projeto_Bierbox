@@ -7,6 +7,8 @@ import Button from '../ui/button';
 import { useCarrinho } from '@/app/context/cartContext';
 import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
+import { useCheckout } from '@/app/context/checkoutContext';
+import { useRouter } from 'next/navigation';
 
 interface ShoppingCartProps {
   isOpen: boolean;
@@ -15,6 +17,9 @@ interface ShoppingCartProps {
 
 export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
   const { carrinho, loadCarrinho, removeItem } = useCarrinho();
+  const { setCheckoutData } = useCheckout();
+  const router = useRouter();
+
   const [selectedBoxId, setSelectedBoxId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -30,10 +35,10 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
   }, 0).toFixed(2).replace('.', ',') || "0,00";
 
   const handleFinalizarPedido = () => {
-  if (!selectedBoxId) {
-    toast.error("Selecione uma box antes de finalizar o pedido!");
-    return;
-  }
+    if (!selectedBoxId) {
+      toast.error("Selecione uma box antes de finalizar o pedido!");
+      return;
+    }
 
   const selectedItem = carrinho?.itens.find((i) => i.box_id === selectedBoxId);
 
@@ -42,15 +47,13 @@ export default function ShoppingCart({ isOpen, onClose }: ShoppingCartProps) {
     return;
   }
 
-  sessionStorage.setItem(
-    "checkoutData",
-    JSON.stringify({
-      boxId: selectedItem.box_id,
-      plano: selectedItem.tipo_plano,
-      quantidade: selectedItem.quantidade,
-    })
-  );
-  window.location.href = "/checkout";
+  setCheckoutData({
+    boxId: selectedItem.box_id,
+    plano: selectedItem.tipo_plano === "anual" ? "anual" : "mensal",
+    quantidade: selectedItem.quantidade === 6 ? 6 : 4,
+  });
+
+  router.push("/checkout");
 };
 
 

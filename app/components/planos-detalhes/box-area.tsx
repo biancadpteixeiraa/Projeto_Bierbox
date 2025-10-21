@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useParams, usePathname, useRouter } from "next/navigation";
-import { ChevronDownIcon, Link } from "lucide-react";
+import { ChevronDownIcon } from "lucide-react";
 import { BoxGallery } from "../ui/box-gallery";
 import Button from "../ui/button";
 import { getBoxById } from "@/app/services/boxes";
@@ -12,12 +12,14 @@ import { toast } from "react-toastify";
 import { calculoFrete } from "@/app/services/frete";
 import { IMaskInput } from 'react-imask';
 import { BoxAreaSkeleton } from "../ui/skeletons";
+import { useCheckout } from "@/app/context/checkoutContext";
 
 export default function BoxArea() {
   const [box, setBox] = useState<any>(null);
   const { id } = useParams();
   const { isAuthenticated } = useAuth();
   const { addItem } = useCarrinho();
+  const { setCheckoutData } = useCheckout();
   const router = useRouter();
   const pathname = usePathname();
 
@@ -26,6 +28,7 @@ export default function BoxArea() {
   const [cep, setCep] = useState("");
   const [frete, setFrete] = useState<any[]>([]);
   const [loadingFrete, setLoadingFrete] = useState(false);
+  const [loadingComprar, setLoadingComprar] = useState(false);
   
 
   useEffect(() => {
@@ -121,12 +124,13 @@ export default function BoxArea() {
     return;
   }
 
-  sessionStorage.setItem(
-    "checkoutData",
-    JSON.stringify({ boxId: box.id, plano, quantidade })
-  );
-
-  router.push("/checkout");
+  try {
+    setLoadingComprar(true);
+    setCheckoutData({ boxId: box.id, plano, quantidade });
+    router.push("/checkout");
+  } finally {
+    setLoadingComprar(false);
+  }
 };
 
 
@@ -182,7 +186,7 @@ export default function BoxArea() {
                 <label className="font-primary text-brown-tertiary">Box Mensal</label>
               </div>
               <h1 className="text-yellow-primary font-primary pt-2 text-nowrap">
-                R$ {precoMensalExibicao ? precoAnualExibicao : '00,00'} / MÊS
+                R$ {precoMensalExibicao ? precoMensalExibicao : '00,00'} / MÊS
               </h1>
             </div>
           </div>
@@ -222,8 +226,13 @@ export default function BoxArea() {
                 variant="quinary"
                 className="w-full border-2 uppercase font-primary"
                 onClick={handleComprarAgora}
+                disabled={loadingComprar}
               >
-                Comprar Agora!
+                {loadingComprar ? (
+                  <span className="animate-spin rounded-full border-4 border-brown-primary border-t-transparent w-5 h-5"></span>
+                ) : (
+                  "Comprar Agora!"
+                )}
               </Button>
             </div>
           </div>
