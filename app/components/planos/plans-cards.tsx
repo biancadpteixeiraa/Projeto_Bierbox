@@ -25,32 +25,34 @@ export default function PlansCards({
         []);
 
     return(
-        <div id="planos" className="max-w-6xl mx-auto flex flex-col px-6 py-14 lg:pt-20 text-brown-primary lg:relative lg:z-10">
-            <h1 className="text-center text-lg font-primary pb-14 uppercase">
-                {label}
-            </h1>
-            <div className="flex flex-wrap lg:flex-row items-center gap-10 justify-center">
-                {loading && <PlansCardsSkeleton/>}
-                {
-                    boxes.map((box)=>(
-                        <Card className="max-w-96 p-4 bg-white rounded-md"
-                        key={box.id}>
-                            <h1 className="uppercase text-lg font-secondary font-semibold pb-2 transition-all duration-300">
-                                {box.nome}
-                            </h1>
-                            <p className="uppercase text-xs font-secondary font-medium pb-6 transition-all duration-300"> 
-                                cerveja artesanal
-                            </p>
-                            <Link 
-                                href={`/planos/${box.id}`}
-                            >
-                                <Button variant="secondary" className="w-full font-semibold py-2 uppercase text-sm rounded-3xl">
-                                    Valor Promocional!
-                                </Button>
-                            </Link>
-                        </Card>
-                    ))
-                }
+        <div className="w-full bg-white">
+            <div id="planos" className="max-w-6xl mx-auto flex flex-col px-6 py-14 lg:pt-20 text-brown-primary lg:relative lg:z-10">
+                <h1 className="text-center text-lg font-primary pb-14 uppercase">
+                    {label}
+                </h1>
+                <div className="flex flex-wrap lg:flex-row items-center gap-10 justify-center">
+                    {loading && <PlansCardsSkeleton/>}
+                    {
+                        boxes.map((box)=>(
+                            <Card className="max-w-96 p-4 bg-white rounded-md"
+                            key={box.id}>
+                                <h1 className="uppercase text-lg font-secondary font-semibold pb-2 transition-all duration-300">
+                                    {box.nome}
+                                </h1>
+                                <p className="uppercase text-xs font-secondary font-medium pb-6 transition-all duration-300"> 
+                                    cerveja artesanal
+                                </p>
+                                <Link 
+                                    href={`/planos/${box.id}`}
+                                >
+                                    <Button variant="secondary" className="w-full font-semibold py-2 uppercase text-sm rounded-3xl">
+                                        Valor Promocional!
+                                    </Button>
+                                </Link>
+                            </Card>
+                        ))
+                    }
+                </div>
             </div>
         </div>
     );

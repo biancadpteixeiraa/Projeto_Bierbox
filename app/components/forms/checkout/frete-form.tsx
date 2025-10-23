@@ -111,24 +111,25 @@ export default function FreteForm() {
                 {frete.map((opcao) => {
                   const isUnavailable =
                     !opcao.preco || opcao.preco.toLowerCase() === "indisponível";
-
                   return (
                     <div
                       key={opcao.nome}
                       className={`flex items-center p-3 text-brown-tertiary rounded-lg shadow-[0px_2px_14px_0px_rgb(0,0,0,0.1)]
-                        ${isUnavailable ? "opacity-60 cursor-not-allowed" : "cursor-pointer hover:bg-beige-primary/30 transition-colors"}
+                        ${isUnavailable ? "opacity-60 cursor-not-allowed" : "cursor-default hover:bg-beige-primary/30 transition-colors"}
                       `}
                     >
                       <div className="w-full flex items-center justify-between">
-                        <div className="flex items-center gap-4 cursor-default">
+                        <div className="flex items-center gap-4">
                           <input
-                            type="radio"
+                            type="checkbox"
                             name="frete"
                             value={opcao.nome}
-                            defaultChecked={data.tipo === opcao.nome}
+                            checked={data.tipo === opcao.nome}
                             onChange={() => handleSelectFrete(opcao)}
                             disabled={disabled || isLoading || isUnavailable}
-                            className="size-4 cursor-pointer appearance-none rounded-full border border-brown-tertiary checked:bg-brown-tertiary transition-all checked:ring-2 checked:ring-inset checked:ring-white"
+                            className={`
+                            size-4 appearance-none rounded-full border border-brown-tertiary checked:bg-brown-tertiary transition-all checked:ring-2 checked:ring-inset checked:ring-white
+                            ${isUnavailable ? "cursor-not-allowed" : "cursor-pointer"}`}
                           />
                           <div className="flex flex-col items-start">
                             <h2 className="font-primary text-[10px]">

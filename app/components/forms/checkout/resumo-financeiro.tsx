@@ -15,7 +15,7 @@ export default function ResumoFinanceiro() {
   const disabled = step !== "resumo";
 
   const plano = checkoutData?.plano;
-  const quantidade = checkoutData?.quantidade;
+  const quantidade = checkoutData?.quantidade ?? 0;
   const [loadingPagamento, setLoadingPagamento] = useState(false);
 
   if (loading) {
@@ -34,7 +34,6 @@ export default function ResumoFinanceiro() {
     );
   }
 
-  // Determina o preço da box conforme o plano e quantidade
   let valorBox = 0;
   if (plano === "mensal" && quantidade === 4) valorBox = parseFloat(box?.preco_mensal_4_un);
   if (plano === "mensal" && quantidade === 6) valorBox = parseFloat(box?.preco_mensal_6_un);
@@ -62,7 +61,8 @@ export default function ResumoFinanceiro() {
         planoIdApi,
         checkoutData.boxId,
         formData.endereco.id,
-        valorFrete
+        valorFrete,
+        quantidade
       );
 
       if (res.checkoutUrl) {
@@ -91,6 +91,9 @@ export default function ResumoFinanceiro() {
             <div className="flex flex-col items-start gap-2 pt-2">
               <h2 className="text-brown-tertiary font-bold text-xl text-nowrap">{box?.nome}</h2>
               <span className="bg-yellow-secondary text-white px-4 rounded-md text-nowrap">Plano {plano}</span>
+              <div className="flex flex-col text-sm">
+                <span className="text-gray-500">{quantidade} cervejas</span>
+              </div>
             </div>
           </div>
           <div className="flex flex-col items-start gap-6">

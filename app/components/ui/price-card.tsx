@@ -13,13 +13,13 @@ export default function PriceCard({
     <div
         {...props}
         className={cn(`
-            shadow-[0px_9px_26px_-10px_rgb(93,69,25,60)] rounded-xl bg-white
+            shadow-[0px_10px_10px_0px_rgb(93,69,25,0.3)] rounded-xl bg-white
             flex flex-col text-start justify-center cursor-pointer`,
             props.className
         )}
     >
         <div className="flex justify-center items-center rounded-t-lg bg-yellow-secondary">
-            <span className="uppercase text-[8px] lg:text-xs font-primary p-2">
+            <span className="uppercase text-[10px] xl:text-xs font-primary p-2">
                 {label}
             </span>
         </div>

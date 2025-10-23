@@ -122,7 +122,12 @@ export default function EnderecoForm() {
     setIsEditing(false);
   };
 
-  if (loading) return <CheckoutCardPlaceholder />;
+  if (loading) return <div>
+      <h1 className="pb-5 font-secondary text-brown-tertiary font-bold text-lg">
+          Endereço de entrega
+      </h1>
+      <CheckoutCardPlaceholder />;
+  </div>
 
   const shouldRenderForm = isCreating;
   const shouldRenderList = !isCreating && enderecos.length > 0;
@@ -152,14 +157,15 @@ export default function EnderecoForm() {
                     <div className="w-full flex items-start justify-between">
                       <div className="flex items-start gap-3">
                           <input
-                          type="radio"
+                          type="checkbox"
                           name="endereco"
                           disabled={disabled}
                           value={endereco.id}
-                          defaultChecked={data.id === endereco.id || endereco.is_padrao === true} 
-                          onChange={() => {
-                            setFormData((prev) => ({ ...prev, endereco }));
-                          }}
+                          checked={data.id === endereco.id} 
+                          onChange={() => setFormData((prev) => ({
+                            ...prev,
+                            endereco: endereco,
+                          }))}
                           className="bg-gray-100 mt-1 size-4 cursor-pointer appearance-none rounded-full border border-brown-tertiary checked:bg-brown-tertiary transition-all checked:ring-2 checked:ring-inset checked:ring-white"
                           />
                           <div className="flex flex-col items-start gap-1">

@@ -153,10 +153,8 @@ export default function BoxArea() {
         <p className="uppercase font-secondary font-semibold text-base text-brown-tertiary pt-3">
           {box.descricao_curta}
         </p>
-
         <div className="w-full lg:w-5/6">
-          {/* planos */}
-          <div className="flex flex-col sm:flex-row gap-6 py-8 w-8/9">
+          <div className="flex flex-col sm:flex-row gap-6 py-5 w-8/9">
             <div
               className={`bg-white p-3 rounded-md w-3/4 sm:w-1/2 cursor-pointer ${
                 plano === "anual" ? "ring-2 ring-yellow-primary" : ""
@@ -199,9 +197,8 @@ export default function BoxArea() {
               </h1>
             </div>
           </div>
-
-          {/* select quantidade */}
-          <div className="grid grid-cols-1 pb-8">
+          
+          <div className="grid grid-cols-1 md:pb-20 pb-14">
             <select
               id="quantidade"
               name="quantidade"
@@ -218,11 +215,9 @@ export default function BoxArea() {
               className="pointer-events-none col-start-1 row-start-1 mr-2 size-4 self-center justify-self-end text-yellow-primary sm:size-6"
             />
           </div>
-
-          {/* botões */}
-          <div className="pb-6">
+          <div className="pb-2">
             <Button
-              variant="tertiary"
+              variant="primary"
               className="w-full border-2 uppercase font-primary flex items-center justify-center"
               onClick={handleAddToCart}
             >
@@ -233,7 +228,7 @@ export default function BoxArea() {
                 )}
             </Button>
           </div>
-          <div className="pb-8">
+          <div className="pb-1">
             <div className="pb-8">
               <Button
                 variant="quinary"
@@ -256,7 +251,7 @@ export default function BoxArea() {
             <IMaskInput
                 mask="00000-000"
                 type="text"
-                className="border-brown-tertiary border-2 mr-2 py-1 bg-white rounded-md 
+                className="border-brown-tertiary border-2 mr-2 py-1 bg-transparent rounded-md 
                 text-xs sm:text-sm w-full px-3"
                 placeholder="CEP"
                 onAccept={(value: string) => setCep(value)}

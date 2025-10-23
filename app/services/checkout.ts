@@ -7,6 +7,7 @@ export async function criarPreferenciaPagamento(
   box_id: string,
   endereco_entrega_id: string,
   valor_frete: number,
+  quantidade_cervejas: number,
 ) {
   const response = await api.post(
     "/api/stripe/checkout",
@@ -15,6 +16,7 @@ export async function criarPreferenciaPagamento(
       endereco_entrega_id,
       valor_frete,
       box_id,
+      quantidade_cervejas,
     },
     { headers: { Authorization: `Bearer ${token}` } }
   );
