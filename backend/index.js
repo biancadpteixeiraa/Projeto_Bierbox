@@ -12,7 +12,6 @@ const carrinhoRoutes = require("./routes/carrinhoRoutes");
 const freteRoutes = require("./routes/freteRoutes");
 const profileRoutes = require("./routes/profileRoutes");
 const enderecoRoutes = require("./routes/enderecoRoutes");
-const pagamentoRoutes = require("./routes/pagamentoRoutes");
 const assinaturaRoutes = require("./routes/assinaturaRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const stripeRoutes = require("./routes/stripeRoutes");
@@ -54,12 +53,9 @@ app.use("/frete", freteRoutes);
 app.use("/meu-perfil", profileRoutes);
 app.use("/carrinho", carrinhoRoutes);
 app.use("/api/enderecos", enderecoRoutes);
-app.use("/api/pagamentos", pagamentoRoutes);
 app.use("/api/assinaturas", assinaturaRoutes);
 app.use("/api/admin", adminRoutes);
-
-// A rota base para o Stripe será /api/stripe
-app.use("/api/stripe", stripeRoutes); // Prefixo consistente com outras rotas
+app.use("/api/stripe", stripeRoutes); 
 
 const HOST = "0.0.0.0";
 const PORT = process.env.PORT || 4000;

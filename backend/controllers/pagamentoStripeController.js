@@ -7,29 +7,32 @@ const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
 const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET; // Chave secreta do endpoint do webhook
 const FRONTEND_URL = process.env.FRONTEND_URL || "https://projeto-bierbox.onrender.com";
 
-if (!STRIPE_SECRET_KEY || !STRIPE_WEBHOOK_SECRET) {
+if (!STRIPE_SECRET_KEY || !STRIPE_WEBHOOK_SECRET ) {
   throw new Error("As chaves STRIPE_SECRET_KEY e STRIPE_WEBHOOK_SECRET devem ser configuradas no ambiente.");
 }
 
 const stripe = Stripe(STRIPE_SECRET_KEY);
 
-// Criar sessão de checkout no Stripe (Sua função original - sem alterações)
+// ===========================================
+// 🚀 Criar sessão de checkout no Stripe
+// ===========================================
 const iniciarCheckoutAssinatura = async (req, res) => {
   try {
-    const { plano_id, endereco_entrega_id, valor_frete, box_id } = req.body;
+    // Recebe os dados do frontend, incluindo a quantidade de cervejas
+    const { plano_id, endereco_entrega_id, valor_frete, box_id, quantidade_cervejas } = req.body;
     const utilizadorId = req.userId;
 
-    if (!isUuid(endereco_entrega_id) || (box_id && !isUuid(box_id))) {
+    if (!isUuid(endereco_entrega_id) || !isUuid(box_id)) {
       return res.status(400).json({ message: "ID de endereço ou box inválido." });
     }
 
-    if (!plano_id || valor_frete === undefined) {
-      return res.status(400).json({ message: "Dados insuficientes para criar o pagamento." });
+    if (!plano_id || valor_frete === undefined || !quantidade_cervejas) {
+      return res.status(400).json({ message: "Dados insuficientes para criar o pagamento (plano_id, valor_frete, quantidade_cervejas)." });
     }
 
-    // Busca usuário
+    // 1. Busca o utilizador (apenas o e-mail é necessário aqui)
     const userResult = await pool.query(
-      "SELECT email, nome_completo FROM users WHERE id = $1",
+      "SELECT email FROM users WHERE id = $1",
       [utilizadorId]
     );
     if (userResult.rows.length === 0) {
@@ -37,47 +40,61 @@ const iniciarCheckoutAssinatura = async (req, res) => {
     }
     const userEmail = userResult.rows[0].email;
 
-    // Define preço do plano
-    let preco_plano;
-    let titulo_plano;
-    if (plano_id === "PLANO_MENSAL") {
-      preco_plano = 80.0;
-      titulo_plano = "BierBox - Assinatura Mensal";
-    } else if (plano_id === "PLANO_ANUAL") {
-      preco_plano = 70.0; // valor mensal com desconto anual
-      titulo_plano = "BierBox - Assinatura Anual (mensal com desconto)";
+    // 2. Busca a box e o preço dinamicamente da base de dados
+    const boxResult = await pool.query("SELECT * FROM boxes WHERE id = $1", [box_id]);
+    if (boxResult.rows.length === 0) {
+      return res.status(404).json({ message: "Box não encontrada." });
+    }
+    const box = boxResult.rows[0];
+
+    // 3. Determina a coluna de preço correta com base nas escolhas do utilizador
+    let colunaPreco;
+    if (plano_id === "PLANO_MENSAL" && quantidade_cervejas === 4) {
+      colunaPreco = "preco_mensal_4_un";
+    } else if (plano_id === "PLANO_MENSAL" && quantidade_cervejas === 6) {
+      colunaPreco = "preco_mensal_6_un";
+    } else if (plano_id === "PLANO_ANUAL" && quantidade_cervejas === 4) {
+      colunaPreco = "preco_anual_4_un";
+    } else if (plano_id === "PLANO_ANUAL" && quantidade_cervejas === 6) {
+      colunaPreco = "preco_anual_6_un";
     } else {
-      return res.status(400).json({ message: "plano_id inválido." });
+      return res.status(400).json({ message: "Combinação de plano e quantidade de cervejas inválida." });
     }
 
-    const valor_total = preco_plano + parseFloat(valor_frete);
+    const precoPlano = Number(box[colunaPreco]);
+    if (isNaN(precoPlano)) {
+        return res.status(500).json({ message: "Erro ao obter o preço da box a partir da base de dados." });
+    }
 
-    // Cria assinatura PENDENTE no banco
+    // 4. Calcula o valor total e formata os valores
+    const frete = Number(parseFloat(valor_frete).toFixed(2));
+    const valorTotal = Number((precoPlano + frete).toFixed(2));
+    const titulo_plano = `${box.nome} - ${plano_id.replace("_", " ")} (${quantidade_cervejas} un.)`;
+
+    // 5. Cria a assinatura com status PENDENTE na sua base de dados
     const novaAssinatura = await pool.query(
       `INSERT INTO assinaturas 
-        (utilizador_id, plano_id, status, endereco_entrega_id, valor_frete, valor_assinatura, box_id, data_inicio, criado_em, atualizado_em, forma_pagamento) 
-       VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW(), NOW(), $8) 
+        (utilizador_id, plano_id, status, endereco_entrega_id, valor_frete, valor_assinatura, box_id, criado_em, atualizado_em, forma_pagamento) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW(), $8) 
        RETURNING id`,
-      [utilizadorId, plano_id, "PENDENTE", endereco_entrega_id, valor_frete, preco_plano, box_id, "cartao"]
+      [utilizadorId, plano_id, "PENDENTE", endereco_entrega_id, frete, precoPlano, box_id, "cartao"]
     );
     const assinaturaId = novaAssinatura.rows[0].id;
 
-    // Cria produto e preço no Stripe
+    // 6. Cria o produto e o preço no Stripe dinamicamente
     const product = await stripe.products.create({
       name: titulo_plano,
-      description: "Assinatura do clube de cervejas BierBox",
+      description: `Assinatura do clube de cervejas BierBox - ${box.nome}`,
     });
 
-    const interval = "month";
-
     const price = await stripe.prices.create({
-      unit_amount: Math.round(valor_total * 100),
+      unit_amount: Math.round(valorTotal * 100), // Valor em centavos
       currency: "brl",
-      recurring: { interval },
+      recurring: { interval: "month" }, // Mantém a recorrência mensal
       product: product.id,
     });
 
-    // Cria sessão de checkout
+    // 7. Cria a sessão de checkout do Stripe
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
       customer_email: userEmail,
@@ -89,6 +106,7 @@ const iniciarCheckoutAssinatura = async (req, res) => {
         utilizadorId,
         plano_id,
         box_id,
+        quantidade_cervejas,
       },
     });
 
@@ -99,33 +117,29 @@ const iniciarCheckoutAssinatura = async (req, res) => {
   }
 };
 
-// Webhook Stripe - VERSÃO CORRIGIDA E SEGURA
 const webhookStripe = async (req, res) => {
-  const sig = req.headers['stripe-signature'];
+  const sig = req.headers["stripe-signature"];
   let event;
 
   try {
-    // 1. VERIFICAÇÃO DE SEGURANÇA
     event = stripe.webhooks.constructEvent(req.body, sig, STRIPE_WEBHOOK_SECRET);
   } catch (err) {
     console.error(`❌ Erro na verificação da assinatura do webhook: ${err.message}`);
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
 
-  // 2. PROCESSAMENTO DO EVENTO
   try {
     if (event.type === "checkout.session.completed") {
       const session = event.data.object;
-
       const assinaturaId = session.metadata.assinaturaId;
       const stripeSubscriptionId = session.subscription;
 
       if (!assinaturaId || !stripeSubscriptionId) {
-        console.error("Webhook 'checkout.session.completed' recebido sem metadata.assinaturaId ou sem session.subscription.");
+        console.error("Webhook recebido sem assinaturaId ou subscription.");
         return res.status(400).send("Dados insuficientes no evento do webhook.");
       }
 
-      console.log(`Webhook recebido: Atualizando assinatura interna ${assinaturaId} para ATIVA.`);
+      console.log(`Webhook recebido: Atualizando assinatura ${assinaturaId} para ATIVA.`);
 
       const updateResult = await pool.query(
         `UPDATE assinaturas 
@@ -138,28 +152,23 @@ const webhookStripe = async (req, res) => {
       );
 
       if (updateResult.rowCount > 0) {
-        console.log(`✅ Assinatura ${assinaturaId} ativada com sucesso no banco de dados.`);
+        console.log(`✅ Assinatura ${assinaturaId} ativada com sucesso.`);
       } else {
-        console.warn(`⚠️ A assinatura com ID ${assinaturaId} não foi encontrada no banco para ser atualizada.`);
+        console.warn(`⚠️ Assinatura ${assinaturaId} não encontrada para atualização.`);
       }
     }
 
-    // 3. Responde ao Stripe que o evento foi recebido com sucesso
     res.status(200).json({ received: true });
-
   } catch (error) {
-    console.error("Erro ao processar o evento do webhook no banco de dados:", error);
-    res.status(500).send("Erro interno no servidor ao processar o evento.");
+    console.error("Erro ao processar evento do webhook:", error);
+    res.status(500).send("Erro interno ao processar evento.");
   }
 };
 
-
-// Cancelar assinatura (Sua função original - sem alterações)
 const cancelarAssinatura = async (req, res) => {
   try {
     const { assinaturaId } = req.params;
 
-    // Busca a assinatura no banco
     const { rows } = await pool.query(
       "SELECT id_assinatura_mp, status FROM assinaturas WHERE id = $1",
       [assinaturaId]
@@ -174,10 +183,8 @@ const cancelarAssinatura = async (req, res) => {
       return res.status(400).json({ error: "Assinatura não está ativa." });
     }
 
-    // Cancela no Stripe
     await stripe.subscriptions.cancel(assinatura.id_assinatura_mp);
 
-    // Atualiza no banco
     await pool.query(
       `UPDATE assinaturas 
        SET status = 'CANCELADA',
