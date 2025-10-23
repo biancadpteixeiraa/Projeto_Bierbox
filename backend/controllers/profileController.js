@@ -63,6 +63,16 @@ const updateProfile = async (req, res) => {
 const deleteAccount = async (req, res) => {
   try {
     const userId = req.userId;
+
+    const activeSubscriptions = await pool.query(
+      "SELECT id FROM assinaturas WHERE utilizador_id = $1 AND status = 'ATIVA'",
+      [userId]
+    );
+
+    if (activeSubscriptions.rows.length > 0) {
+      return res.status(403).json({ success: false, message: "Não é possível excluir a conta: existem assinaturas ativas." });
+    }
+
     const result = await pool.query("DELETE FROM users WHERE id = $1 RETURNING id", [userId]);
     if (result.rows.length === 0) {
       return res.status(404).json({ success: false, message: "Usuário não encontrado para exclusão." });
