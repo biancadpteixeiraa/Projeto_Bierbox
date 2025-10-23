@@ -10,6 +10,7 @@ import { addEndereco, getEnderecos, updateEndereco } from "@/app/services/endere
 import { toast } from "react-toastify";
 import { CheckoutCardPlaceholder } from "../../ui/skeletons";
 import { useCheckout } from "@/app/context/checkoutContext";
+import { ArrowLeft } from "lucide-react";
 
 type FormDataEndereco = {
   id?: string;
@@ -24,6 +25,12 @@ type FormDataEndereco = {
 };
 
 export default function EnderecoForm() {
+
+  const estadosBR = [
+    "AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG",
+    "PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"
+  ].sort(); 
+
   const { token } = useAuth();
   const { step, setStep, formData, setFormData, handleEdit } = useCheckout();
 
@@ -101,7 +108,7 @@ export default function EnderecoForm() {
   const handleEditEndereco = (endereco: any) => {
     setFormData((prev) => ({ ...prev, endereco }));
     setIsEditing(true);
-    setIsCreating(true);
+    setIsCreating(false);
   };
 
   const handleAddNew = () => {
@@ -123,14 +130,14 @@ export default function EnderecoForm() {
   };
 
   if (loading) return <div>
-      <h1 className="pb-5 font-secondary text-brown-tertiary font-bold text-lg">
+      <h1 className="hidden lg:block pb-5 font-secondary text-brown-tertiary font-bold text-lg">
           Endereço de entrega
       </h1>
       <CheckoutCardPlaceholder />;
   </div>
 
-  const shouldRenderForm = isCreating;
-  const shouldRenderList = !isCreating && enderecos.length > 0;
+  const shouldRenderForm = isCreating || isEditing;
+  const shouldRenderList = (!isCreating && !isEditing) && enderecos.length > 0;
   
   return (
     <div>
@@ -217,6 +224,27 @@ export default function EnderecoForm() {
         shouldRenderForm && (
           <CheckoutCard disabled={disabled} className="h-[440px] justify-between">
             <div className="flex flex-col pb-10 gap-5 justify-between h-full">
+              {
+                isEditing && (
+                  <button className="text-brown-tertiary" onClick={() => {
+                    setIsEditing(false);
+                    if (enderecos.length === 0) {
+                      setIsCreating(true);
+                    }
+                  }}>
+                    <ArrowLeft size={24}/>
+                  </button>
+                )
+              }
+              {
+                isCreating && enderecos.length > 0 && (
+                  <button className="text-brown-tertiary" onClick={() => {
+                    setIsCreating(false);
+                  }}>
+                    <ArrowLeft size={24}/>
+                  </button>
+                )
+              }
                 <div className="flex flex-col items-start justify-center">
                 <Input
                     variant="secondary"
@@ -318,11 +346,7 @@ export default function EnderecoForm() {
                       />
                   </div>
                   <div className="flex flex-col items-start justify-center w-1/3">
-                      <Input
-                      variant="secondary"
-                      className="py-2"
-                      type="text"
-                      placeholder="Estado"
+                    <select
                       value={data.estado}
                       onChange={(e) =>
                         setFormData((prev) => ({
@@ -331,7 +355,15 @@ export default function EnderecoForm() {
                         }))
                       }
                       disabled={disabled}
-                      />
+                      className="text-xs sm:text-sm w-full py-2 px-3 bg-transparent text-brown-tertiary/75 placeholder:text-brown-tertiary/75 rounded-lg border border-brown-tertiary"
+                    >
+                      <option value="">UF</option>
+                      {estadosBR.map((uf) => (
+                        <option key={uf} value={uf}>
+                          {uf}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                 </div>
                 <div className="w-full">

@@ -42,6 +42,11 @@ export default function EnderecoForm({
   onExcluir,
   errors,
 }: EnderecoFormProps) {
+
+  const estadosBR = [
+    "AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG",
+    "PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"
+  ].sort(); 
   
   const estiloBloqueado = "border border-gray-tertiary/35 bg-gray-50/50 cursor-not-allowed text-gray-tertiary/45";
 
@@ -187,16 +192,30 @@ export default function EnderecoForm({
               {errors?.cidade && <p className="text-red-600 text-xs mt-1">{errors.cidade}</p>}
             </div>
             <div className="flex flex-col items-start justify-center w-1/3">
-              <Input
-                id={`estado-${endereco.id || "novo"}`}
-                variant="secondary"
-                className={`py-2 ${!isEditando ? estiloBloqueado : ""}`}
-                type="text"
-                placeholder="Estado"
-                value={endereco.estado}
-                readOnly={!isEditando}
-                onChange={(e) => onChange("estado", e.target.value)}
-              />
+              {isEditando ? (
+                <select
+                  id={`estado-${endereco.id || "novo"}`}
+                  value={endereco.estado}
+                  onChange={(e) => onChange("estado", e.target.value)}
+                  className={`text-xs sm:text-sm w-full py-2 px-3 bg-transparent text-brown-tertiary/75 placeholder:text-brown-tertiary/75 rounded-lg border border-brown-tertiary ${!isEditando ? estiloBloqueado : ""}`}
+                >
+                  <option value="">UF</option>
+                  {estadosBR.map((uf) => (
+                    <option key={uf} value={uf}>
+                      {uf}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <Input
+                  id={`estado-${endereco.id || "novo"}`}
+                  variant="secondary"
+                  className={`py-2 ${estiloBloqueado}`}
+                  type="text"
+                  value={endereco.estado}
+                  readOnly
+                />
+              )}
               {errors?.estado && <p className="text-red-600 text-xs mt-1">{errors.estado}</p>}
             </div>
           </div>
