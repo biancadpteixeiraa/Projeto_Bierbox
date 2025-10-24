@@ -9,32 +9,56 @@ if (!STRIPE_SECRET_KEY) {
 const stripe = Stripe(STRIPE_SECRET_KEY);
 
 const assinaturaController = {
+    
     listarAssinaturas: async (req, res) => {
         try {
             const userId = req.userId;
             const result = await pool.query(
                 `SELECT 
-                    a.id, a.plano_id, a.status, a.data_inicio, a.data_cancelamento, a.id_assinatura_mp,
-                    a.valor_assinatura, a.valor_frete, a.box_id, b.nome AS box_nome, b.imagem_principal_url AS box_imagem_url,
+                    a.id, 
+                    a.plano_id, 
+                    a.status, 
+                    a.data_inicio, 
+                    a.data_cancelamento, 
+                    a.id_assinatura_mp,
+                    a.valor_assinatura, 
+                    a.valor_frete, 
+                    a.box_id, 
+                    b.nome AS box_nome, 
+                    b.imagem_principal_url AS box_imagem_url,
                     CASE 
                         WHEN b.id IS NOT NULL AND a.plano_id = 'PLANO_MENSAL' THEN b.preco_mensal_4_un
                         WHEN b.id IS NOT NULL AND a.plano_id = 'PLANO_ANUAL' THEN b.preco_anual_4_un
                         ELSE a.valor_assinatura
                     END AS box_preco,
-                    p.status_pedido AS ultimo_status_pedido, p.codigo_rastreio AS ultimo_codigo_rastreio,
-                    e.id AS endereco_id, e.rua AS endereco_rua, e.numero AS endereco_numero, e.complemento AS endereco_complemento,
-                    e.bairro AS endereco_bairro, e.cidade AS endereco_cidade, e.estado AS endereco_estado, e.cep AS endereco_cep,
-                    a.forma_pagamento
+                    p.status_pedido AS ultimo_status_pedido, 
+                    p.codigo_rastreio AS ultimo_codigo_rastreio,
+                    e.id AS endereco_id, 
+                    e.rua AS endereco_rua, 
+                    e.numero AS endereco_numero, 
+                    e.complemento AS endereco_complemento,
+                    e.bairro AS endereco_bairro, 
+                    e.cidade AS endereco_cidade, 
+                    e.estado AS endereco_estado, 
+                    e.cep AS endereco_cep,
+                    a.forma_pagamento,
+                    -- Novo campo calculado: expira_em (24h após criação)
+                    (a.criado_em + INTERVAL '1 day') AS expira_em
                 FROM assinaturas a
                 LEFT JOIN boxes b ON a.box_id = b.id
                 LEFT JOIN LATERAL (
-                    SELECT status_pedido, codigo_rastreio FROM pedidos WHERE assinatura_id = a.id ORDER BY criado_em DESC LIMIT 1
+                    SELECT status_pedido, codigo_rastreio 
+                    FROM pedidos 
+                    WHERE assinatura_id = a.id 
+                    ORDER BY criado_em DESC 
+                    LIMIT 1
                 ) p ON true
                 LEFT JOIN enderecos e ON a.endereco_entrega_id = e.id
                 WHERE a.utilizador_id = $1
                 ORDER BY a.data_inicio DESC`,
                 [userId]
             );
+
             res.status(200).json({ success: true, data: result.rows });
         } catch (error) {
             console.error("Erro ao listar assinaturas:", error);
@@ -46,27 +70,50 @@ const assinaturaController = {
         try {
             const userId = req.userId;
             const { id } = req.params;
+
             if (!isUuid(id)) {
                 return res.status(400).json({ success: false, message: "ID de assinatura inválido." });
             }
 
             const result = await pool.query(
                 `SELECT 
-                    a.id, a.plano_id, a.status, a.data_inicio, a.data_cancelamento, a.id_assinatura_mp,
-                    a.valor_assinatura, a.valor_frete, a.box_id, b.nome AS box_nome, b.imagem_principal_url AS box_imagem_url,
+                    a.id, 
+                    a.plano_id, 
+                    a.status, 
+                    a.data_inicio, 
+                    a.data_cancelamento, 
+                    a.id_assinatura_mp,
+                    a.valor_assinatura, 
+                    a.valor_frete, 
+                    a.box_id, 
+                    b.nome AS box_nome, 
+                    b.imagem_principal_url AS box_imagem_url,
                     CASE 
                         WHEN b.id IS NOT NULL AND a.plano_id = 'PLANO_MENSAL' THEN b.preco_mensal_4_un
                         WHEN b.id IS NOT NULL AND a.plano_id = 'PLANO_ANUAL' THEN b.preco_anual_4_un
                         ELSE a.valor_assinatura
                     END AS box_preco,
-                    p.status_pedido AS ultimo_status_pedido, p.codigo_rastreio AS ultimo_codigo_rastreio,
-                    e.id AS endereco_id, e.rua AS endereco_rua, e.numero AS endereco_numero, e.complemento AS endereco_complemento,
-                    e.bairro AS endereco_bairro, e.cidade AS endereco_cidade, e.estado AS endereco_estado, e.cep AS endereco_cep,
-                    a.forma_pagamento
+                    p.status_pedido AS ultimo_status_pedido, 
+                    p.codigo_rastreio AS ultimo_codigo_rastreio,
+                    e.id AS endereco_id, 
+                    e.rua AS endereco_rua, 
+                    e.numero AS endereco_numero, 
+                    e.complemento AS endereco_complemento,
+                    e.bairro AS endereco_bairro, 
+                    e.cidade AS endereco_cidade, 
+                    e.estado AS endereco_estado, 
+                    e.cep AS endereco_cep,
+                    a.forma_pagamento,
+                    -- Campo calculado expira_em
+                    (a.criado_em + INTERVAL '1 day') AS expira_em
                 FROM assinaturas a
                 LEFT JOIN boxes b ON a.box_id = b.id
                 LEFT JOIN LATERAL (
-                    SELECT status_pedido, codigo_rastreio FROM pedidos WHERE assinatura_id = a.id ORDER BY criado_em DESC LIMIT 1
+                    SELECT status_pedido, codigo_rastreio 
+                    FROM pedidos 
+                    WHERE assinatura_id = a.id 
+                    ORDER BY criado_em DESC 
+                    LIMIT 1
                 ) p ON true
                 LEFT JOIN enderecos e ON a.endereco_entrega_id = e.id
                 WHERE a.id = $1 AND a.utilizador_id = $2`,
@@ -88,6 +135,7 @@ const assinaturaController = {
         try {
             const userId = req.userId;
             const { id } = req.params;
+
             if (!isUuid(id)) {
                 return res.status(400).json({ success: false, message: "ID de assinatura inválido." });
             }
