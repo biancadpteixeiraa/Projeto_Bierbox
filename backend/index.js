@@ -16,7 +16,6 @@ const assinaturaRoutes = require("./routes/assinaturaRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const stripeRoutes = require("./routes/stripeRoutes");
 
-// Importe o controlador do Stripe
 const { webhookStripe } = require("./controllers/pagamentoStripeController");
 
 const app = express();
@@ -27,26 +26,20 @@ console.log("📌 Valor da DATABASE_URL:", process.env.DATABASE_URL);
 // CORS
 app.use(cors({ origin: "*" }));
 
-// Webhook Stripe: deve vir ANTES do express.json()
-// Use uma rota consistente com o resto da sua API
 app.post(
-  "/api/stripe/webhook", // Rota corrigida e consistente
+  "/api/stripe/webhook", 
   express.raw({ type: "application/json" }),
-  webhookStripe // Chama a função do controlador diretamente
+  webhookStripe 
 );
 
-// Parser padrão para todas as outras rotas
 app.use(express.json());
 
-// Static files
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-// Rota teste
 app.get("/", (req, res) => {
   res.send("API funcionando!");
 });
 
-// Rotas
 app.use("/users", userRoutes);
 app.use("/boxes", boxRoutes);
 app.use("/frete", freteRoutes);

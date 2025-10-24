@@ -11,7 +11,6 @@ const calcularFrete = async (req, res) => {
       });
     }
 
-    // Configuração dos dados para enviar
     const dadosParaCalcular = {
       from: {
         postal_code: "85055270",
@@ -22,17 +21,16 @@ const calcularFrete = async (req, res) => {
       products: [
         {
           id: "1",
-          width: 30, // Largura da caixa em cm
-          height: 15, // Altura da caixa em cm
-          length: 40, // Comprimento da caixa em cm
-          weight: 2, // Peso em kg 
-          insurance_value: 50, // Valor do seguro (valor médio de uma box)
+          width: 30, 
+          height: 15, 
+          length: 40, 
+          weight: 2, 
+          insurance_value: 50,
           quantity: 1,
         },
       ],
     };
 
-    // Configuração para autenticação
     const config = {
       headers: {
         Accept: "application/json",
@@ -42,14 +40,12 @@ const calcularFrete = async (req, res) => {
       },
     };
 
-    // requisição para a API
     const response = await axios.post(
       "https://melhorenvio.com.br/api/v2/me/shipment/calculate",
       dadosParaCalcular,
       config
      );
 
-    // Processa a resposta, filtra por PAC, SEDEX e Jadlog .Com, e envia de volta para o frontend
     const opcoesFrete = response.data
       .filter(opcao => 
         (opcao.name === "PAC" && opcao.company.name === "Correios") || 

@@ -128,7 +128,6 @@ const deleteEndereco = async (req, res) => {
     }
 
     try {
-        // Verifica se o endereço está vinculado a alguma assinatura ativa
         const { rows: assinaturasVinculadas } = await pool.query(
             'SELECT id FROM assinaturas WHERE endereco_entrega_id = $1 AND utilizador_id = $2 AND status != $3',
             [id, utilizadorId, 'CANCELADA']

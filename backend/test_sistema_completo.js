@@ -1,9 +1,5 @@
-// Script de teste completo para o sistema BierBox
-// Testa funcionalidades principais do backend
-
 const axios = require("axios");
 
-// Configurações de teste
 const BASE_URL = process.env.BACKEND_URL || "http://localhost:3000";
 const TEST_USER = {
     nome_completo: "Usuário Teste BierBox",
@@ -24,18 +20,17 @@ const TEST_ENDERECO = {
     "is_padrao": false
 };
 
-const TEST_CARD_TOKEN = "test_card_token_123"; // Token de teste do Mercado Pago (simulado )
+const TEST_CARD_TOKEN = "test_card_token_123"; 
 
 class SistemaCompleto {
     constructor() {
         this.authToken = null;
         this.userId = null;
         this.enderecoId = null;
-        this.checkoutUrl = null; // URL de checkout do Mercado Pago
+        this.checkoutUrl = null; 
         this.resultados = {};
     }
 
-    // Utilitário para fazer requisições autenticadas
     async request(method, endpoint, data = null) {
         const config = {
             method,
@@ -64,7 +59,6 @@ class SistemaCompleto {
         }
     }
 
-    // Teste 1: Registro de usuário
     async testeRegistroUsuario() {
         console.log("\n🔐 Teste 1: Registro de usuário");
         
@@ -81,7 +75,7 @@ class SistemaCompleto {
         }
     }
 
-    // Teste 2: Login
+
     async testeLogin() {
         console.log("\n🔑 Teste 2: Login");
         
@@ -104,11 +98,9 @@ class SistemaCompleto {
         }
     }
 
-    // Teste 3: Criar endereço
     async testeCriarEndereco() {
         console.log("\n🏠 Teste 3: Criar endereço");
         
-        // Assumindo que a rota de endereços é /api/enderecos
         const resultado = await this.request("POST", "/api/enderecos", TEST_ENDERECO);
         
         if (resultado.success && resultado.data.data) {
@@ -124,7 +116,6 @@ class SistemaCompleto {
         }
     }
 
-    // Teste 4: Listar boxes (mantido, assumindo que a rota é /boxes)
     async testeListarBoxes() {
         console.log("\n📦 Teste 4: Listar boxes");
         
@@ -142,7 +133,6 @@ class SistemaCompleto {
         }
     }
 
-    // Teste 5: Criar Preferência de Pagamento
     async testeCriarPreferenciaPagamento() {
         console.log("\n💳 Teste 5: Criar Preferência de Pagamento");
         
@@ -153,9 +143,9 @@ class SistemaCompleto {
         }
 
         const dadosPreferencia = {
-            plano_id: "PLANO_MENSAL", // Ou "PLANO_ANUAL"
+            plano_id: "PLANO_MENSAL", 
             endereco_entrega_id: this.enderecoId,
-            valor_frete: 15.00 // Valor de frete de teste
+            valor_frete: 15.00 
         };
         
         const resultado = await this.request("POST", "/api/pagamentos/criar-preferencia", dadosPreferencia);
@@ -173,34 +163,22 @@ class SistemaCompleto {
         }
     }
 
-    // Teste 6: Simular Webhook de Pagamento
     async testeSimularWebhookPagamento() {
         console.log("\n🔗 Teste 6: Simular Webhook de Pagamento");
         
-        // Este teste não pode ser totalmente automatizado sem simular a interação do usuário
-        // com a página de checkout do Mercado Pago e a subsequente notificação de webhook.
-        // No entanto, podemos simular o envio de um webhook para o endpoint.
-        
-        // Para um teste mais completo, você precisaria:
-        // 1. Abrir this.checkoutUrl em um navegador.
-        // 2. Simular um pagamento no sandbox do Mercado Pago.
-        // 3. O Mercado Pago enviaria o webhook para o seu backend.
-
-        // Simulação de um corpo de webhook de pagamento aprovado
         const webhookData = {
             action: "payment.created",
             data: {
-                id: "123456789", // ID de pagamento simulado
+                id: "123456789",
                 status: "approved",
-                external_reference: `user_${this.userId}_${Date.now()}`, // Pode ser o ID da assinatura ou pedido
-                transaction_amount: 115.00, // Valor total (plano + frete)
+                external_reference: `user_${this.userId}_${Date.now()}`,
+                transaction_amount: 115.00, 
                 payment_method_id: "visa",
-                // Outros dados relevantes do pagamento
+
             },
             type: "payment"
         };
         
-        // A rota do webhook é /api/pagamentos/webhook
         const resultado = await this.request("POST", "/api/pagamentos/webhook", webhookData);
         
         if (resultado.success) {
@@ -214,7 +192,6 @@ class SistemaCompleto {
         }
     }
 
-    // Teste 7: Endpoint de saúde (mantido, assumindo que a rota é /)
     async testeSaude() {
         console.log("\n❤️ Teste 7: Endpoint de saúde");
         
@@ -231,14 +208,12 @@ class SistemaCompleto {
         }
     }
 
-    // Executar todos os testes
     async executarTodosOsTestes() {
         console.log("🚀 INICIANDO TESTES COMPLETOS DO SISTEMA BIERBOX");
         console.log("================================================");
         console.log(`📍 URL Base: ${BASE_URL}`);
         console.log(`👤 Usuário de teste: ${TEST_USER.email}\n`);
 
-        // Executar testes em sequência
         await this.testeSaude();
         
         const loginSucesso = await this.testeRegistroUsuario() && await this.testeLogin();
@@ -250,11 +225,9 @@ class SistemaCompleto {
             await this.testeSimularWebhookPagamento();
         }
 
-        // Gerar relatório final
         this.gerarRelatorioFinal();
     }
 
-    // Gerar relatório final
     gerarRelatorioFinal() {
         console.log("\n📊 RELATÓRIO FINAL DOS TESTES");
         console.log("================================");
@@ -302,7 +275,6 @@ class SistemaCompleto {
     }
 }
 
-// Executar testes se o script for chamado diretamente
 if (require.main === module) {
     const tester = new SistemaCompleto();
     tester.executarTodosOsTestes()

@@ -1,5 +1,5 @@
 const pool = require("../config/db");
-const { validate: isUuid } = require("uuid"); // Importa a função de validação
+const { validate: isUuid } = require("uuid");
 
 const getCarrinhoCompleto = async (usuario_id) => {
   const carrinhoResult = await pool.query(
@@ -46,7 +46,6 @@ const adicionarItem = async (req, res) => {
   const { box_id, quantidade, tipo_plano } = req.body;
   const usuario_id = req.userId;
 
-  // Validação do box_id como UUID
   if (!isUuid(box_id)) {
     return res.status(400).json({
         success: false,
@@ -194,10 +193,9 @@ const verCarrinho = async (req, res) => {
 // @route   DELETE /carrinho/remover/:box_id
 // @access  Privado
 const removerItem = async (req, res) => {
-  const { box_id } = req.params; // Renomeado para clareza
+  const { box_id } = req.params;
   const usuario_id = req.userId;
 
-  // **CORREÇÃO PRINCIPAL: Validar se o box_id é um UUID válido**
   if (!isUuid(box_id)) {
     return res.status(400).json({
         success: false,
@@ -224,7 +222,7 @@ const removerItem = async (req, res) => {
     const deleteResult = await pool.query(
       `DELETE FROM carrinho_itens
        WHERE carrinho_id = $1 AND box_id = $2 RETURNING id`,
-      [carrinho_id, box_id] // Passa o box_id validado
+      [carrinho_id, box_id] 
     );
 
     if (deleteResult.rowCount === 0) {

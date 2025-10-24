@@ -1,13 +1,11 @@
 const pool = require("../config/db");
 
-// Função para buscar todas as boxes 
 const getAllBoxes = async (req, res) => {
   try {
     const allBoxes = await pool.query(
       "SELECT id, nome, descricao_curta, preco_mensal_4_un, preco_anual_4_un, preco_mensal_6_un, preco_anual_6_un, imagem_principal_url, especificacao, imagem_url_2, imagem_url_3, imagem_url_4, imagem_url_5 FROM boxes WHERE ativo = true ORDER BY id ASC"
     );
 
-    // Formata as imagens para cada box
     const formattedBoxes = allBoxes.rows.map(box => {
       const imagens = [box.imagem_principal_url];
       if (box.imagem_url_2) imagens.push(box.imagem_url_2);
@@ -15,7 +13,6 @@ const getAllBoxes = async (req, res) => {
       if (box.imagem_url_4) imagens.push(box.imagem_url_4);
       if (box.imagem_url_5) imagens.push(box.imagem_url_5);
 
-      // Remove as colunas individuais de imagem do objeto final
       const { imagem_url_2, imagem_url_3, imagem_url_4, imagem_url_5, ...rest } = box;
       return { ...rest, imagens };
     });
@@ -31,7 +28,6 @@ const getBoxById = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Seleciona todas as colunas relevantes para uma box específica, incluindo as novas
     const boxResult = await pool.query(
       "SELECT id, nome, descricao_curta, descricao_longa, especificacao, preco_mensal_4_un, preco_anual_4_un, preco_mensal_6_un, preco_anual_6_un, imagem_principal_url, imagem_url_2, imagem_url_3, imagem_url_4, imagem_url_5 FROM boxes WHERE id = $1 AND ativo = true",
       [id]
@@ -43,14 +39,12 @@ const getBoxById = async (req, res) => {
 
     const box = boxResult.rows[0];
 
-    // Formata as imagens em um array
     const imagens = [box.imagem_principal_url];
     if (box.imagem_url_2) imagens.push(box.imagem_url_2);
     if (box.imagem_url_3) imagens.push(box.imagem_url_3);
     if (box.imagem_url_4) imagens.push(box.imagem_url_4);
     if (box.imagem_url_5) imagens.push(box.imagem_url_5);
 
-    // Remove as colunas individuais de imagem do objeto final e adiciona o array 'imagens'
     const { imagem_url_2, imagem_url_3, imagem_url_4, imagem_url_5, ...rest } = box;
 
     res.status(200).json({ success: true, box: { ...rest, imagens } });

@@ -111,7 +111,6 @@ const assinaturaController = {
                 return res.status(400).json({ success: false, message: "Assinatura não possui ID Stripe válido." });
             }
 
-            // Cancela assinatura no Stripe antes de atualizar no banco
             await stripe.subscriptions.cancel(assinatura.id_assinatura_mp);
 
             const result = await pool.query(
@@ -136,7 +135,6 @@ const assinaturaController = {
         }
 
         try {
-            // Verifica se a assinatura pertence ao usuário
             const assinaturaResult = await pool.query(
                 "SELECT id FROM assinaturas WHERE id = $1 AND utilizador_id = $2",
                 [assinaturaId, utilizadorId]
@@ -146,7 +144,6 @@ const assinaturaController = {
                 return res.status(404).json({ success: false, message: "Assinatura não encontrada ou não pertence ao usuário." });
             }
 
-            // Verifica se o novo endereço pertence ao usuário
             const enderecoResult = await pool.query(
                 "SELECT id FROM enderecos WHERE id = $1 AND utilizador_id = $2",
                 [novo_endereco_id, utilizadorId]
@@ -156,7 +153,6 @@ const assinaturaController = {
                 return res.status(404).json({ success: false, message: "Endereço de destino não encontrado ou não pertence ao usuário." });
             }
 
-            // Atualiza o endereço da assinatura
             const updateResult = await pool.query(
                 "UPDATE assinaturas SET endereco_entrega_id = $1, atualizado_em = NOW() WHERE id = $2 RETURNING *",
                 [novo_endereco_id, assinaturaId]
