@@ -3,7 +3,8 @@ const router = express.Router();
 const { 
     loginAdmin, 
     getDashboardStats, 
-    adminGetAllBoxes, 
+    adminGetAllBoxes,
+    adminGetBoxById, 
     adminCreateBox, 
     adminUpdateBox, 
     adminDeleteBox, 
