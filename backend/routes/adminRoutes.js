@@ -25,6 +25,7 @@ const { adminProtect } = require('../middleware/adminMiddleware');
 router.post('/login', loginAdmin); 
 router.get('/stats', protect, adminProtect, getDashboardStats); 
 router.get('/boxes', protect, adminProtect, adminGetAllBoxes);
+router.get('/boxes/:id', protect, adminProtect, adminGetBoxById);
 router.post('/boxes', protect, adminProtect, adminCreateBox); 
 router.put('/boxes/:id', protect, adminProtect, adminUpdateBox); 
 router.delete('/boxes/:id', protect, adminProtect, adminDeleteBox); 
@@ -38,6 +39,7 @@ router.get('/assinaturas/:id', protect, adminProtect, adminGetAssinaturaById);
 router.put('/assinaturas/:id/cancelar', protect, adminProtect, adminCancelAssinatura);
 router.put('/assinaturas/:id/pausar', protect, adminProtect, adminPauseAssinatura);
 router.put('/assinaturas/:id/reativar', protect, adminProtect, adminReactivateAssinatura);
+
 
 router.get('/test-auth', protect, adminProtect, (req, res) => { 
     res.status(200).json({ success: true, message: 'Acesso de administrador concedido!' });

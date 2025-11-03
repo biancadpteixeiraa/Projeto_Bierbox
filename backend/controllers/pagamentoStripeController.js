@@ -68,8 +68,6 @@ const iniciarCheckoutAssinatura = async (req, res) => {
       const criadoEm = new Date(assinatura.criado_em);
       const agora = new Date();
       const diffHoras = (agora - criadoEm) / (1000 * 60 * 60);
-      if (diffHoras > 0.01) { 
-      }
 
       if (diffHoras > 24) {
         await pool.query(

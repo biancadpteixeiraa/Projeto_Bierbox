@@ -156,6 +156,27 @@ const adminGetAllBoxes = async (req, res) => {
   }
 };
 
+// @desc [Admin] Obter uma box específica por ID
+// @route GET /api/admin/boxes/:id
+// @access Admin
+const adminGetBoxById = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const boxResult = await pool.query("SELECT * FROM boxes WHERE id = $1", [id]);
+
+    if (boxResult.rows.length === 0) {
+      return res.status(404).json({ success: false, message: "Box não encontrada." });
+    }
+
+    res.status(200).json({ success: true, data: boxResult.rows[0] });
+  } catch (error) {
+    console.error("Erro ao buscar box por ID (Admin):", error);
+    res.status(500).json({ success: false, message: "Erro interno do servidor." });
+  }
+};
+
+
 // @desc [Admin] Criar uma nova box
 // @route POST /api/admin/boxes
 // @access Admin
@@ -656,6 +677,7 @@ module.exports = {
   loginAdmin,
   getDashboardStats,
   adminGetAllBoxes,
+  adminGetBoxById,
   adminCreateBox,
   adminUpdateBox,
   adminDeleteBox,
