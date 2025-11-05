@@ -3,10 +3,31 @@
 import Button from "../../ui/button";
 import Link from "next/link";
 import { useAuth } from "@/app/context/authContext";
+import { useEffect } from "react";
+import { useCheckout } from "@/app/context/checkoutContext";
+import { useCarrinho } from "@/app/context/cartContext";
 
 
 export default function AprovadoArea() {
     const { user} = useAuth(); 
+    const { checkoutData, clearCheckout } = useCheckout(); 
+    const { removeItem } = useCarrinho(); 
+
+    useEffect(() => {
+        const removerItemComprado = async () => {
+        try {
+            if (checkoutData?.boxId) {
+            await removeItem(checkoutData.boxId);
+            }
+        } catch (err) {
+            console.error("Erro ao remover item comprado do carrinho:", err);
+        } finally {
+            clearCheckout();
+        }
+        };
+
+        removerItemComprado();
+    }, [checkoutData, removeItem, clearCheckout]);
     
 
     return (

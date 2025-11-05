@@ -10,7 +10,8 @@ import { addEndereco, getEnderecos, updateEndereco } from "@/app/services/endere
 import { toast } from "react-toastify";
 import { CheckoutCardPlaceholder } from "../../ui/skeletons";
 import { useCheckout } from "@/app/context/checkoutContext";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ChevronDown } from "lucide-react";
+import { buscarEnderecoPorCep } from "@/app/services/viacep";
 
 type FormDataEndereco = {
   id?: string;
@@ -64,6 +65,26 @@ export default function EnderecoForm() {
     };
     fetchEnderecos();
   }, [token]);
+
+  useEffect(() => {
+  const cepLimpo = data.cep.replace(/\D/g, "");
+  if (cepLimpo.length === 8) {
+    buscarEnderecoPorCep(cepLimpo).then((dados) => {
+      if (dados) {
+        setFormData((prev) => ({
+          ...prev,
+          endereco: {
+            ...prev.endereco,
+            rua: dados.rua,
+            bairro: dados.bairro,
+            cidade: dados.cidade,
+            estado: dados.estado,
+          },
+        }));
+      }
+    });
+  }
+}, [data.cep]);
 
   const handleNext = async () => {
     if (!token) return;
@@ -345,7 +366,7 @@ export default function EnderecoForm() {
                       disabled={disabled}
                       />
                   </div>
-                  <div className="flex flex-col items-start justify-center w-1/3">
+                  <div className="relative flex flex-col items-start justify-center w-1/3">
                     <select
                       value={data.estado}
                       onChange={(e) =>
@@ -355,7 +376,7 @@ export default function EnderecoForm() {
                         }))
                       }
                       disabled={disabled}
-                      className="text-xs sm:text-sm w-full py-2 px-3 bg-transparent text-brown-tertiary/75 placeholder:text-brown-tertiary/75 rounded-lg border border-brown-tertiary"
+                      className="appearance-none text-xs sm:text-sm w-full py-2 px-3 bg-transparent text-brown-tertiary/75 placeholder:text-brown-tertiary/75 rounded-lg border border-brown-tertiary"
                     >
                       <option value="">UF</option>
                       {estadosBR.map((uf) => (
@@ -364,6 +385,7 @@ export default function EnderecoForm() {
                         </option>
                       ))}
                     </select>
+                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-brown-primary pointer-events-none" />
                   </div>
                 </div>
                 <div className="w-full">

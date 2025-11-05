@@ -17,6 +17,11 @@ export default function CadastroForm() {
   const [senha, setSenha] = useState('');
   const [confirmSenha, setConfirmSenha] = useState('');
   const [mostrarSenha, setMostrarSenha] = useState(false);
+  const [mostrarConfirmarSenha, setMostrarConfirmarSenha] = useState(false);
+
+  const [avisoSenha, setAvisoSenha] = useState(false);
+  const [avisoConfirmSenha, setAvisoConfirmSenha] = useState(false);
+
   const [errors, setErrors] = useState<{ 
     nomeCompleto?: string; 
     email?: string; 
@@ -60,6 +65,28 @@ export default function CadastroForm() {
     const formattedDate = dataNascimento ? new Date(dataNascimento).toISOString().split("T")[0] : "";
 
     await register(nomeCompleto, email, cpf, senha, formattedDate);
+  };
+
+  const handleSenhaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const valor = e.target.value;
+    setSenha(valor);
+    if (valor.length >= 100 && !avisoSenha) {
+      toast.info("Você atingiu o limite máximo de 100 caracteres para a senha.");
+      setAvisoSenha(true);
+    } else if (valor.length < 100 && avisoSenha) {
+      setAvisoSenha(false);
+    }
+  };
+
+  const handleConfirmSenhaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const valor = e.target.value;
+    setConfirmSenha(valor);
+    if (valor.length >= 100 && !avisoConfirmSenha) {
+      toast.info("Você atingiu o limite máximo de 100 caracteres para a senha.");
+      setAvisoConfirmSenha(true);
+    } else if (valor.length < 100 && avisoConfirmSenha) {
+      setAvisoConfirmSenha(false);
+    }
   };
 
   return (
@@ -125,14 +152,15 @@ export default function CadastroForm() {
             Crie uma senha:
           </label>
         </div>
-          <div className="relative">
+        <div className="relative">
           <Input
             id="senha"
             type={mostrarSenha ? "text" : "password"}
             placeholder="Senha aqui"
             value={senha}
-            onChange={(e) => setSenha(e.target.value)}
+            onChange={handleSenhaChange}
             className="pr-10"
+            maxLength={100}
           />
           <button
             type="button"
@@ -152,13 +180,25 @@ export default function CadastroForm() {
         <label htmlFor="confirmSenha" className="pb-2 font-secondary text-gray-tertiary text-xs sm:text-sm">
           Confirme sua senha:
         </label>
-        <Input
-          placeholder="Confirme sua senha aqui"
-          id="confirmSenha"
-          type="password"
-          value={confirmSenha}
-          onChange={e => setConfirmSenha(e.target.value)}
-        />
+        <div className="relative">
+          <Input
+            placeholder="Confirme sua senha aqui"
+            id="confirmSenha"
+            type={mostrarConfirmarSenha ? "text" : "password"}
+            value={confirmSenha}
+            onChange={handleConfirmSenhaChange}
+            className="pr-10"
+            maxLength={100}
+          />
+          <button
+            type="button"
+            onClick={() => setMostrarConfirmarSenha(!mostrarConfirmarSenha)}
+            className="absolute inset-y-0 right-3 flex items-center"
+            aria-label={mostrarConfirmarSenha ? "Ocultar senha" : "Mostrar senha"}
+          >
+            <Icon icon={mostrarConfirmarSenha ? "mdi:eye-off" : "mdi:eye"} className="text-gray-tertiary/75 hover:text-gray-tertiary/55 text-base" />
+          </button>
+        </div>
         {errors.confirmSenha && <p className="text-red-600 text-xs sm:text-sm mt-1">{errors.confirmSenha}</p>}
       </div>
       <Button

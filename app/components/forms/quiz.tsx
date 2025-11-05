@@ -1,7 +1,9 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Button from "../ui/button";
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
+import { getBoxes } from "@/app/services/boxes";
 
 const questions = [
   {
@@ -110,6 +112,15 @@ export default function Quiz() {
   const [current, setCurrent] = useState(0);
   const [answers, setAnswers] = useState<string[]>(Array(questions.length).fill(""));
   const [showResult, setShowResult] = useState(false);
+  const [boxes, setBoxes] = useState<any[]>([]);
+
+  useEffect(() => {
+      getBoxes().then((data) => {
+        if (data.success) 
+          setBoxes(data.boxes);
+        });
+    }, 
+  []);
 
   const handleSelect = (option: string) => {
     const updated = [...answers];
@@ -174,56 +185,70 @@ export default function Quiz() {
   const result = showResult ? calculateResult() : null;
 
   return (
-    <div className="w-full md:w-4/6 font-secondary">
+    <div className="w-full md:w-11/12 font-secondary">
       {!showResult ? (
         <>
-          <div className="w-full bg-gray-200 h-2 rounded-full mb-6">
-            <div
-              className="h-2 bg-yellow-primary rounded-full transition-all duration-500"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
-          {/* Cabeçalho da questão */}
-          <div className="flex justify-between items-center mb-6">
-            <span className="flex gap-3 uppercase text-brown-primary font-semibold text-sm sm:text-base">
-              <span className="flex items-center justify-center text-[10px] bg-brown-tertiary text-beige-primary rounded-full size-5 px-1 font-medium -ml-1">
+          <div className="flex flex-col justify-between items-center mb-6">
+            <span className="flex items-center gap-2 md:gap-3 uppercase text-brown-primary font-semibold text-sm sm:text-lg">
+              <span className="flex items-center justify-center text-[10px] sm:text-base bg-brown-tertiary text-beige-primary rounded-full size-5 sm:size-10 px-2 sm:px-4 font-medium -ml-1">
                 {q.id}
               </span>
               {q.text}
             </span>
-            <span className="text-yellow-primary font-bold text-[12px]">
-              {current + 1}/{questions.length}
-            </span>
+            <div className="flex gap-3 w-11/12 lg:w-10/12 items-center mt-2 justify-end">
+              <span className="text-yellow-primary font-bold text-sm text-nowrap">
+                {current + 1}/{questions.length} Questões
+              </span>
+              <div className="w-full bg-gray-200 h-3 rounded-full">
+                <div
+                  className="h-3 bg-yellow-primary rounded-full transition-all duration-500"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+            </div>
           </div>
 
-          {/* Opções */}
-          <div className="mb-6 flex flex-col gap-3">
+          <div className="mb-14 flex flex-col gap-3 pl-2 lg:pl-10">
             {q.options.map((option, index) => (
               <label
                 key={index}
-                className={`text-xs sm:text-sm flex items-center gap-2 p-3 rounded-lg cursor-pointer transition border ${
-                  answers[current] === option.value
-                    ? "border-yellow-primary"
-                    : "border-gray-100"
-                }`}
+                className={`text-xs sm:text-base flex items-center gap-2 p-3 rounded-lg cursor-pointer transition font-medium`}
               >
                   <input
                     type="radio"
                     name={`question-${q.id}`}
                     checked={answers[current] === option.value}
                     onChange={() => handleSelect(option.value)}
-                    className="size-3 sm:size-4 cursor-pointer appearance-none rounded-full border border-brown-tertiary checked:bg-brown-tertiary transition-all checked:ring-2 checked:ring-inset checked:ring-white"
+                    className="size-3 sm:size-5 cursor-pointer appearance-none rounded-full border-2 border-brown-tertiary checked:bg-brown-tertiary transition-all checked:ring-2 checked:ring-inset checked:ring-white"
                   />
-                  <span>{option.label}</span>
+                  <span className="w-full">{option.label}</span>
               </label>
             ))}
           </div>
 
-          <div className="flex gap-6">
-            <Button onClick={handleNext} 
+          <div className="flex flex-col md:flex-row gap-6 justify-end">
+            <Button
+            onClick={() => {
+              setShowResult(false);
+              setAnswers(Array(questions.length).fill(""));
+              setCurrent(0);
+            }}
+             variant="tertiary" 
+             className="border-2 px-6 py-3 rounded-md font-semibold disabled:opacity-50 transition uppercase text-xs">
+              Começar novamente
+            </Button>
+            <Button 
+            onClick={handleNext} 
             disabled={!answers[current]} 
-            className="bg-yellow-primary hover:bg-yellow-secondary text-white px-8 py-3 rounded-md font-medium disabled:opacity-50 transition" > 
-              {current < questions.length - 1 ? "Próxima questão →" : "Finalizar"} 
+            className="flex items-center justify-center px-4 py-3 rounded-md font-semibold disabled:opacity-50 transition uppercase text-xs" > 
+                {current < questions.length - 1 ? (
+                  <>
+                    <span>Próxima questão</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </>
+                ) : (
+                  <span>Finalizar</span>
+                )}
             </Button>
           </div>
         </>
@@ -232,25 +257,71 @@ export default function Quiz() {
           <h2 className="text-3xl font-bold mb-4 text-yellow-700">{result?.title}</h2>
           <p className="text-lg text-gray-700 mb-8">{result?.desc}</p>
 
-          <div className="flex flex-col md:flex-row items-start gap-2 md:items-center justify-between">
-            <Button
-              onClick={() => {
-                setShowResult(false);
-                setAnswers(Array(questions.length).fill(""));
-                setCurrent(0);
-              }}
-              className="bg-yellow-primary hover:bg-yellow-secondary text-white px-8 py-3 rounded-md font-medium disabled:opacity-50 transition"
-            >
-              Refazer quiz
-            </Button>
-            <Link href="/planos">
-              <Button
-                className="bg-yellow-primary hover:bg-yellow-secondary text-white px-8 py-3 rounded-md font-medium disabled:opacity-50 transition"
-              >
-                Conhecer planos
-              </Button> 
-            </Link>
-          </div>
+          {(() => {
+            const cleanTitle = result?.title.replace(/[^a-zA-ZÀ-ÿ\s]/g, "").trim(); // remove emojis
+            const matchedBox = boxes.find(
+              (b) => b.nome.toLowerCase().includes(cleanTitle?.toLowerCase())
+            );
+
+            if (!matchedBox) return null;
+
+            return (
+              <div className="flex flex-col gap-10 w-full md:w-11/12">
+                <div className="flex flex-col lg:flex-row gap-6">
+                  <img
+                    src={matchedBox.imagens?.[1] || matchedBox.imagem_principal_url}
+                    alt={matchedBox.nome}
+                    className="lg:w-96 h-56 object-cover rounded-lg"
+                  />
+                  <div className="h-56 flex flex-col items-start justify-center gap-2">
+                    <p className="text-gray-700 text-base mb-3">{matchedBox.descricao_curta}</p>
+
+                    <div className="flex flex-col sm:flex-row justify-start items-start gap-4">
+                      <div>
+                        <h1 className="text-base text-start uppercase text-brown-tertiary font-primary pb-1">
+                            Plano Anual
+                        </h1>
+                        <p className="text-yellow-primary font-secondary pb-4">
+                            <span className="text-sm lg:text-base">R$</span>
+                            <span className="text-2xl font-extrabold px-1 lg:px-2">{matchedBox.preco_anual_4_un}</span>
+                            <span className="text-sm lg:text-base">/ANO</span>
+                        </p>
+                      </div>
+                      <div>
+                        <h1 className="text-base text-start uppercase text-brown-tertiary font-primary pb-1">
+                            Plano Mensal
+                        </h1>
+                        <p className="text-yellow-primary font-secondary pb-4">
+                            <span className="text-sm lg:text-base">R$</span>
+                            <span className="text-2xl font-extrabold px-1 lg:px-2">{matchedBox.preco_mensal_4_un}</span>
+                            <span className="text-sm lg:text-base">/MÊS</span>
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                  <div className="flex flex-col md:flex-row items-start gap-6 md:items-center justify-start">
+                    <Button
+                      onClick={() => {
+                        setShowResult(false);
+                        setAnswers(Array(questions.length).fill(""));
+                        setCurrent(0);
+                      }}
+                      className="px-8 py-3 rounded-md font-medium disabled:opacity-50 transition"
+                    >
+                      Refazer quiz
+                    </Button>
+                    <Link href={`/planos/${matchedBox.id}`}>
+                      <Button
+                        className="px-8 py-3 rounded-md font-medium disabled:opacity-50 transition"
+                      >
+                        Conhecer plano
+                      </Button> 
+                    </Link>
+                  </div>
+                </div>
+            );
+          })()}
         </div>
       )}
     </div>

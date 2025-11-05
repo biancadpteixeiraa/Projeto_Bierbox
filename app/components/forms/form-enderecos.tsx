@@ -4,6 +4,9 @@ import { Icon } from "@iconify/react";
 import EnderecoCard from "../ui/endereco-card";
 import Input from "../ui/input";
 import Button from "../ui/button";
+import { useEffect } from "react";
+import { buscarEnderecoPorCep } from "@/app/services/viacep";
+import { ChevronDown } from "lucide-react";
 
 type Endereco = {
   id: string;
@@ -22,6 +25,7 @@ interface EnderecoFormProps {
   endereco: Endereco;
   isEditando: boolean;
   isNovo?: boolean;
+  isLoading?: boolean;
   onChange: (campo: keyof Endereco, valor: string | boolean) => void;
   onSalvar: () => void;
   onCancelar: () => void;
@@ -34,6 +38,7 @@ export default function EnderecoForm({
   titulo,
   endereco,
   isEditando,
+  isLoading,
   isNovo = false,
   onChange,
   onSalvar,
@@ -50,6 +55,19 @@ export default function EnderecoForm({
   
   const estiloBloqueado = "border border-gray-tertiary/35 bg-gray-50/50 cursor-not-allowed text-gray-tertiary/45";
 
+  useEffect(() => {
+    const cepLimpo = endereco.cep.replace(/\D/g, "");
+    if (isEditando && cepLimpo.length === 8) {
+      buscarEnderecoPorCep(cepLimpo).then((dados) => {
+        if (dados) {
+          onChange("rua", dados.rua);
+          onChange("bairro", dados.bairro);
+          onChange("cidade", dados.cidade);
+          onChange("estado", dados.estado);
+        }
+      });
+    }
+  }, [endereco.cep, isEditando, onChange]);
 
   return (
     <EnderecoCard className="mb-6 lg:mb-0 w-full lg:w-[74%]">
@@ -106,7 +124,7 @@ export default function EnderecoForm({
                   mask="00000-000"
                   value={endereco.cep}
                   id={`cep-${endereco.id || "novo"}`}
-                  onAccept={(value: any) => onChange("cep", value)}
+                  onAccept={(value: string) => onChange("cep", value)}
                   className="text-xs sm:text-sm w-full py-2 px-3 bg-transparent text-brown-tertiary/75 placeholder:text-brown-tertiary/75 rounded-lg border border-brown-tertiary"
                   placeholder="CEP"
                 />
@@ -176,7 +194,6 @@ export default function EnderecoForm({
             </div>
           </div>
 
-          {/* Cidade e Estado */}
           <div className="flex flex-row items-center gap-2 w-full">
             <div className="flex flex-col items-start justify-center w-2/3">
               <Input
@@ -193,19 +210,22 @@ export default function EnderecoForm({
             </div>
             <div className="flex flex-col items-start justify-center w-1/3">
               {isEditando ? (
-                <select
-                  id={`estado-${endereco.id || "novo"}`}
-                  value={endereco.estado}
-                  onChange={(e) => onChange("estado", e.target.value)}
-                  className={`text-xs sm:text-sm w-full py-2 px-3 bg-transparent text-brown-tertiary/75 placeholder:text-brown-tertiary/75 rounded-lg border border-brown-tertiary ${!isEditando ? estiloBloqueado : ""}`}
-                >
-                  <option value="">UF</option>
-                  {estadosBR.map((uf) => (
-                    <option key={uf} value={uf}>
-                      {uf}
-                    </option>
-                  ))}
-                </select>
+                <div className="relative w-full">
+                  <select
+                    id={`estado-${endereco.id || "novo"}`}
+                    value={endereco.estado}
+                    onChange={(e) => onChange("estado", e.target.value)}
+                    className={`appearance-none text-xs sm:text-sm w-full py-2 px-3 bg-transparent text-brown-tertiary/75 placeholder:text-brown-tertiary/75 rounded-lg border border-brown-tertiary ${!isEditando ? estiloBloqueado : ""}`}
+                  >
+                    <option value="">UF</option>
+                    {estadosBR.map((uf) => (
+                      <option key={uf} value={uf}>
+                        {uf}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-brown-primary pointer-events-none" />
+                </div>
               ) : (
                 <Input
                   id={`estado-${endereco.id || "novo"}`}
@@ -249,9 +269,13 @@ export default function EnderecoForm({
                 <Button
                   variant="quaternary"
                   onClick={onSalvar}
-                  className="py-2 font-medium text-sm"
+                  className="flex items-center justify-center w-full py-2 font-medium text-sm"
                 >
-                  Salvar
+                  {isLoading ? (
+                    <span className="mx-2 my-[2px] animate-spin rounded-full border-4 border-beige-primary border-t-transparent size-4"></span>
+                  ) : (
+                    "Salvar"
+                  )}
                 </Button>
               </div>
             )}

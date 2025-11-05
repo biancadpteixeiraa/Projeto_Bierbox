@@ -2,11 +2,12 @@
 import Button from "../../ui/button";
 import Input from "../../ui/input";
 import { useState } from "react";
-import { useAuth } from "@/app/context/authContext";
+
 import Link from "next/link";
+import { useAdminAuth } from "@/app/context/authAdminContext";
 
 export default function LoginAdmin() {
-  const { login } = useAuth();
+  const { loginAdmin } = useAdminAuth();
   const [emailAdmin, setEmailAdmin] = useState('');
   const [senhaAdmin, setSenhaAdmin] = useState('');
   const [loadingLogin, setLoadingLogin] = useState(false);
@@ -14,7 +15,7 @@ export default function LoginAdmin() {
 
   const validate = () => {
     const newErrors: { email?: string; senha?: string } = {};
-    
+
     if (!emailAdmin) {
       newErrors.email = "O email é obrigatório.";
     } else if (!/\S+@\S+\.\S+/.test(emailAdmin)) {
@@ -35,9 +36,9 @@ export default function LoginAdmin() {
 
     setLoadingLogin(true);
     try {
-      await login(emailAdmin, senhaAdmin);
+      await loginAdmin(emailAdmin, senhaAdmin); // 👈 usa o loginAdmin do contexto
     } catch (error) {
-      console.error("Erro ao logar", error);
+      console.error("Erro ao logar admin:", error);
     } finally {
       setLoadingLogin(false);
     }
@@ -81,26 +82,9 @@ export default function LoginAdmin() {
         {errors.senha && (
           <p className="text-red-500 text-xs sm:text-sm mt-1">{errors.senha}</p>
         )}
-        <Link href="/recuperar-senha">
-          <button
-            type="button"
-            className="font-secondary underline text-gray-quaternary text-xs sm:text-sm pb-4 pt-6"
-          >
-            Esqueci minha senha!
-          </button>
-        </Link>
       </div>
 
-        <Link href="/admin/01/dashboard">
-            <button
-                type="button"
-                className="w-full bg-yellow-secondary hover:bg-yellow-700 text-white font-medium py-4 px-6 rounded-lg transition duration-300"
-            >
-                Entrar
-            </button>
-        </Link>
-
-      {/* <Button
+      <Button
         type="submit"
         disabled={loadingLogin}
         className="w-full py-4 font-medium text-lg flex items-center justify-center"
@@ -128,7 +112,7 @@ export default function LoginAdmin() {
         ) : (
           "Entrar"
         )}
-      </Button> */}
+      </Button>
     </form>
   );
 }

@@ -12,17 +12,17 @@ export default function PlansCards({
     label?: string;
 } & React.HTMLAttributes<HTMLDivElement>){
 
-        const [boxes, setBoxes] = useState<any[]>([]);
-        const [loading, setLoading] = useState(true);
-    
-        useEffect(() => {
-            getBoxes().then((data) => {
-            if (data.success) setBoxes(data.boxes);
-            console.log(data);
-            setLoading(false);
-            });
-        }, 
-        []);
+    const [boxes, setBoxes] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        getBoxes().then((data) => {
+        if (data.success) setBoxes(data.boxes);
+        console.log(data);
+        setLoading(false);
+        });
+    }, 
+    []);
 
     return(
         <div className="w-full bg-white">

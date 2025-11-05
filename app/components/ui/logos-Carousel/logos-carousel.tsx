@@ -1,11 +1,11 @@
 'use client'
 import styles from './styles.module.css'
-import React, { useEffect, useState, useCallback } from 'react' // Importamos estados e callbacks
+import React, { useEffect, useState, useCallback } from 'react'
 import { EmblaOptionsType } from 'embla-carousel'
 import useEmblaCarousel from 'embla-carousel-react'
 import AutoScroll from 'embla-carousel-auto-scroll'
 import Image from 'next/image'
-import { Play, Pause } from 'lucide-react' // Ícones para o botão escondido
+import { Play, Pause } from 'lucide-react'
 
 type LogoSlide = {
   logo: string
@@ -30,7 +30,7 @@ export default function LogosCarousel({ slides, options }: PropType) {
     { 
       playOnInit: true,
       speed: 0.5,
-      stopOnMouseEnter: true,
+      stopOnMouseEnter: false,
     }
   ),
   ])
@@ -51,28 +51,26 @@ export default function LogosCarousel({ slides, options }: PropType) {
   }, [emblaApi])
 
 
-  useEffect(() => {
-    if (!emblaApi) return
+useEffect(() => {
+  if (!emblaApi) return;
 
-    const autoScroll = emblaApi.plugins()?.autoScroll
-    if (!autoScroll) return
+  const autoScroll = emblaApi.plugins()?.autoScroll;
+  if (!autoScroll) return;
 
-    const viewport = emblaApi.containerNode().parentElement
-
-    const handleMouseLeave = () => {
-      // Só reinicia se estava tocando antes
-      if (isPlaying && !autoScroll.isPlaying()) {
-        autoScroll.play()
-      }
+  const restartAutoScroll = () => {
+    if (isPlaying && !autoScroll.isPlaying()) {
+      autoScroll.play();
     }
+  };
 
-    // Retoma quando o mouse sai
-    viewport?.addEventListener('mouseleave', handleMouseLeave)
+  emblaApi.on('pointerUp', restartAutoScroll);
+  emblaApi.on('settle', restartAutoScroll);
 
-    return () => {
-      viewport?.removeEventListener('mouseleave', handleMouseLeave)
-    }
-  }, [emblaApi, isPlaying])
+  return () => {
+    emblaApi.off('pointerUp', restartAutoScroll);
+    emblaApi.off('settle', restartAutoScroll);
+  };
+}, [emblaApi, isPlaying]);
 
   return (
    <div className={`${styles.embla} w-full relative`}  role="presentation">

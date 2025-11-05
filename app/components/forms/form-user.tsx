@@ -15,7 +15,11 @@ export default function UserForm() {
   const [cpf, setCpf] = useState("");
   const [senhaAtual, setSenhaAtual] = useState("");
   const [novaSenha, setNovaSenha] = useState("");
-  const [mostrarSenha, setMostrarSenha] = useState(false);
+  const [mostrarSenhaAtual, setMostrarSenhaAtual] = useState(false);
+  const [mostrarNovaSenha, setMostrarNovaSenha] = useState(false);
+
+  const [avisoSenhaAtual, setAvisoSenhaAtual] = useState(false);
+  const [avisoNovaSenha, setAvisoNovaSenha] = useState(false);
 
   useEffect(() => {
     if (!token) return;
@@ -43,6 +47,28 @@ export default function UserForm() {
 
     fetchProfile();
   }, [token, logout]);
+
+  const handleSenhaAtualChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const valor = e.target.value;
+    setSenhaAtual(valor);
+    if (valor.length >= 100 && !avisoSenhaAtual) {
+      toast.info("Você atingiu o limite máximo de 100 caracteres para a senha.");
+      setAvisoSenhaAtual(true);
+    } else if (valor.length < 100 && avisoSenhaAtual) {
+      setAvisoSenhaAtual(false);
+    }
+  };
+
+  const handleNovaSenhaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const valor = e.target.value;
+    setNovaSenha(valor);
+    if (valor.length >= 100 && !avisoNovaSenha) {
+      toast.info("Você atingiu o limite máximo de 100 caracteres para a senha.");
+      setAvisoNovaSenha(true);
+    } else if (valor.length < 100 && avisoNovaSenha) {
+      setAvisoNovaSenha(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -160,19 +186,20 @@ export default function UserForm() {
           <div className="relative">
             <Input
               id="senha"
-              type={mostrarSenha ? "text" : "password"}
+              type={mostrarSenhaAtual ? "text" : "password"}
               placeholder="Senha atual aqui"
               value={senhaAtual}
-              onChange={(e) => setSenhaAtual(e.target.value)}
+              onChange={handleSenhaAtualChange}
               className="pr-10"
+              maxLength={100}
             />
             <button
               type="button"
-              onClick={() => setMostrarSenha(!mostrarSenha)}
+              onClick={() => setMostrarSenhaAtual(!mostrarSenhaAtual)}
               className="absolute inset-y-0 right-3 flex items-center"
-              aria-label={mostrarSenha ? "Ocultar senha" : "Mostrar senha"}
+              aria-label={mostrarSenhaAtual ? "Ocultar senha" : "Mostrar senha"}
             >
-              <Icon icon={mostrarSenha ? "mdi:eye-off" : "mdi:eye"} className="text-gray-tertiary/75 hover:text-gray-tertiary/55 text-base" />
+              <Icon icon={mostrarSenhaAtual ? "mdi:eye-off" : "mdi:eye"} className="text-gray-tertiary/75 hover:text-gray-tertiary/55 text-base" />
             </button>
           </div>
         </div>
@@ -183,14 +210,25 @@ export default function UserForm() {
               Insira sua nova senha:
             </label>
           </div>
-          <Input
-            id="novaSenha"
-            type="password"
-            value={novaSenha}
-            onChange={(e) => setNovaSenha(e.target.value)}
-            placeholder="Sua senha nova aqui"
-            className="px-5"
-          />
+          <div className="relative">
+            <Input
+              id="novaSenha"
+              type={mostrarNovaSenha ? "text" : "password"}
+              value={novaSenha}
+              onChange={handleNovaSenhaChange}
+              placeholder="Sua senha nova aqui"
+              className="px-5"
+              maxLength={100}
+            />
+            <button
+              type="button"
+              onClick={() => setMostrarNovaSenha(!mostrarNovaSenha)}
+              className="absolute inset-y-0 right-3 flex items-center"
+              aria-label={mostrarNovaSenha ? "Ocultar senha" : "Mostrar senha"}
+            >
+              <Icon icon={mostrarNovaSenha ? "mdi:eye-off" : "mdi:eye"} className="text-gray-tertiary/75 hover:text-gray-tertiary/55 text-base" />
+            </button>
+          </div>
           <p className="font-secondary text-gray-quaternary text-xs pt-2">
           Crie uma senha com mais de 8 dígitos contendo números e letras.
         </p>
