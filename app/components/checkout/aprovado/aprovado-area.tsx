@@ -14,20 +14,23 @@ export default function AprovadoArea() {
     const { removeItem } = useCarrinho(); 
 
     useEffect(() => {
+        if (!checkoutData) return;
+
         const removerItemComprado = async () => {
-        try {
-            if (checkoutData?.boxId) {
-            await removeItem(checkoutData.boxId);
+            try {
+            if (checkoutData.boxId) {
+                await removeItem(checkoutData.boxId);
             }
-        } catch (err) {
+            } catch (err) {
             console.error("Erro ao remover item comprado do carrinho:", err);
-        } finally {
+            } finally {
             clearCheckout();
-        }
+            }
         };
 
         removerItemComprado();
-    }, [checkoutData, removeItem, clearCheckout]);
+        }, [checkoutData, removeItem, clearCheckout]);
+
     
 
     return (
