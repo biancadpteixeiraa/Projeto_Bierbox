@@ -6,7 +6,6 @@ const pool = require("../config/db");
 const {
   iniciarCheckoutAssinatura,
   cancelarAssinatura,
-  webhookStripe,
 } = require("../controllers/pagamentoStripeController");
 
 const { protect } = require("../middleware/authMiddleware");
@@ -14,8 +13,6 @@ const { protect } = require("../middleware/authMiddleware");
 router.post("/checkout", protect, iniciarCheckoutAssinatura);
 
 router.delete("/assinaturas/:assinaturaId/cancelar", protect, cancelarAssinatura);
-
-router.post("/webhook", express.raw({ type: "application/json" }), webhookStripe);
 
 
 router.post("/assinaturas/:assinaturaId/simular-renovacao", async (req, res) => {
