@@ -4,7 +4,7 @@ import ModalEnderecos from "../dashboard/modal-enderecos";
 import Button from "../ui/button";
 import Input from "../ui/input";
 import { toast } from "react-toastify";
-import { cancelarAssinatura, updateEnderecoAssinatura } from "@/app/services/assinaturas";
+import { cancelarAssinatura, finalizarAssinaturaPendente, updateEnderecoAssinatura } from "@/app/services/assinaturas";
 import { useAuth } from "@/app/context/authContext";
 import { criarPreferenciaPagamento } from "@/app/services/checkout";
 import ModalCancelarAssinatura from "../dashboard/modal-cancelar-assinatura";
@@ -82,37 +82,36 @@ export default function AssinaturaForm({ assinatura, onEnderecoAtualizado }: { a
         setIsModalCancelamentoOpen(true);
     };
 
-    // const handleFinalizarAssinatura = async () => {
-    //     if (!token) {
-    //     toast.error("Você precisa estar autenticado para finalizar a assinatura.");
-    //     return;
-    //     }
+    const handleFinalizarAssinatura = async () => {
+        if (!token) {
+        toast.error("Você precisa estar autenticado para finalizar a assinatura.");
+        return;
+        }
 
-    //     try {
-    //     setLoading(true);
+        if (!assinatura?.id) {
+        toast.error("Assinatura inválida.");
+        return;
+        }
 
-    //     const response = await criarPreferenciaPagamento(
-    //         token,
-    //         assinatura.plano_id,          
-    //         assinatura.box_id,            
-    //         assinatura.endereco_id,       
-    //         Number(assinatura.valor_frete) 
-    //     );
+        try {
+            setLoading(true);
 
-    //     if (response?.checkoutUrl) {
-    //         toast.success("Redirecionando para o pagamento...");
-    //         window.location.href = response.checkoutUrl;
-    //     } else {
-    //         toast.warning("Não foi possível gerar o link de pagamento.");
-    //     }
+            const response = await finalizarAssinaturaPendente(token, assinatura.id);
 
-    //     } catch (error: any) {
-    //     console.error(error);
-    //     toast.error(error.response?.data?.message || "Erro ao finalizar assinatura.");
-    //     } finally {
-    //     setLoading(false);
-    //     }
-    // };
+            if (response?.success && response?.checkoutUrl) {
+                toast.info("Redirecionando para o pagamento...");
+                window.location.href = response.checkoutUrl; 
+            } else {
+                toast.warning("Não foi possível iniciar o pagamento. Tente novamente.");
+            }
+
+        } catch (error: any) {
+            console.error(error);
+            toast.error(error.response?.data?.message || "Erro ao finalizar a assinatura.");
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const status = assinatura?.status?.toUpperCase();
     let buttonText = "";
@@ -127,7 +126,7 @@ export default function AssinaturaForm({ assinatura, onEnderecoAtualizado }: { a
 
         case "PENDENTE":
         buttonText = loading ? "Finalizando..." : "Finalizar Minha Assinatura";
-        showButton = false;
+        buttonAction = handleFinalizarAssinatura;
         break;
 
         case "CANCELADA":

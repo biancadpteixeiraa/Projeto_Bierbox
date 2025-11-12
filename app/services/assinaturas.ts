@@ -40,3 +40,11 @@ export async function addAssinatura(token: string, box_id: number, tipo_plano: '
   );
   return response.data;
 }
+
+export async function finalizarAssinaturaPendente(token: string, id: string) {
+  const response = await api.post(
+    `/api/assinaturas/${id}/finalizar-pagamento`,
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+  return response.data;
+}
