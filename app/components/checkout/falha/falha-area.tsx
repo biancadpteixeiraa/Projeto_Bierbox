@@ -1,5 +1,4 @@
 "use client";
-import { useState } from "react";
 import Button from "../../ui/button";
 import Link from "next/link";
 
@@ -26,12 +25,12 @@ export default function FalhaArea() {
                     
                     <div className="flex flex-col lg:flex-row gap-4 mt-12">
                         <Link href="/checkout">
-                            <Button variant="primary" className="px-5 lg:py-1 py-2 text-base lg:text-lg w-full lg:w-1/2 font-medium">
+                            <Button variant="primary" className="px-5 py-2 text-base lg:text-lg w-full font-medium">
                                 Tentar novamente!
                             </Button>
                         </Link>
                         <Link href="/planos">
-                            <Button variant="tertiary" className="px-4 lg:py-1 py-2 text-base lg:text-lg w-full lg:w-1/2 border-2 font-medium">
+                            <Button variant="tertiary" className="px-4 py-2 text-base lg:text-lg w-full border-2 font-medium">
                                 Escolher outra box
                             </Button>
                         </Link>

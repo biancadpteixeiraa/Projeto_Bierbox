@@ -49,12 +49,12 @@ export default function AprovadoArea() {
                     
                     <div className="flex flex-col lg:flex-row gap-4 mt-12">
                         <Link href={`/dashboard/${user?.id}`}>
-                            <Button variant="primary" className="px-5 lg:py-1 py-2 text-base lg:text-lg w-full lg:w-2/4 font-medium">
+                            <Button variant="primary" className="px-5 py-2 text-base lg:text-lg w-full font-medium">
                                 Ver Detalhes do Pedido
                             </Button>
                         </Link>
                         <Link href="/">
-                            <Button variant="tertiary" className="px-4 lg:py-1 py-2 text-base lg:text-lg w-full lg:w-[35%] border-2 font-medium">
+                            <Button variant="tertiary" className="px-4 py-2 text-base lg:text-lg w-full border-2 font-medium">
                                 Voltar ao início
                             </Button>
                         </Link>
