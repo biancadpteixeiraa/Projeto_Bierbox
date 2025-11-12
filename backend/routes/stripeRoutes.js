@@ -14,7 +14,6 @@ router.post("/checkout", protect, iniciarCheckoutAssinatura);
 
 router.delete("/assinaturas/:assinaturaId/cancelar", protect, cancelarAssinatura);
 
-module.exports = router;
 
 router.post("/assinaturas/:assinaturaId/simular-renovacao", async (req, res) => {
   try {
@@ -44,3 +43,5 @@ router.post("/assinaturas/:assinaturaId/simular-renovacao", async (req, res) => 
     return res.status(500).json({ error: "Erro ao simular renovação." });
   }
 });
+
+module.exports = router;
