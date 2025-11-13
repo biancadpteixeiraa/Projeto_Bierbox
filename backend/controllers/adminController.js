@@ -176,7 +176,6 @@ const adminGetBoxById = async (req, res) => {
   }
 };
 
-
 // @desc [Admin] Criar uma nova box
 // @route POST /api/admin/boxes
 // @access Admin
@@ -255,10 +254,8 @@ const adminUpdateBox = async (req, res) => {
     const queryParams = [];
     let paramIndex = 1;
 
-
     for (const key in fieldsToUpdate) {
-     
-      if (fieldsToUpdate.hasOwnProperty(key) && key !== 'id') {
+      if (fieldsToUpdate.hasOwnProperty(key) && key !== "id") {
         queryFields.push(`${key} = $${paramIndex++}`);
         queryParams.push(fieldsToUpdate[key]);
       }
@@ -272,7 +269,7 @@ const adminUpdateBox = async (req, res) => {
 
     const updateQuery = `
       UPDATE boxes
-      SET ${queryFields.join(', ')}, data_atualizacao = NOW()
+      SET ${queryFields.join(", ")}, data_atualizacao = NOW()
       WHERE id = $${paramIndex}
       RETURNING *
     `;
@@ -313,14 +310,27 @@ const adminDeleteBox = async (req, res) => {
   }
 };
 
-// @desc [Admin] Listar todos os clientes
+// @desc [Admin] Listar todos os clientes (com total de pedidos)
 // @route GET /api/admin/users
 // @access Admin
 const adminGetAllUsers = async (req, res) => {
   try {
-    const users = await pool.query(
-      "SELECT id, nome_completo, email, data_criacao, role, ativo FROM users ORDER BY data_criacao DESC"
-    );
+    const users = await pool.query(`
+      SELECT 
+        u.id,
+        u.nome_completo,
+        u.email,
+        u.data_criacao,
+        u.role,
+        u.ativo,
+        COUNT(p.id) AS total_pedidos
+      FROM users u
+      LEFT JOIN assinaturas a ON a.utilizador_id = u.id
+      LEFT JOIN pedidos p ON p.assinatura_id = a.id
+      GROUP BY u.id
+      ORDER BY u.data_criacao DESC;
+    `);
+
     res.status(200).json({ success: true, data: users.rows });
   } catch (error) {
     console.error("Erro ao buscar todos os usuários (Admin):", error);
@@ -387,18 +397,30 @@ const adminGetAllPedidos = async (req, res) => {
   }
 };
 
+// @desc [Admin] Obter detalhes de um pedido (com tipo de plano, método de pagamento e quantidade de cervejas)
+// @route GET /api/admin/pedidos/:id
+// @access Admin
 const adminGetPedidoById = async (req, res) => {
   const { id } = req.params;
 
   try {
     const query = `
-      SELECT p.*, u.nome_completo AS cliente_nome, u.email AS cliente_email, u.cpf AS cliente_cpf,
-             b.nome AS box_nome, e.*
+      SELECT 
+        p.*,
+        u.nome_completo AS cliente_nome,
+        u.email AS cliente_email,
+        u.cpf AS cliente_cpf,
+        b.nome AS box_nome,
+        e.*,
+        a.plano_id AS tipo_plano,
+        a.forma_pagamento,
+        ci.quantidade_cervejas
       FROM pedidos p
       LEFT JOIN assinaturas a ON p.assinatura_id = a.id
       LEFT JOIN users u ON a.utilizador_id = u.id
       LEFT JOIN enderecos e ON a.endereco_entrega_id = e.id
       LEFT JOIN boxes b ON a.box_id = b.id
+      LEFT JOIN carrinho_itens ci ON ci.box_id = b.id
       WHERE p.id = $1
     `;
     const pedidoResult = await pool.query(query, [id]);
@@ -469,208 +491,203 @@ const adminUpdatePedido = async (req, res) => {
 // @route   GET /api/admin/assinaturas
 // @access  Admin
 const adminGetAllAssinaturas = async (req, res) => {
-    const { search, status } = req.query;
-    let query = `
-        SELECT 
-            a.id AS id_assinatura,
-            u.nome_completo AS cliente_nome,
-            a.plano_id AS plano,
-            b.nome AS box_nome,
-            a.status,
-            a.data_inicio
-        FROM assinaturas a
-        JOIN users u ON a.utilizador_id = u.id
-        JOIN boxes b ON a.box_id = b.id
-    `;
-    const queryParams = [];
-    const conditions = [];
-    let paramIndex = 1;
+  const { search, status } = req.query;
+  let query = `
+      SELECT 
+          a.id AS id_assinatura,
+          u.nome_completo AS cliente_nome,
+          a.plano_id AS plano,
+          b.nome AS box_nome,
+          a.status,
+          a.data_inicio
+      FROM assinaturas a
+      JOIN users u ON a.utilizador_id = u.id
+      JOIN boxes b ON a.box_id = b.id
+  `;
+  const queryParams = [];
+  const conditions = [];
+  let paramIndex = 1;
 
-    if (search) {
-        conditions.push(`LOWER(u.nome_completo) LIKE LOWER($${paramIndex++})`);
-        queryParams.push(`%${search}%`);
-    }
+  if (search) {
+      conditions.push(`LOWER(u.nome_completo) LIKE LOWER($${paramIndex++})`);
+      queryParams.push(`%${search}%`);
+  }
 
-    if (status) {
-        conditions.push(`a.status = $${paramIndex++}`);
-        queryParams.push(status);
-    }
+  if (status) {
+      conditions.push(`a.status = $${paramIndex++}`);
+      queryParams.push(status);
+  }
 
-    if (conditions.length > 0) {
-        query += ` WHERE ${conditions.join(" AND ")}`;
-    }
+  if (conditions.length > 0) {
+      query += ` WHERE ${conditions.join(" AND ")}`;
+  }
 
-    query += ` ORDER BY a.data_inicio DESC`;
+  query += ` ORDER BY a.data_inicio DESC`;
 
-    try {
-        const assinaturas = await pool.query(query, queryParams);
-        res.status(200).json({ success: true, data: assinaturas.rows });
-    } catch (error) {
-        console.error("Erro ao buscar assinaturas (Admin):", error);
-        res.status(500).json({ success: false, message: "Erro interno do servidor." });
-    }
+  try {
+      const assinaturas = await pool.query(query, queryParams);
+      res.status(200).json({ success: true, data: assinaturas.rows });
+  } catch (error) {
+      console.error("Erro ao buscar assinaturas (Admin):", error);
+      res.status(500).json({ success: false, message: "Erro interno do servidor." });
+  }
 };
 
 // @desc    [Admin] Obter detalhes de uma assinatura específica
 // @route   GET /api/admin/assinaturas/:id
 // @access  Admin
 const adminGetAssinaturaById = async (req, res) => {
-    const { id } = req.params;
+  const { id } = req.params;
 
-    try {
-        const query = `
-            SELECT 
-                a.id AS id_assinatura,
-                u.nome_completo AS cliente_nome,
-                u.email AS cliente_email,
-                b.nome AS box_nome,
-                a.valor_assinatura AS valor_box,
-                a.data_inicio,
-                a.status,
-                e.cep AS endereco_cep,
-                e.rua AS endereco_rua,
-                e.numero AS endereco_numero,
-                e.complemento AS endereco_complemento,
-                e.bairro AS endereco_bairro,
-                e.cidade AS endereco_cidade,
-                e.estado AS endereco_estado,
-                a.forma_pagamento,
-                a.criado_em AS data_criacao_assinatura
-            FROM assinaturas a
-            LEFT JOIN users u ON a.utilizador_id = u.id
-            LEFT JOIN boxes b ON a.box_id = b.id
-            LEFT JOIN enderecos e ON a.endereco_entrega_id = e.id
-            WHERE a.id = $1
-        `;
-        const assinaturaResult = await pool.query(query, [id]);
+  try {
+    const query = `
+        SELECT 
+            a.id AS id_assinatura,
+            u.nome_completo AS cliente_nome,
+            u.email AS cliente_email,
+            b.nome AS box_nome,
+            a.valor_assinatura AS valor_box,
+            a.data_inicio,
+            a.status,
+            e.cep AS endereco_cep,
+            e.rua AS endereco_rua,
+            e.numero AS endereco_numero,
+            e.complemento AS endereco_complemento,
+            e.bairro AS endereco_bairro,
+            e.cidade AS endereco_cidade,
+            e.estado AS endereco_estado,
+            a.forma_pagamento,
+            a.criado_em AS data_criacao_assinatura
+        FROM assinaturas a
+        LEFT JOIN users u ON a.utilizador_id = u.id
+        LEFT JOIN boxes b ON a.box_id = b.id
+        LEFT JOIN enderecos e ON a.endereco_entrega_id = e.id
+        WHERE a.id = $1
+    `;
+    const assinaturaResult = await pool.query(query, [id]);
 
-        if (assinaturaResult.rows.length === 0) {
-            return res.status(404).json({ success: false, message: "Assinatura não encontrada." });
-        }
-
-        const assinaturaDetalhes = assinaturaResult.rows[0];
-
-
-        const historicoPagamentosResult = await pool.query(
-            `SELECT criado_em AS data_pagamento, valor_total, status_pedido
-             FROM pedidos
-             WHERE assinatura_id = $1
-             ORDER BY criado_em DESC`,
-            [id]
-        );
-
-        assinaturaDetalhes.historico_pagamentos = historicoPagamentosResult.rows;
-
-        res.status(200).json({ success: true, data: assinaturaDetalhes });
-
-    } catch (error) {
-        console.error("Erro ao buscar detalhes da assinatura (Admin):", error);
-        res.status(500).json({ success: false, message: "Erro interno do servidor." });
+    if (assinaturaResult.rows.length === 0) {
+      return res.status(404).json({ success: false, message: "Assinatura não encontrada." });
     }
+
+    const assinaturaDetalhes = assinaturaResult.rows[0];
+
+    const historicoPagamentosResult = await pool.query(
+        `SELECT criado_em AS data_pagamento, valor_total, status_pedido
+         FROM pedidos
+         WHERE assinatura_id = $1
+         ORDER BY criado_em DESC`,
+        [id]
+    );
+
+    assinaturaDetalhes.historico_pagamentos = historicoPagamentosResult.rows;
+
+    res.status(200).json({ success: true, data: assinaturaDetalhes });
+  } catch (error) {
+    console.error("Erro ao buscar detalhes da assinatura (Admin):", error);
+    res.status(500).json({ success: false, message: "Erro interno do servidor." });
+  }
 };
 
 // @desc    [Admin] Cancelar uma assinatura
 // @route   PUT /api/admin/assinaturas/:id/cancelar
 // @access  Admin
 const adminCancelAssinatura = async (req, res) => {
-    const { id } = req.params;
+  const { id } = req.params;
 
-    try {
-        const assinatura = await pool.query("SELECT status FROM assinaturas WHERE id = $1", [id]);
+  try {
+    const assinatura = await pool.query("SELECT status FROM assinaturas WHERE id = $1", [id]);
 
-        if (assinatura.rows.length === 0) {
-            return res.status(404).json({ success: false, message: "Assinatura não encontrada." });
-        }
-
-        if (assinatura.rows[0].status === 'CANCELADA') {
-            return res.status(400).json({ success: false, message: "Assinatura já está cancelada." });
-        }
-
-        const updatedAssinatura = await pool.query(
-            `UPDATE assinaturas 
-             SET status = 'CANCELADA', data_cancelamento = NOW(), atualizado_em = NOW()
-             WHERE id = $1 RETURNING *`,
-            [id]
-        );
-
-        res.status(200).json({ success: true, message: "Assinatura cancelada com sucesso!", data: updatedAssinatura.rows[0] });
-
-    } catch (error) {
-        console.error("Erro ao cancelar assinatura (Admin):", error);
-        res.status(500).json({ success: false, message: "Erro interno do servidor." });
+    if (assinatura.rows.length === 0) {
+      return res.status(404).json({ success: false, message: "Assinatura não encontrada." });
     }
+
+    if (assinatura.rows[0].status === 'CANCELADA') {
+      return res.status(400).json({ success: false, message: "Assinatura já está cancelada." });
+    }
+
+    const updatedAssinatura = await pool.query(
+      `UPDATE assinaturas 
+       SET status = 'CANCELADA', data_cancelamento = NOW(), atualizado_em = NOW()
+       WHERE id = $1 RETURNING *`,
+      [id]
+    );
+
+    res.status(200).json({ success: true, message: "Assinatura cancelada com sucesso!", data: updatedAssinatura.rows[0] });
+  } catch (error) {
+    console.error("Erro ao cancelar assinatura (Admin):", error);
+    res.status(500).json({ success: false, message: "Erro interno do servidor." });
+  }
 };
 
 // @desc    [Admin] Pausar uma assinatura
 // @route   PUT /api/admin/assinaturas/:id/pausar
 // @access  Admin
 const adminPauseAssinatura = async (req, res) => {
-    const { id } = req.params;
+  const { id } = req.params;
 
-    try {
-        const assinatura = await pool.query("SELECT status FROM assinaturas WHERE id = $1", [id]);
+  try {
+    const assinatura = await pool.query("SELECT status FROM assinaturas WHERE id = $1", [id]);
 
-        if (assinatura.rows.length === 0) {
-            return res.status(404).json({ success: false, message: "Assinatura não encontrada." });
-        }
-
-        if (assinatura.rows[0].status === 'PAUSADA') {
-            return res.status(400).json({ success: false, message: "Assinatura já está pausada." });
-        }
-
-        if (assinatura.rows[0].status === 'CANCELADA') {
-            return res.status(400).json({ success: false, message: "Não é possível pausar uma assinatura cancelada." });
-        }
-
-        const updatedAssinatura = await pool.query(
-            `UPDATE assinaturas 
-             SET status = 'PAUSADA', atualizado_em = NOW()
-             WHERE id = $1 RETURNING *`,
-            [id]
-        );
-
-        res.status(200).json({ success: true, message: "Assinatura pausada com sucesso!", data: updatedAssinatura.rows[0] });
-
-    } catch (error) {
-        console.error("Erro ao pausar assinatura (Admin):", error);
-        res.status(500).json({ success: false, message: "Erro interno do servidor." });
+    if (assinatura.rows.length === 0) {
+      return res.status(404).json({ success: false, message: "Assinatura não encontrada." });
     }
+
+    if (assinatura.rows[0].status === 'PAUSADA') {
+      return res.status(400).json({ success: false, message: "Assinatura já está pausada." });
+    }
+
+    if (assinatura.rows[0].status === 'CANCELADA') {
+      return res.status(400).json({ success: false, message: "Não é possível pausar uma assinatura cancelada." });
+    }
+
+    const updatedAssinatura = await pool.query(
+      `UPDATE assinaturas 
+       SET status = 'PAUSADA', atualizado_em = NOW()
+       WHERE id = $1 RETURNING *`,
+      [id]
+    );
+
+    res.status(200).json({ success: true, message: "Assinatura pausada com sucesso!", data: updatedAssinatura.rows[0] });
+  } catch (error) {
+    console.error("Erro ao pausar assinatura (Admin):", error);
+    res.status(500).json({ success: false, message: "Erro interno do servidor." });
+  }
 };
 
 // @desc    [Admin] Reativar uma assinatura
 // @route   PUT /api/admin/assinaturas/:id/reativar
 // @access  Admin
 const adminReactivateAssinatura = async (req, res) => {
-    const { id } = req.params;
+  const { id } = req.params;
 
-    try {
-        const assinatura = await pool.query("SELECT status FROM assinaturas WHERE id = $1", [id]);
+  try {
+    const assinatura = await pool.query("SELECT status FROM assinaturas WHERE id = $1", [id]);
 
-        if (assinatura.rows.length === 0) {
-            return res.status(404).json({ success: false, message: "Assinatura não encontrada." });
-        }
-
-        if (assinatura.rows[0].status === 'ATIVA') {
-            return res.status(400).json({ success: false, message: "Assinatura já está ativa." });
-        }
-
-        if (assinatura.rows[0].status === 'CANCELADA') {
-            return res.status(400).json({ success: false, message: "Não é possível reativar uma assinatura cancelada." });
-        }
-
-        const updatedAssinatura = await pool.query(
-            `UPDATE assinaturas 
-             SET status = 'ATIVA', atualizado_em = NOW()
-             WHERE id = $1 RETURNING *`,
-            [id]
-        );
-
-        res.status(200).json({ success: true, message: "Assinatura reativada com sucesso!", data: updatedAssinatura.rows[0] });
-
-    } catch (error) {
-        console.error("Erro ao reativar assinatura (Admin):", error);
-        res.status(500).json({ success: false, message: "Erro interno do servidor." });
+    if (assinatura.rows.length === 0) {
+      return res.status(404).json({ success: false, message: "Assinatura não encontrada." });
     }
+
+    if (assinatura.rows[0].status === 'ATIVA') {
+      return res.status(400).json({ success: false, message: "Assinatura já está ativa." });
+    }
+
+    if (assinatura.rows[0].status === 'CANCELADA') {
+      return res.status(400).json({ success: false, message: "Não é possível reativar uma assinatura cancelada." });
+    }
+
+    const updatedAssinatura = await pool.query(
+      `UPDATE assinaturas 
+       SET status = 'ATIVA', atualizado_em = NOW()
+       WHERE id = $1 RETURNING *`,
+      [id]
+    );
+
+    res.status(200).json({ success: true, message: "Assinatura reativada com sucesso!", data: updatedAssinatura.rows[0] });
+  } catch (error) {
+    console.error("Erro ao reativar assinatura (Admin):", error);
+    res.status(500).json({ success: false, message: "Erro interno do servidor." });
+  }
 };
 
 module.exports = {
