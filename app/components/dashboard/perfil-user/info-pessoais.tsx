@@ -86,7 +86,6 @@ export default function InfoPessoais() {
   const file = e.target.files[0];
   if (!validateImage(file)) return;
 
-  // 🔥 Ativa o loading antes de começar upload
   setImgLoading(true);
   setImgError(false);
 
@@ -95,14 +94,12 @@ export default function InfoPessoais() {
     if (response.success) {
       toast.success("Foto atualizada com sucesso!");
       
-      // ⚡ Usa a URL que o backend já devolve
       if (response.user?.foto_perfil_url) {
         setUserData(prev => ({
           ...prev!,
           foto_perfil_url: response.user.foto_perfil_url,
         }));
       } else {
-        // fallback pra buscar novamente se necessário
         const updated = await getUserInfo(token);
         if (updated.success) setUserData(updated.user);
       }
@@ -166,7 +163,6 @@ export default function InfoPessoais() {
        <UserForm />
      </div>
 
-     {/* Texto de exclusão Mobile */}
      <DeleteUser
        className="block lg:hidden"
        onDelete={handleDeleteUser}
@@ -174,7 +170,6 @@ export default function InfoPessoais() {
 
      <div className="hidden lg:block h-[550px] w-1 border-gray-primary border-l" />
 
-     {/* Avatar Desktop */}
      <div className="hidden lg:flex flex-col items-center justify-between w-5/12 pb-20 xl:pb-40 px-2">
        <div className="flex flex-col items-center justify-center pb-10">
         <UserAvatar

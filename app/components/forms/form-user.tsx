@@ -17,6 +17,7 @@ export default function UserForm() {
   const [novaSenha, setNovaSenha] = useState("");
   const [mostrarSenhaAtual, setMostrarSenhaAtual] = useState(false);
   const [mostrarNovaSenha, setMostrarNovaSenha] = useState(false);
+  const [isLoading, setIsLoading] = useState(false); 
 
   const [avisoSenhaAtual, setAvisoSenhaAtual] = useState(false);
   const [avisoNovaSenha, setAvisoNovaSenha] = useState(false);
@@ -105,6 +106,8 @@ export default function UserForm() {
     }
 
     try {
+      setIsLoading(true);
+
       const response = await updateUserInfo(token, payload);
       if (response.success) {
         toast.success("Perfil atualizado com sucesso!");
@@ -119,6 +122,7 @@ export default function UserForm() {
       console.error(err);
       toast.error("Erro inesperado ao atualizar perfil.");
     } finally {
+      setIsLoading(false);
       toast.dismiss();
     }
   };
@@ -238,9 +242,13 @@ export default function UserForm() {
       <Button 
         type="submit"
         variant="quaternary"
-        className="w-full py-3 font-medium text-lg"
+        className="w-full py-3 font-medium text-lg flex items-center justify-center"
       >
-        Atualizar meus Dados
+        {isLoading ? (
+          <span className="mx-2 my-[6px] animate-spin rounded-full border-4 border-beige-primary border-t-transparent size-4"></span>
+        ) : (
+          "Atualizar meus Dados"
+        )}
       </Button>
       
     </form>
