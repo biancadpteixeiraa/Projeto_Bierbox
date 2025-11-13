@@ -442,6 +442,33 @@ const adminUpdateUser = async (req, res) => {
   }
 };
 
+// @desc [Admin] Excluir um usuário
+// @route DELETE /api/admin/users/:id
+// @access Admin
+const adminDeleteUser = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    // Verifica se o usuário existe
+    const existingUser = await pool.query("SELECT * FROM users WHERE id = $1", [id]);
+    if (existingUser.rows.length === 0) {
+      return res.status(404).json({ success: false, message: "Usuário não encontrado." });
+    }
+
+    // Exclui o usuário
+    await pool.query("DELETE FROM users WHERE id = $1", [id]);
+
+    res.status(200).json({
+      success: true,
+      message: "Usuário excluído com sucesso!",
+    });
+  } catch (error) {
+    console.error("Erro ao excluir usuário (Admin):", error);
+    res.status(500).json({ success: false, message: "Erro interno do servidor." });
+  }
+};
+
+
 // @desc [Admin] Listar todos os pedidos
 // @route GET /api/admin/pedidos
 // @access Admin
@@ -606,28 +633,25 @@ const adminGetAssinaturaById = async (req, res) => {
   try {
     const query = `
         SELECT 
-            a.id AS id_assinatura,
+            a.*, -- retorna todos os campos da tabela assinaturas
             u.nome_completo AS cliente_nome,
             u.email AS cliente_email,
+            u.cpf AS cliente_cpf,
             b.nome AS box_nome,
-            a.valor_assinatura AS valor_box,
-            a.data_inicio,
-            a.status,
             e.cep AS endereco_cep,
             e.rua AS endereco_rua,
             e.numero AS endereco_numero,
             e.complemento AS endereco_complemento,
             e.bairro AS endereco_bairro,
             e.cidade AS endereco_cidade,
-            e.estado AS endereco_estado,
-            a.forma_pagamento,
-            a.criado_em AS data_criacao_assinatura
+            e.estado AS endereco_estado
         FROM assinaturas a
         LEFT JOIN users u ON a.utilizador_id = u.id
         LEFT JOIN boxes b ON a.box_id = b.id
         LEFT JOIN enderecos e ON a.endereco_entrega_id = e.id
         WHERE a.id = $1
     `;
+
     const assinaturaResult = await pool.query(query, [id]);
 
     if (assinaturaResult.rows.length === 0) {
@@ -765,6 +789,7 @@ module.exports = {
   adminGetAllUsers,
   adminGetUserById,
   adminUpdateUser,
+  adminDeleteUser,
   adminGetAllPedidos,
   adminGetPedidoById,
   adminUpdatePedido,

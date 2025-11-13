@@ -11,6 +11,7 @@ const {
     adminGetAllUsers, 
     adminGetUserById,
     adminUpdateUser,
+    adminDeleteUser,
     adminGetAllPedidos, 
     adminGetPedidoById, 
     adminUpdatePedido,
@@ -34,6 +35,7 @@ router.delete('/boxes/:id', protect, adminProtect, adminDeleteBox);
 router.get('/users', protect, adminProtect, adminGetAllUsers); 
 router.get('/users/:id', protect, adminProtect, adminGetUserById); 
 router.put('/users/:id', protect, adminProtect, adminUpdateUser);
+router.delete("/users/:id", protectAdmin, adminDeleteUser);
 router.get('/pedidos', protect, adminProtect, adminGetAllPedidos); 
 router.get('/pedidos/:id', protect, adminProtect, adminGetPedidoById); 
 router.put('/pedidos/:id', protect, adminProtect, adminUpdatePedido);
