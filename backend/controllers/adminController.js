@@ -379,6 +379,67 @@ const adminGetUserById = async (req, res) => {
   }
 };
 
+// @desc [Admin] Atualizar um usuário
+// @route PUT /api/admin/users/:id
+// @access Admin
+  const adminUpdateUser = async (req, res) => {
+    const { id } = req.params;
+    const { nome_completo, email, ativo, role } = req.body;
+
+    try {
+      const existingUser = await pool.query("SELECT * FROM users WHERE id = $1", [id]);
+      if (existingUser.rows.length === 0) {
+        return res.status(404).json({ success: false, message: "Usuário não encontrado." });
+      }
+
+      const fields = [];
+      const values = [];
+      let paramIndex = 1;
+
+      if (nome_completo !== undefined) {
+        fields.push(`nome_completo = $${paramIndex++}`);
+        values.push(nome_completo);
+      }
+
+      if (email !== undefined) {
+        fields.push(`email = $${paramIndex++}`);
+        values.push(email);
+      }
+
+      if (ativo !== undefined) {
+        fields.push(`ativo = $${paramIndex++}`);
+        values.push(ativo);
+      }
+
+      if (role !== undefined) {
+        fields.push(`role = $${paramIndex++}`);
+        values.push(role);
+      }
+
+      if (fields.length === 0) {
+        return res.status(400).json({ success: false, message: "Nenhum campo enviado para atualização." });
+      }
+
+      values.push(id);
+      const updateQuery = `
+        UPDATE users
+        SET ${fields.join(", ")}, atualizado_em = NOW()
+        WHERE id = $${paramIndex}
+        RETURNING id, nome_completo, email, role, ativo, data_criacao, atualizado_em
+      `;
+
+      const updatedUser = await pool.query(updateQuery, values);
+      res.status(200).json({
+        success: true,
+        message: "Usuário atualizado com sucesso!",
+        data: updatedUser.rows[0],
+      });
+    } catch (error) {
+      console.error("Erro ao atualizar usuário (Admin):", error);
+      res.status(500).json({ success: false, message: "Erro interno do servidor." });
+    }
+  };
+
 // @desc [Admin] Listar todos os pedidos
 // @route GET /api/admin/pedidos
 // @access Admin
@@ -396,6 +457,7 @@ const adminGetAllPedidos = async (req, res) => {
     res.status(500).json({ success: false, message: "Erro interno do servidor." });
   }
 };
+
 
 // @desc [Admin] Obter detalhes de um pedido (com tipo de plano, método de pagamento e quantidade de cervejas)
 // @route GET /api/admin/pedidos/:id
@@ -700,6 +762,7 @@ module.exports = {
   adminDeleteBox,
   adminGetAllUsers,
   adminGetUserById,
+  adminUpdateUser,
   adminGetAllPedidos,
   adminGetPedidoById,
   adminUpdatePedido,

@@ -9,7 +9,8 @@ const {
     adminUpdateBox, 
     adminDeleteBox, 
     adminGetAllUsers, 
-    adminGetUserById, 
+    adminGetUserById,
+    adminUpdateUser,
     adminGetAllPedidos, 
     adminGetPedidoById, 
     adminUpdatePedido,
@@ -32,6 +33,7 @@ router.put('/boxes/:id', protect, adminProtect, adminUpdateBox);
 router.delete('/boxes/:id', protect, adminProtect, adminDeleteBox); 
 router.get('/users', protect, adminProtect, adminGetAllUsers); 
 router.get('/users/:id', protect, adminProtect, adminGetUserById); 
+router.put('/users/:id', protect, adminProtect, adminUpdateUser);
 router.get('/pedidos', protect, adminProtect, adminGetAllPedidos); 
 router.get('/pedidos/:id', protect, adminProtect, adminGetPedidoById); 
 router.put('/pedidos/:id', protect, adminProtect, adminUpdatePedido);
