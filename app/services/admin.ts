@@ -103,8 +103,34 @@ export async function getAssinaturas(token: string) {
 }
 
 export async function getAssinaturaDetalhes(token: string, assinaturaId: string) {
-    const response = await api.get(`/api/admin/assinaturas/${assinaturaId}`, {
-        headers: { Authorization: `Bearer ${token}` },
+    const response = await api.get(`/api/admin/assinaturas/${assinaturaId}`, 
+        {headers: { Authorization: `Bearer ${token}` },
     });
     return response.data;
 }
+
+export async function cancelarAssinatura(token: string, assinaturaId: string,){
+    const response = await api.put(`/api/admin/assinaturas/${assinaturaId}/cancelar`, 
+        {},
+        { headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+}
+
+export async function pausarAssinatura(token: string, assinaturaId: string,){
+    const response = await api.put(`/api/admin/assinaturas/${assinaturaId}/pausar`, 
+        {},
+        { headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+}
+
+export async function reativarAssinatura(token: string, assinaturaId: string,){
+    const response = await api.put(`/api/admin/assinaturas/${assinaturaId}/reativar`,
+        {}, 
+        { headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+}
+
+
