@@ -446,25 +446,60 @@ const adminUpdateUser = async (req, res) => {
 // @route DELETE /api/admin/users/:id
 // @access Admin
 const adminDeleteUser = async (req, res) => {
-  const { id } = req.params;
+  const client = await pool.connect();
 
   try {
-    // Verifica se o usuário existe
-    const existingUser = await pool.query("SELECT * FROM users WHERE id = $1", [id]);
-    if (existingUser.rows.length === 0) {
-      return res.status(404).json({ success: false, message: "Usuário não encontrado." });
-    }
+    const userId = req.params.id;
 
-    // Exclui o usuário
-    await pool.query("DELETE FROM users WHERE id = $1", [id]);
+    await client.query("BEGIN");
+
+    // Apaga itens do carrinho
+    await client.query(
+      `DELETE FROM carrinho_itens 
+       WHERE carrinho_id IN (
+         SELECT id FROM carrinhos WHERE usuario_id = $1
+       )`,
+      [userId]
+    );
+
+    // Apaga carrinhos
+    await client.query(
+      "DELETE FROM carrinhos WHERE usuario_id = $1",
+      [userId]
+    );
+
+    // Apaga assinaturas (se quiser, pode verificar antes)
+    await client.query(
+      "DELETE FROM assinaturas WHERE utilizador_id = $1",
+      [userId]
+    );
+
+    // Apaga o usuário
+    const deleteResult = await client.query(
+      "DELETE FROM users WHERE id = $1 RETURNING id",
+      [userId]
+    );
+
+    await client.query("COMMIT");
+
+    if (deleteResult.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Usuário não encontrado."
+      });
+    }
 
     res.status(200).json({
       success: true,
-      message: "Usuário excluído com sucesso!",
+      message: "Usuário excluído com sucesso!"
     });
+
   } catch (error) {
+    await client.query("ROLLBACK");
     console.error("Erro ao excluir usuário (Admin):", error);
     res.status(500).json({ success: false, message: "Erro interno do servidor." });
+  } finally {
+    client.release();
   }
 };
 
