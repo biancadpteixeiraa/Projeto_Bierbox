@@ -10,7 +10,9 @@ import Pagination from "@/app/components/ui/pagination";
 import useDebounce from "@/app/hooks/hooks";
 import ClienteTable from "../../tables/clientes/clientes";
 import { useAdminAuth } from "@/app/context/authAdminContext";
-import { getUsuarios } from "@/app/services/admin";
+import { deleteUsuario, getUsuarios } from "@/app/services/admin";
+import Modal from "@/app/components/dashboard/modal";
+import { toast } from "react-toastify";
 
 type Cliente = {
   id: string;
@@ -19,6 +21,7 @@ type Cliente = {
   data_criacao: string;
   role: string;
   ativo: boolean
+  total_pedidos: string
 }
 
 export default function ClientesArea() {
@@ -33,6 +36,19 @@ export default function ClientesArea() {
   const searchTerm = searchParams.get("search") || "";
 
   const [localSearch, setLocalSearch] = useState(searchTerm);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<string | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+
+  const openModal = (id: string) => {
+    setUserToDelete(id);
+    setModalOpen(true);
+  };
+
+  const closeModal = () => {
+   setModalOpen(false);
+  };
+
   const debouncedSearch = useDebounce(localSearch, 350);
 
   const updateSearchParams = useCallback(
@@ -77,11 +93,12 @@ export default function ClientesArea() {
   );
 
   const filteredClientes = useMemo(() => {
-    return sortedClientes.filter((assinatura) => {
+    return sortedClientes.filter((cliente) => {
       const matchesSearch =
-        assinatura.nome_completo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        assinatura.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        assinatura.data_criacao.toLowerCase().includes(searchTerm.toLowerCase());
+        cliente.nome_completo.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        cliente.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        cliente.total_pedidos.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        cliente.data_criacao.toLowerCase().includes(searchTerm.toLowerCase());
 
 
       return matchesSearch;
@@ -98,12 +115,32 @@ export default function ClientesArea() {
   const totalPages = Math.ceil(filteredClientes.length / perPage);
 
   if (loading) {
-    return <p className="text-center text-brown-tertiary mt-20">Carregando assinaturas...</p>;
+    return <p className="text-center text-brown-tertiary mt-20">Carregando clientes...</p>;
   }
 
   if (!clientes.length && !loading) {
     return <p className="text-center text-brown-tertiary mt-20">Nenhum dado disponível</p>;
   }
+
+  const handleDeleteUser = async () => {
+    if (!token || !userToDelete) return;
+
+    try {
+      setDeleteLoading(true);
+      const res = await deleteUsuario(token, userToDelete);
+
+      setClientes((prev) => prev.filter((c) => c.id !== userToDelete));
+      toast.success("Usuário excluído com sucesso!");
+
+    } catch (error: any) {
+      console.error(error);
+      toast.error(error?.response?.data?.message || "Erro ao excluir usuário.");
+    } finally {
+      closeModal();
+      setUserToDelete(null);
+      setDeleteLoading(false);
+    }
+  };
 
   return (
     <div className="w-full h-full pt-8 md:pr-10">
@@ -120,10 +157,11 @@ export default function ClientesArea() {
           </div>
         </div>
 
-        <ClienteTable dados={paginatedClientes} />
+        <ClienteTable dados={paginatedClientes} onDelete={openModal} />
 
         <Pagination totalPages={totalPages} currentPage={currentPage} />
       </DataCard>
+      <Modal title="Excluir Usuário" description="Tem certeza que deseja excluir esse usuário?" isLoading={deleteLoading} isOpen={modalOpen} onClose={closeModal} onConfirm={handleDeleteUser}/>
     </div>
   );
 }

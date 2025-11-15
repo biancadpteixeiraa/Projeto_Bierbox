@@ -82,12 +82,12 @@ export default function AssinaturasArea() {
   const filteredAssinaturas = useMemo(() => {
     return sortedAssinaturas.filter((assinatura) => {
       const matchesSearch =
-        assinatura.id_assinatura.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        assinatura.cliente_nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        assinatura.plano.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        assinatura.box_nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        assinatura.status.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        assinatura.data_inicio.toLowerCase().includes(searchTerm.toLowerCase());
+        assinatura.id_assinatura?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        assinatura.cliente_nome?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        assinatura.plano?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        assinatura.box_nome?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        assinatura.status?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        assinatura.data_inicio?.toLowerCase().includes(searchTerm.toLowerCase())
 
       const matchesStatus = filtroStatus
         ? assinatura.status.toLowerCase() === filtroStatus.toLowerCase()
@@ -145,6 +145,7 @@ export default function AssinaturasArea() {
                 <option value="ativa">Ativa</option>
                 <option value="pendente">Pendente</option>
                 <option value="cancelada">Cancelada</option>
+                <option value="pausada">Pausada</option>
               </select>
               <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-brown-primary pointer-events-none" />
             </div>

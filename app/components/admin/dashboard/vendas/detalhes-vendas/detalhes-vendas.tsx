@@ -16,6 +16,8 @@ interface PedidoDetalhes {
   id_antigo: string | null;
   utilizador_id: string | null;
   utilizador_id_uuid: string | null;
+  tipo_plano: string | null;
+  quantidade_cervejas: number | null;
 
   cliente_nome: string | null;
   cliente_email: string | null;
@@ -107,7 +109,7 @@ export default function DetalhesVendas({ modo }: { modo: "ver" | "editar" }) {
             <DataCard className="p-5">
                 <form  onSubmit={handleSubmit} className="flex flex-col gap-6">
                     <div>
-                        <h2>Informações pessoais</h2>
+                        <h2 className="text-lg font-semibold text-brown-tertiary">Informações pessoais</h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                             <div>
                                 <label htmlFor="">Nome do cliente</label>
@@ -126,7 +128,7 @@ export default function DetalhesVendas({ modo }: { modo: "ver" | "editar" }) {
                         </div>
                     </div>
                     <div>
-                        <h2>Endereço de Entrega</h2>
+                        <h2 className="text-lg font-semibold text-brown-tertiary">Endereço de Entrega</h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                             <div>
                                 <label htmlFor="">Rua</label>
@@ -163,7 +165,7 @@ export default function DetalhesVendas({ modo }: { modo: "ver" | "editar" }) {
                         </div>
                     </div>
                     <div>
-                        <h2>Detalhes da compra</h2>
+                        <h2 className="text-lg font-semibold text-brown-tertiary">Detalhes da compra</h2>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
                             <div>
                                 <label htmlFor="">Box escolhida</label>
@@ -171,11 +173,11 @@ export default function DetalhesVendas({ modo }: { modo: "ver" | "editar" }) {
                             </div>
                             <div>
                                 <label htmlFor="">Tipo de Plano</label>
-                                <Input type="text" value="Plano Mensal" readOnly disabled/>
+                                <Input type="text" value={pedido.tipo_plano || ""} readOnly disabled/>
                             </div>
                             <div>
-                                <label htmlFor="">Quantidade de Boxes</label>
-                                <Input type="text" value="1" readOnly disabled/>
+                                <label htmlFor="">Quantidade de Cervejas</label>
+                                <Input type="text" value={pedido.quantidade_cervejas || ""} readOnly disabled/>
                             </div>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
@@ -212,7 +214,7 @@ export default function DetalhesVendas({ modo }: { modo: "ver" | "editar" }) {
                         </div>
                     </div>
                     <div>
-                        <h2>Status e Rastreio</h2>
+                        <h2 className="text-lg font-semibold text-brown-tertiary">Status e Rastreio</h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                             <div>
                                 <label htmlFor="">Status do Pedido</label>
@@ -230,19 +232,21 @@ export default function DetalhesVendas({ modo }: { modo: "ver" | "editar" }) {
                     </div>
                     
                     {isEditMode && (
-                    <div className="flex justify-end mt-8">
-                    <Button type="submit" disabled={salvando} className="flex items-center justify-center">
-                        {salvando ? (
-                            <span className="mx-[53px] my-[3px] animate-spin rounded-full border-4 border-beige-primary border-t-transparent size-4"></span>
-                        ) : (
-                            "Salvar Alterações"
-                        )}
-                    </Button>
+                    <div className="flex flex-col items-start mt-8">
+                        <h2 className="text-lg font-semibold text-brown-tertiary">Ações do Administrador</h2>
+                        <div className="w-full flex justify-end mb-8">
+                            <Button type="submit" disabled={salvando} className="flex items-center justify-center">
+                                {salvando ? (
+                                    <span className="mx-[53px] my-[3px] animate-spin rounded-full border-4 border-beige-primary border-t-transparent size-4"></span>
+                                ) : (
+                                    "Salvar Alterações"
+                                )}
+                            </Button>
+                        </div>
                     </div>
                 )}
                 </form>
             </DataCard>
-
         </div>
     );
 }

@@ -8,7 +8,6 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
   return (
     <AdminAuthProvider>
       {children}
-      <ToastContainer position="top-center" />
     </AdminAuthProvider>
   );
 }

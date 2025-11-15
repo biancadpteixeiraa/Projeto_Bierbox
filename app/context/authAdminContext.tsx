@@ -36,6 +36,14 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
     setLoading(false);
   }, []);
 
+  useEffect(() => {
+    if (!loading && token && admin) {
+      if (window.location.pathname === '/admin') {
+        router.push(`/admin/${admin.id}/dashboard`);
+      }
+    }
+  }, [loading, token, admin]);
+
   const loginAdmin = async (email: string, senha: string) => {
     setLoading(true);
     try {

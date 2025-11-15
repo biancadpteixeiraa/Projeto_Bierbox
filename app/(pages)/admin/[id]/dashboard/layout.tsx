@@ -20,7 +20,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         </div>
 
       </PrivateAdminRoute>
-      <ToastContainer position="top-center" />
     </AdminAuthProvider>
   );
 }

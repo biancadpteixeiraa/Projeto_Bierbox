@@ -44,23 +44,31 @@ export default function ProdutosTable({ dados }: { dados: Produtos[] }) {
             header: () => <span className="hidden md:table-cell">Preco Mensal</span>,
             cell: (info) => {
             const valor = info.getValue();
+            const numero = Number(valor);
             return (
-            <span className="hidden md:table-cell">
-                {valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
-            </span>
+                <span className="hidden md:table-cell">
+                {numero.toLocaleString("pt-BR", {
+                    style: "currency",
+                    currency: "BRL",
+                })}
+                </span>
             );
-        },
+            },
         }),
         columnHelper.accessor("preco_anual_4_un", {
             header: () => <span className="hidden md:table-cell">Preco Anual</span>,
             cell: (info) => {
             const valor = info.getValue();
+            const numero = Number(valor);
             return (
-            <span className="hidden md:table-cell">
-                {valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
-            </span>
+                <span className="hidden md:table-cell">
+                {numero.toLocaleString("pt-BR", {
+                    style: "currency",
+                    currency: "BRL",
+                })}
+                </span>
             );
-        },
+            },
         }),
         columnHelper.accessor("ativo", {
             header: () => <span className="hidden md:table-cell">Status</span>,

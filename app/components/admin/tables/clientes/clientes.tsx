@@ -6,7 +6,7 @@ import {
   flexRender,
   createColumnHelper,
 } from "@tanstack/react-table";
-import { Edit, Eye } from "lucide-react";
+import { Edit, Eye, Trash } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 
@@ -17,12 +17,13 @@ type Cliente = {
   data_criacao: string;
   role: string;
   ativo: boolean
+  total_pedidos: string
 }
 
 
 const columnHelper = createColumnHelper<Cliente>();
 
-export default function ClienteTable({ dados }: { dados: Cliente[] }) {
+export default function ClienteTable({ dados, onDelete }: { dados: Cliente[], onDelete: (id: string) => void;}) {
 
     const params = useParams();
     const id = params.id as string;
@@ -47,6 +48,12 @@ export default function ClienteTable({ dados }: { dados: Cliente[] }) {
             return <span className="hidden md:table-cell">{dataFormatada}</span>;
         },
         }),
+        columnHelper.accessor("total_pedidos", {
+            header: () => <span className="hidden md:table-cell">Pedidos Totais</span>,
+            cell: (info) => (
+            <span className="hidden md:table-cell">{info.getValue()}</span>
+            ),
+        }),
         columnHelper.display({
         id: "editar",
         header: "Ações",
@@ -65,6 +72,9 @@ export default function ClienteTable({ dados }: { dados: Cliente[] }) {
                 >
                     <Eye size={18} />
                 </Link>
+                <span onClick={() => onDelete(info.row.original.id)} className="cursor-pointer hover:text-[rgb(93,69,25,0.90)]">
+                    <Trash size={18}/>
+                </span>
             </span>
         ),
         }),

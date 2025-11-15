@@ -108,7 +108,7 @@ export default function DetalhesAssinatura({ modo }: { modo: "ver" | "editar" })
             <DataCard className="p-5">
                 <form className="flex flex-col gap-6">
                     <div>
-                        <h2>Informações pessoais</h2>
+                        <h2 className="text-lg font-semibold text-brown-tertiary">Informações pessoais</h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                             <div>
                                 <label htmlFor="">Nome do cliente</label>
@@ -121,7 +121,7 @@ export default function DetalhesAssinatura({ modo }: { modo: "ver" | "editar" })
                         </div>
                     </div>
                     <div>
-                        <h2>Detalhes da compra</h2>
+                        <h2 className="text-lg font-semibold text-brown-tertiary">Detalhes da compra</h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                             <div>
                                 <label htmlFor="">Box escolhida</label>
@@ -150,7 +150,7 @@ export default function DetalhesAssinatura({ modo }: { modo: "ver" | "editar" })
                         </div>
                     </div>
                     <div>
-                        <h2>Endereço de Entrega Atual</h2>
+                        <h2 className="text-lg font-semibold text-brown-tertiary">Endereço de Entrega Atual</h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                             <div>
                                 <label htmlFor="">Rua</label>
@@ -187,7 +187,7 @@ export default function DetalhesAssinatura({ modo }: { modo: "ver" | "editar" })
                         </div>
                     </div>
                     <div>
-                        <h2>Históricos de Pagamentos</h2>
+                        <h2 className="text-lg font-semibold text-brown-tertiary">Históricos de Pagamentos</h2>
                         <table className="w-2/3 mt-4 border-collapse">
                             <thead className="border border-brown-primary">
                                 <tr>
@@ -228,7 +228,7 @@ export default function DetalhesAssinatura({ modo }: { modo: "ver" | "editar" })
                         <>
                         {(status === "ATIVA" || status === "PAUSADA") && (
                             <div className="flex flex-col items-start gap-4 justify-start mt-8">
-                                <h2>Ações do Administrador</h2>
+                                <h2 className="text-lg font-semibold text-brown-tertiary">Ações do Administrador</h2>
                                 {status === "ATIVA" && (
                                 <>
                                 <div className="flex flex-col lg:flex-row gap-6 pb-8">

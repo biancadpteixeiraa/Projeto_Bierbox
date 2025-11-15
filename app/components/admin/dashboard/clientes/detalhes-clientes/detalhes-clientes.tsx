@@ -74,6 +74,7 @@ export default function DetalhesClientes({ modo }: { modo: "ver" | "editar" }) {
             setAtivo(data.data.info.ativo ?? false);
         } catch (error) {
             toast.error("Erro ao carregar detalhes do Usuário.");
+            console.log(error)
         } finally {
             setLoading(false);
         }
@@ -92,9 +93,15 @@ export default function DetalhesClientes({ modo }: { modo: "ver" | "editar" }) {
             toast.success("Usuário atualizado com sucesso!");
         } catch (error) {
             toast.error("Erro ao atualizar usuário.");
+            console.log(error)
         } finally {
             setSalvando(false);
         }
+    }
+
+    function encurtarId(id: string, tamanho = 15) {
+        if (!id) return "";
+        return id.length > tamanho ? id.slice(0, tamanho) + "..." : id;
     }
 
     if (loading) {
@@ -111,40 +118,43 @@ export default function DetalhesClientes({ modo }: { modo: "ver" | "editar" }) {
             <DataCard className="p-5">
                 <form onSubmit={handleSubmit} className="flex flex-col gap-6">
                     <div>
-                        <h2>Informações pessoais</h2>
+                        <h2 className="text-lg font-semibold text-brown-tertiary">Informações pessoais</h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                             <div>
                                 <label htmlFor="">Nome do cliente</label>
                                 <Input type="text" value={nomeCompleto}
                                 readOnly={!isEditMode}
+                                disabled={!isEditMode}
                                 onChange={(e) => setNomeCompleto(e.target.value)}/>
                             </div>
                             <div>
                                 <label htmlFor="">Email</label>
                                 <Input type="email" value={email}
                                 readOnly={!isEditMode}
+                                disabled={!isEditMode}
                                 onChange={(e) => setEmail(e.target.value)}/>
                             </div>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                             <div>
                                 <label htmlFor="">CPF</label>
-                                <Input type="text" value={usuario.info.cpf} readOnly />
+                                <Input type="text" value={usuario.info.cpf} readOnly disabled/>
                             </div>
                             <div>
                                 <label htmlFor="">Data de cadastro</label>
                                 <Input type="text" value={new Date(usuario.info.data_criacao).toLocaleDateString("pt-BR")}
-                                readOnly/>
+                                readOnly
+                                disabled/>
                             </div>
                         </div>
                         {isEditMode && (
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 items-center">
                                 <div>
                                 <label>Função</label>
                                 <select
                                     value={role}
                                     onChange={(e) => setRole(e.target.value)}
-                                    className="w-full border border-brown-primary rounded-md p-2"
+                                    className="cursor-pointer p-3 bg-transparent w-full text-gray-tertiary/75 placeholder:text-gray-tertiary/75 rounded-xl border border-gray-tertiary/35"
                                 >
                                     <option value="cliente">Cliente</option>
                                     <option value="admin">Administrador</option>
@@ -154,6 +164,7 @@ export default function DetalhesClientes({ modo }: { modo: "ver" | "editar" }) {
                                     <input
                                         id="ativo"
                                         type="checkbox"
+                                        className="accent-brown-primary size-4 cursor-pointer"
                                         checked={ativo}
                                         onChange={(e) => setAtivo(e.target.checked)}
                                         disabled={!isEditMode}
@@ -164,10 +175,10 @@ export default function DetalhesClientes({ modo }: { modo: "ver" | "editar" }) {
                             )}
                     </div>
                     <div>
-                        <h2>Endereços Salvos</h2>
+                        <h2 className="text-lg font-semibold text-brown-tertiary">Endereços Salvos</h2>
                         
                         {usuario.enderecos.length === 0 ? (
-                        <p className="mt-3 text-gray-500">Nenhum endereço cadastrado.</p>
+                        <p className="mt-3 text-gray-500 text-center text-base">Nenhum endereço cadastrado.</p>
                         ) : (
                         usuario.enderecos.map((endereco, i) => (
                             <div key={endereco.id} className="mt-4">
@@ -175,35 +186,35 @@ export default function DetalhesClientes({ modo }: { modo: "ver" | "editar" }) {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
                                     <div>
                                     <label>Rua</label>
-                                    <Input type="text" value={endereco.rua} readOnly />
+                                    <Input type="text" value={endereco.rua} readOnly disabled/>
                                     </div>
                                     <div>
                                     <label>Bairro</label>
-                                    <Input type="text" value={endereco.bairro} readOnly />
+                                    <Input type="text" value={endereco.bairro} readOnly disabled/>
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
                                     <div>
                                     <label>CEP</label>
-                                    <Input type="text" value={endereco.cep} readOnly />
+                                    <Input type="text" value={endereco.cep} readOnly disabled/>
                                     </div>
                                     <div>
                                     <label>Número</label>
-                                    <Input type="text" value={endereco.numero} readOnly />
+                                    <Input type="text" value={endereco.numero} readOnly disabled/>
                                     </div>
                                     <div>
                                     <label>Complemento</label>
-                                    <Input type="text" value={endereco.complemento} readOnly />
+                                    <Input type="text" value={endereco.complemento} readOnly disabled/>
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
                                     <div>
                                     <label>Cidade</label>
-                                    <Input type="text" value={endereco.cidade} readOnly />
+                                    <Input type="text" value={endereco.cidade} readOnly disabled/>
                                     </div>
                                     <div>
                                     <label>Estado</label>
-                                    <Input type="text" value={endereco.estado} readOnly />
+                                    <Input type="text" value={endereco.estado} readOnly disabled/>
                                     </div>
                                 </div>
                             </div>
@@ -211,28 +222,28 @@ export default function DetalhesClientes({ modo }: { modo: "ver" | "editar" }) {
                         )}
                     </div>
                     <div>
-                        <h2>Históricos de Assinaturas</h2>
+                        <h2 className="text-lg font-semibold text-brown-tertiary">Históricos de Assinaturas</h2>
                         {usuario.assinaturas.length === 0 ? (
-                            <div className="text-center py-10 text-gray-500">
-                                Nenhuma assinatura encontrada.
+                            <div className="text-center py-10 text-gray-500 text-base">
+                                Nenhuma assinatura cadastrada.
                             </div>
                             ) : (
-                            <table className="w-full border-collapse">
-                                <thead>
-                                <tr className="bg-gray-100 text-left">
-                                    <th className="p-2">Assinatura</th>
-                                    <th className="p-2">Plano</th>
-                                    <th className="p-2">Status</th>
-                                    <th className="p-2">Data de Início</th>
+                            <table className="w-5/6 mt-4 border-collapse">
+                                <thead className="border border-brown-primary">
+                                <tr className="uppercase text-left">
+                                    <th className="border border-brown-primary p-2">Assinatura</th>
+                                    <th className="border border-brown-primary p-2">Plano</th>
+                                    <th className="border border-brown-primary p-2">Status</th>
+                                    <th className="border border-brown-primary p-2">Data de Início</th>
                                 </tr>
                                 </thead>
-                                <tbody>
+                                <tbody className="mt-2 border border-brown-primary">
                                 {usuario.assinaturas.map((assinatura) => (
-                                    <tr key={assinatura.id} className="border-b hover:bg-gray-50">
-                                        <td className="p-2">{assinatura.id}</td>
-                                        <td className="p-2">{assinatura.plano_id}</td>
-                                        <td className="p-2">{assinatura.status}</td>
-                                        <td className="p-2">
+                                    <tr key={assinatura.id}>
+                                        <td className="p-2 border border-brown-primary">{encurtarId(assinatura.id)}</td>
+                                        <td className="p-2 border border-brown-primary">{assinatura.plano_id.split('_').join(' ')}</td>
+                                        <td className="p-2 border border-brown-primary">{assinatura.status}</td>
+                                        <td className="p-2 border border-brown-primary">
                                             {new Date(assinatura.data_inicio).toLocaleDateString("pt-BR")}
                                         </td>
                                     </tr>
@@ -242,19 +253,22 @@ export default function DetalhesClientes({ modo }: { modo: "ver" | "editar" }) {
                         )}
                     </div>
                     {isEditMode && (
-                    <div className="flex items-center gap-6 justify-start mt-8">
-                        <Link href="/admin/assinaturas">
-                            <Button variant="tertiary" className="border-1">
-                                Verificar Assinaturas
+                    <div className="flex flex-col items-start gap-4 justify-start mt-8">
+                        <h2 className="text-lg font-semibold text-brown-tertiary">Ações do Administrador</h2>
+                        <div className="flex flex-col lg:flex-row items-center gap-6 justify-start mb-8">
+                            <Link href="/admin/assinaturas">
+                                <Button variant="tertiary" className="border-2 font-medium">
+                                    Verificar Assinaturas
+                                </Button>
+                            </Link>
+                            <Button type="submit" disabled={salvando} className="font-medium flex items-center justify-center px-12">
+                                {salvando ? (
+                                    <span className="mx-[53px] my-[3px] animate-spin rounded-full border-4 border-beige-primary border-t-transparent size-4"></span>
+                                ) : (
+                                    "Salvar Alterações"
+                                )}
                             </Button>
-                        </Link>
-                     <Button type="submit" disabled={salvando} className="flex items-center justify-center">
-                        {salvando ? (
-                            <span className="mx-[53px] my-[3px] animate-spin rounded-full border-4 border-beige-primary border-t-transparent size-4"></span>
-                        ) : (
-                            "Salvar Alterações"
-                        )}
-                    </Button>
+                        </div>
                     </div>
                 )}
                 </form>

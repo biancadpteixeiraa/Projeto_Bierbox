@@ -21,20 +21,28 @@ export async function getBoxDetalhes(token: string, boxId: string) {
     return response.data;
 }
 
-export async function addBox(token: string, nome: string, descricao_curta: string, descricao_longa: string, especificacao: string, preco_mensal_4_un: number, preco_anual_4_un: number, preco_mensal_6_un: number, preco_anual_6_un: number, ativo: boolean, imagem_principal_url: string) {
-    const response = await api.post("/api/admin/boxes", 
-        {  nome, descricao_curta, descricao_longa, especificacao, preco_mensal_4_un, preco_anual_4_un, preco_mensal_6_un, preco_anual_6_un, ativo, imagem_principal_url},
-        {headers: { Authorization: `Bearer ${token}` },
-    });
-    return response.data;
+export async function addBox(token: string, payload: any) {
+  const response = await api.post(
+    `/api/admin/boxes/`,
+    payload,
+    {
+      headers: { Authorization: `Bearer ${token}` }
+    }
+  );
+
+  return response.data;
 }
 
-export async function updateBox(token: string, nome: string, descricao_curta: string, descricao_longa: string, especificacao: string, preco_mensal_4_un: number, preco_anual_4_un: number, preco_mensal_6_un: number, preco_anual_6_un: number, ativo: boolean, imagem_principal_url: string) {
-    const response = await api.put("/api/admin/boxes", 
-        {  nome, descricao_curta, descricao_longa, especificacao, preco_mensal_4_un, preco_anual_4_un, preco_mensal_6_un, preco_anual_6_un, ativo, imagem_principal_url},
-        {headers: { Authorization: `Bearer ${token}` },
-    });
-    return response.data;
+export async function updateBox(token: string, boxId: string, payload: any) {
+  const response = await api.put(
+    `/api/admin/boxes/${boxId}`,
+    payload,
+    {
+      headers: { Authorization: `Bearer ${token}` }
+    }
+  );
+
+  return response.data;
 }
 
 export async function deleteBox(token: string, boxId: string) {

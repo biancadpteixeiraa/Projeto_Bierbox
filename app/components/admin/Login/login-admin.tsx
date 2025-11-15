@@ -36,7 +36,7 @@ export default function LoginAdmin() {
 
     setLoadingLogin(true);
     try {
-      await loginAdmin(emailAdmin, senhaAdmin); // 👈 usa o loginAdmin do contexto
+      await loginAdmin(emailAdmin, senhaAdmin);
     } catch (error) {
       console.error("Erro ao logar admin:", error);
     } finally {

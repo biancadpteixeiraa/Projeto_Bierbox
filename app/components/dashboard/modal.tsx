@@ -8,9 +8,10 @@ interface ModalProps {
     onConfirm: () => void;
     title: string;
     description: string;
+    isLoading?: boolean;
   }
   
-  export default function Modal({ isOpen, onClose, onConfirm, title, description }: ModalProps) {
+  export default function Modal({ isOpen, onClose, onConfirm, title, description, isLoading }: ModalProps) {
     return (
       <Dialog open={isOpen} onClose={onClose} className="relative z-50">
         <DialogBackdrop className="fixed inset-0 bg-gray-500/75" />
@@ -34,7 +35,11 @@ interface ModalProps {
                   onClick={onConfirm}
                   className="cursor-pointer inline-flex w-full justify-center rounded-md px-6 py-2 text-base font-semibold text-beige-primary bg-brown-primary shadow-sm hover:bg-brown-primary/85 sm:w-auto sm:ml-18"
                 >
-                  Confirmar
+                  { isLoading ? (
+                    <span className="mx-[28px] my-[2px] animate-spin rounded-full border-4 border-beige-primary border-t-transparent size-4"></span>
+                  ) : (
+                    "Confirmar"
+                  )}
                 </button>
                 <button
                   onClick={onClose}

@@ -85,7 +85,7 @@ export default function ProdutosArea() {
   }, [produtos, searchTerm]);
 
   const currentPage = parseInt(searchParams.get("page") || "1");
-  const perPage = 10;
+  const perPage = 5;
 
   const paginatedBox = useMemo(() => {
     return paginate(filteredBox, currentPage, perPage);

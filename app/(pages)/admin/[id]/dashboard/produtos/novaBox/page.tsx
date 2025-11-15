@@ -1,19 +1,15 @@
 "use client";
-import DetalhesProdutos from "@/app/components/admin/dashboard/produtos/detalhes-produtos/detalhes-produtos";
+import NewProduto from "@/app/components/admin/dashboard/produtos/new-produto/new-produto";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams } from "next/navigation";
 
 
 
 export default function Page() {
 
     const params = useParams();
-    const searchParams = useSearchParams();
     const id = params.id as string; 
-
-    const modoParam = searchParams.get("modo");
-    const modo = modoParam === "editar" ? "editar" : "ver";
 
     return(
         <div className="max-w-5xl h-full px-6 md:px-12 py-16">
@@ -21,9 +17,9 @@ export default function Page() {
                 <Link href={`/admin/${id}/dashboard/produtos`} className="text-brown-tertiary hover:text-brown-quaternary font-semibold">
                     <ArrowLeft size={28} />
                 </Link>
-                <h1 className="font-secondary text-2xl text-brown-tertiary font-bold">{modo === "editar" ? "Editar Box:" : "Detalhes da Box:"}</h1>
+                <h1 className="font-secondary text-2xl text-brown-tertiary font-bold">Adicionar nova Box:</h1>
             </div>
-            <DetalhesProdutos modo={modo} />
+            <NewProduto/>
         </div>
     );
 }

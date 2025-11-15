@@ -5,11 +5,14 @@ import NavLinks from './nav-links';
 import Button from "../../../ui/button";
 import Link from "next/link";
 import { useAdminAuth } from "@/app/context/authAdminContext";
+import { useParams } from 'next/navigation';
 
 
 export default function Sidebar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const { logoutAdmin } = useAdminAuth();
+  const params = useParams();
+  const id = params.id as string;
 
   return (
     <div className="flex h-full w-full flex-col items-center justify-center md:py-4 py-0 bg-beige-primary">
@@ -26,7 +29,7 @@ export default function Sidebar() {
           ${menuOpen ? 'translate-x-0' : 'translate-x-full'} md:relative md:translate-x-0`}
       >
         <button className='pt-6' onClick={() => setMenuOpen(false)}>
-        <Link href="/">
+        <Link href={`/admin/${id}/dashboard`}>
               <div className="flex items-center justify-center gap-5 px-12 w-full">
                   <img src="/logo.png" alt="Logo da Bierbox" className="size-20"/>
               </div>

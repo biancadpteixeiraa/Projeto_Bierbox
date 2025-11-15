@@ -147,8 +147,9 @@ export default function VendasArea() {
                 onChange={(e) => updateSearchParams("status", e.target.value)}
               >
                 <option value="">Status</option>
-                <option value="ativo">Ativo</option>
-                <option value="pendente">Pendente</option>
+                <option value="processando">Processando</option>
+                <option value="enviado">Enviado</option>
+                <option value="finalizado">Finalizado</option>
                 <option value="cancelado">Cancelado</option>
               </select>
               <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-brown-primary pointer-events-none" />
