@@ -31,7 +31,7 @@ export default function Sidebar() {
         <button className='pt-6' onClick={() => setMenuOpen(false)}>
         <Link href={`/admin/${id}/dashboard`}>
               <div className="flex items-center justify-center gap-5 px-12 w-full">
-                  <img src="/logo.png" alt="Logo da Bierbox" className="size-20"/>
+                  <img src="/Logo.png" alt="Logo da Bierbox" className="size-20"/>
               </div>
           </Link>
           <div className="flex flex-col justify-center md:items-start items-end pt-12 md:pl-16 md:pr-0 pr-24 md:w-full">
