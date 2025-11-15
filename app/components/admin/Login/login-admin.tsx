@@ -5,6 +5,7 @@ import { useState } from "react";
 
 import Link from "next/link";
 import { useAdminAuth } from "@/app/context/authAdminContext";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function LoginAdmin() {
   const { loginAdmin } = useAdminAuth();
@@ -12,6 +13,7 @@ export default function LoginAdmin() {
   const [senhaAdmin, setSenhaAdmin] = useState('');
   const [loadingLogin, setLoadingLogin] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; senha?: string }>({});
+  const [showPassword, setShowPassword] = useState(false);
 
   const validate = () => {
     const newErrors: { email?: string; senha?: string } = {};
@@ -72,13 +74,28 @@ export default function LoginAdmin() {
         >
           Digite sua senha:
         </label>
-        <Input
-          id="senha"
-          type="password"
-          placeholder="Senha aqui"
-          value={senhaAdmin}
-          onChange={(e) => setSenhaAdmin(e.target.value)}
-        />
+        <div className="relative">
+            <Input
+              id="senha"
+              type={showPassword ? "text" : "password"}
+              placeholder="Senha aqui"
+              value={senhaAdmin}
+              onChange={(e) => setSenhaAdmin(e.target.value)}
+            />
+
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute inset-y-0 right-3 flex items-center text-gray-tertiary/75 hover:text-gray-tertiary/55"
+              aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+            >
+              {showPassword ? (
+                <EyeOff size={18} />
+              ) : (
+                <Eye size={18} />
+              )}
+            </button>
+        </div>
         {errors.senha && (
           <p className="text-red-500 text-xs sm:text-sm mt-1">{errors.senha}</p>
         )}
@@ -92,7 +109,7 @@ export default function LoginAdmin() {
       >
         {loadingLogin ? (
           <svg
-            className="animate-spin h-5 w-5 mr-3 text-white"
+            className="animate-spin h-5 w-5 mr-3 text-white my-1"
             viewBox="0 0 24 24"
           >
             <circle
